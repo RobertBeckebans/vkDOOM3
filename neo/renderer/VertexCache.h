@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -42,9 +42,9 @@ const int STATIC_VERTEX_MEMORY = 31 * 1024 * 1024;	// make sure it fits in VERTC
 typedef uint64 vertCacheHandle_t;
 const int VERTCACHE_STATIC = 1;					// in the static set, not the per-frame set
 const int VERTCACHE_SIZE_SHIFT = 1;
-const int VERTCACHE_SIZE_MASK = 0x7fffff;		// 8 megs 
+const int VERTCACHE_SIZE_MASK = 0x7fffff;		// 8 megs
 const int VERTCACHE_OFFSET_SHIFT = 24;
-const int VERTCACHE_OFFSET_MASK = 0x1ffffff;	// 32 megs 
+const int VERTCACHE_OFFSET_MASK = 0x1ffffff;	// 32 megs
 const int VERTCACHE_FRAME_SHIFT = 49;
 const int VERTCACHE_FRAME_MASK = 0x7fff;		// 15 bits = 32k frames to wrap around
 
@@ -52,81 +52,87 @@ const int VERTEX_CACHE_ALIGN		= 32;
 const int INDEX_CACHE_ALIGN			= 16;
 const int JOINT_CACHE_ALIGN			= 16;
 
-enum cacheType_t {
+enum cacheType_t
+{
 	CACHE_VERTEX,
 	CACHE_INDEX,
 	CACHE_JOINT
 };
 
-struct geoBufferSet_t {
+struct geoBufferSet_t
+{
 	idIndexBuffer			indexBuffer;
 	idVertexBuffer			vertexBuffer;
 	idUniformBuffer			jointBuffer;
-	byte *					mappedVertexBase;
-	byte *					mappedIndexBase;
-	byte *					mappedJointBase;
+	byte* 					mappedVertexBase;
+	byte* 					mappedIndexBase;
+	byte* 					mappedJointBase;
 	idSysInterlockedInteger	indexMemUsed;
 	idSysInterlockedInteger	vertexMemUsed;
 	idSysInterlockedInteger	jointMemUsed;
 	int						allocations;	// number of index and vertex allocations combined
 };
 
-class idVertexCache {
+class idVertexCache
+{
 public:
 	void			Init( int uniformBufferOffsetAlignment );
 	void			Shutdown();
 	void			PurgeAll();
-
+	
 	// call on loading a new map
 	void			FreeStaticData();
-
+	
 	// this data is only valid for one frame of rendering
-	vertCacheHandle_t	AllocVertex( const void * data, int num, size_t size = sizeof( idDrawVert ) );
-	vertCacheHandle_t	AllocIndex( const void * data, int num, size_t size = sizeof( triIndex_t ) );
-	vertCacheHandle_t	AllocJoint( const void * data, int num, size_t size = sizeof( idJointMat ) );
-
+	vertCacheHandle_t	AllocVertex( const void* data, int num, size_t size = sizeof( idDrawVert ) );
+	vertCacheHandle_t	AllocIndex( const void* data, int num, size_t size = sizeof( triIndex_t ) );
+	vertCacheHandle_t	AllocJoint( const void* data, int num, size_t size = sizeof( idJointMat ) );
+	
 	// this data is valid until the next map load
-	vertCacheHandle_t	AllocStaticVertex( const void * data, int bytes );
-	vertCacheHandle_t	AllocStaticIndex( const void * data, int bytes );
-
-	byte *			MappedVertexBuffer( vertCacheHandle_t handle );
-	byte *			MappedIndexBuffer( vertCacheHandle_t handle );
-
+	vertCacheHandle_t	AllocStaticVertex( const void* data, int bytes );
+	vertCacheHandle_t	AllocStaticIndex( const void* data, int bytes );
+	
+	byte* 			MappedVertexBuffer( vertCacheHandle_t handle );
+	byte* 			MappedIndexBuffer( vertCacheHandle_t handle );
+	
 	// Returns false if it's been purged
 	// This can only be called by the front end, the back end should only be looking at
 	// vertCacheHandle_t that are already validated.
 	bool			CacheIsCurrent( const vertCacheHandle_t handle );
-	static bool		CacheIsStatic( const vertCacheHandle_t handle ) { return ( handle & VERTCACHE_STATIC ) != 0; }
-
+	static bool		CacheIsStatic( const vertCacheHandle_t handle )
+	{
+		return ( handle & VERTCACHE_STATIC ) != 0;
+	}
+	
 	// vb/ib is a temporary reference -- don't store it
-	bool			GetVertexBuffer( vertCacheHandle_t handle, idVertexBuffer * vb );
-	bool			GetIndexBuffer( vertCacheHandle_t handle, idIndexBuffer * ib );
-	bool			GetJointBuffer( vertCacheHandle_t handle, idUniformBuffer * jb );
-
+	bool			GetVertexBuffer( vertCacheHandle_t handle, idVertexBuffer* vb );
+	bool			GetIndexBuffer( vertCacheHandle_t handle, idIndexBuffer* ib );
+	bool			GetJointBuffer( vertCacheHandle_t handle, idUniformBuffer* jb );
+	
 	void			BeginBackEnd();
-
+	
 public:
 	int				m_currentFrame;	// for determining the active buffers
 	int				m_listNum;		// currentFrame % NUM_FRAME_DATA
 	int				m_drawListNum;	// (currentFrame-1) % NUM_FRAME_DATA
-
+	
 	geoBufferSet_t	m_staticData;
 	geoBufferSet_t	m_frameData[ NUM_FRAME_DATA ];
-
+	
 	int				m_uniformBufferOffsetAlignment;
-
+	
 	// High water marks for the per-frame buffers
 	int				m_mostUsedVertex;
 	int				m_mostUsedIndex;
 	int				m_mostUsedJoint;
-
+	
 	// Try to make room for <bytes> bytes
-	vertCacheHandle_t	ActuallyAlloc( geoBufferSet_t & vcs, const void * data, int bytes, cacheType_t type );
+	vertCacheHandle_t	ActuallyAlloc( geoBufferSet_t& vcs, const void* data, int bytes, cacheType_t type );
 };
 
 // platform specific code to memcpy into vertex buffers efficiently
 // 16 byte alignment is guaranteed
-void CopyBuffer( byte * dst, const byte * src, int numBytes );
+void CopyBuffer( byte* dst, const byte* src, int numBytes );
 
 extern	idVertexCache	vertexCache;
 

@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ extern debugPolygon_t rb_debugPolygons[ MAX_DEBUG_POLYGONS ];
 extern int			rb_numDebugPolygons;
 extern int			rb_debugPolygonTime;
 
-extern idImage *	testImage;
+extern idImage* 	testImage;
 extern idCinematic*	testVideo;
 extern int			testVideoStartTime;
 
@@ -53,7 +53,8 @@ extern int			testVideoStartTime;
 idRenderBackend::DBG_SimpleSurfaceSetup
 =================
 */
-void idRenderBackend::DBG_SimpleSurfaceSetup( const drawSurf_t * drawSurf ) {
+void idRenderBackend::DBG_SimpleSurfaceSetup( const drawSurf_t* drawSurf )
+{
 
 }
 
@@ -62,7 +63,8 @@ void idRenderBackend::DBG_SimpleSurfaceSetup( const drawSurf_t * drawSurf ) {
 idRenderBackend::DBG_SimpleWorldSetup
 =================
 */
-void idRenderBackend::DBG_SimpleWorldSetup() {
+void idRenderBackend::DBG_SimpleWorldSetup()
+{
 
 }
 
@@ -71,7 +73,8 @@ void idRenderBackend::DBG_SimpleWorldSetup() {
 idRenderBackend::DBG_ShowDestinationAlpha
 =================
 */
-void idRenderBackend::DBG_ShowDestinationAlpha() {
+void idRenderBackend::DBG_ShowDestinationAlpha()
+{
 
 }
 
@@ -80,7 +83,8 @@ void idRenderBackend::DBG_ShowDestinationAlpha() {
 idRenderBackend::DBG_ColorByStencilBuffer
 =================
 */
-void idRenderBackend::DBG_ColorByStencilBuffer() {
+void idRenderBackend::DBG_ColorByStencilBuffer()
+{
 
 }
 
@@ -89,7 +93,8 @@ void idRenderBackend::DBG_ColorByStencilBuffer() {
 idRenderBackend::DBG_ShowOverdraw
 =================
 */
-void idRenderBackend::DBG_ShowOverdraw() {
+void idRenderBackend::DBG_ShowOverdraw()
+{
 
 }
 
@@ -98,7 +103,8 @@ void idRenderBackend::DBG_ShowOverdraw() {
 idRenderBackend::DBG_ShowIntensity
 =================
 */
-void idRenderBackend::DBG_ShowIntensity() {
+void idRenderBackend::DBG_ShowIntensity()
+{
 
 }
 
@@ -107,7 +113,8 @@ void idRenderBackend::DBG_ShowIntensity() {
 idRenderBackend::DBG_ShowDepthBuffer
 =================
 */
-void idRenderBackend::DBG_ShowDepthBuffer() {
+void idRenderBackend::DBG_ShowDepthBuffer()
+{
 
 }
 
@@ -116,7 +123,8 @@ void idRenderBackend::DBG_ShowDepthBuffer() {
 idRenderBackend::DBG_ShowLightCount
 =================
 */
-void idRenderBackend::DBG_ShowLightCount() {
+void idRenderBackend::DBG_ShowLightCount()
+{
 
 }
 
@@ -125,7 +133,8 @@ void idRenderBackend::DBG_ShowLightCount() {
 idRenderBackend::DBG_EnterWeaponDepthHack
 =================
 */
-void idRenderBackend::DBG_EnterWeaponDepthHack() {
+void idRenderBackend::DBG_EnterWeaponDepthHack()
+{
 
 }
 
@@ -134,7 +143,8 @@ void idRenderBackend::DBG_EnterWeaponDepthHack() {
 idRenderBackend::DBG_EnterModelDepthHack
 =================
 */
-void idRenderBackend::DBG_EnterModelDepthHack( float depth ) {
+void idRenderBackend::DBG_EnterModelDepthHack( float depth )
+{
 
 }
 
@@ -143,7 +153,8 @@ void idRenderBackend::DBG_EnterModelDepthHack( float depth ) {
 idRenderBackend::DBG_LeaveDepthHack
 =================
 */
-void idRenderBackend::DBG_LeaveDepthHack() {
+void idRenderBackend::DBG_LeaveDepthHack()
+{
 
 }
 
@@ -152,7 +163,8 @@ void idRenderBackend::DBG_LeaveDepthHack() {
 idRenderBackend::DBG_RenderDrawSurfListWithFunction
 =================
 */
-void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -161,7 +173,8 @@ void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t **drawSurfs
 idRenderBackend::DBG_ShowSilhouette
 =================
 */
-void idRenderBackend::DBG_ShowSilhouette() {
+void idRenderBackend::DBG_ShowSilhouette()
+{
 
 }
 
@@ -170,7 +183,8 @@ void idRenderBackend::DBG_ShowSilhouette() {
 idRenderBackend::DBG_ShowTris
 =================
 */
-void idRenderBackend::DBG_ShowTris( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowTris( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -179,7 +193,8 @@ void idRenderBackend::DBG_ShowTris( drawSurf_t **drawSurfs, int numDrawSurfs ) {
 idRenderBackend::DBG_ShowSurfaceInfo
 =================
 */
-void idRenderBackend::DBG_ShowSurfaceInfo( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowSurfaceInfo( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -188,7 +203,8 @@ void idRenderBackend::DBG_ShowSurfaceInfo( drawSurf_t **drawSurfs, int numDrawSu
 idRenderBackend::DBG_ShowViewEntitys
 =================
 */
-void idRenderBackend::DBG_ShowViewEntitys( viewEntity_t *vModels ) {
+void idRenderBackend::DBG_ShowViewEntitys( viewEntity_t* vModels )
+{
 
 }
 
@@ -197,7 +213,8 @@ void idRenderBackend::DBG_ShowViewEntitys( viewEntity_t *vModels ) {
 idRenderBackend::DBG_ShowTexturePolarity
 =================
 */
-void idRenderBackend::DBG_ShowTexturePolarity( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowTexturePolarity( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -206,7 +223,8 @@ void idRenderBackend::DBG_ShowTexturePolarity( drawSurf_t **drawSurfs, int numDr
 idRenderBackend::DBG_ShowUnsmoothedTangents
 =================
 */
-void idRenderBackend::DBG_ShowUnsmoothedTangents( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowUnsmoothedTangents( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -215,7 +233,8 @@ void idRenderBackend::DBG_ShowUnsmoothedTangents( drawSurf_t **drawSurfs, int nu
 idRenderBackend::DBG_ShowTangentSpace
 =================
 */
-void idRenderBackend::DBG_ShowTangentSpace( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowTangentSpace( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -224,7 +243,8 @@ void idRenderBackend::DBG_ShowTangentSpace( drawSurf_t **drawSurfs, int numDrawS
 idRenderBackend::DBG_ShowVertexColor
 =================
 */
-void idRenderBackend::DBG_ShowVertexColor( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowVertexColor( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -233,7 +253,8 @@ void idRenderBackend::DBG_ShowVertexColor( drawSurf_t **drawSurfs, int numDrawSu
 idRenderBackend::DBG_ShowNormals
 =================
 */
-void idRenderBackend::DBG_ShowNormals( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowNormals( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -242,7 +263,8 @@ void idRenderBackend::DBG_ShowNormals( drawSurf_t **drawSurfs, int numDrawSurfs 
 idRenderBackend::DBG_ShowTextureVectors
 =================
 */
-void idRenderBackend::DBG_ShowTextureVectors( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowTextureVectors( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -251,7 +273,8 @@ void idRenderBackend::DBG_ShowTextureVectors( drawSurf_t **drawSurfs, int numDra
 idRenderBackend::DBG_ShowDominantTris
 =================
 */
-void idRenderBackend::DBG_ShowDominantTris( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowDominantTris( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -260,7 +283,8 @@ void idRenderBackend::DBG_ShowDominantTris( drawSurf_t **drawSurfs, int numDrawS
 idRenderBackend::DBG_ShowEdges
 =================
 */
-void idRenderBackend::DBG_ShowEdges( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowEdges( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -269,7 +293,8 @@ void idRenderBackend::DBG_ShowEdges( drawSurf_t **drawSurfs, int numDrawSurfs ) 
 idRenderBackend::DBG_ShowLights
 =================
 */
-void idRenderBackend::DBG_ShowLights() {
+void idRenderBackend::DBG_ShowLights()
+{
 
 }
 
@@ -278,7 +303,8 @@ void idRenderBackend::DBG_ShowLights() {
 idRenderBackend::DBG_ShowPortals
 =================
 */
-void idRenderBackend::DBG_ShowPortals() {
+void idRenderBackend::DBG_ShowPortals()
+{
 
 }
 
@@ -287,7 +313,8 @@ void idRenderBackend::DBG_ShowPortals() {
 idRenderBackend::DBG_ShowDebugText
 =================
 */
-void idRenderBackend::DBG_ShowDebugText() {
+void idRenderBackend::DBG_ShowDebugText()
+{
 
 }
 
@@ -296,7 +323,8 @@ void idRenderBackend::DBG_ShowDebugText() {
 idRenderBackend::DBG_ShowDebugLines
 =================
 */
-void idRenderBackend::DBG_ShowDebugLines() {
+void idRenderBackend::DBG_ShowDebugLines()
+{
 
 }
 
@@ -305,7 +333,8 @@ void idRenderBackend::DBG_ShowDebugLines() {
 idRenderBackend::DBG_ShowDebugPolygons
 =================
 */
-void idRenderBackend::DBG_ShowDebugPolygons() {
+void idRenderBackend::DBG_ShowDebugPolygons()
+{
 
 }
 
@@ -314,7 +343,8 @@ void idRenderBackend::DBG_ShowDebugPolygons() {
 idRenderBackend::DBG_ShowCenterOfProjection
 =================
 */
-void idRenderBackend::DBG_ShowCenterOfProjection() {
+void idRenderBackend::DBG_ShowCenterOfProjection()
+{
 
 }
 
@@ -323,7 +353,8 @@ void idRenderBackend::DBG_ShowCenterOfProjection() {
 idRenderBackend::DBG_TestGamma
 =================
 */
-void idRenderBackend::DBG_TestGamma() {
+void idRenderBackend::DBG_TestGamma()
+{
 
 }
 
@@ -332,7 +363,8 @@ void idRenderBackend::DBG_TestGamma() {
 idRenderBackend::DBG_TestGammaBias
 =================
 */
-void idRenderBackend::DBG_TestGammaBias() {
+void idRenderBackend::DBG_TestGammaBias()
+{
 
 }
 
@@ -341,7 +373,8 @@ void idRenderBackend::DBG_TestGammaBias() {
 idRenderBackend::DBG_TestImage
 =================
 */
-void idRenderBackend::DBG_TestImage() {
+void idRenderBackend::DBG_TestImage()
+{
 
 }
 
@@ -350,7 +383,8 @@ void idRenderBackend::DBG_TestImage() {
 idRenderBackend::DBG_ShowTrace
 =================
 */
-void idRenderBackend::DBG_ShowTrace( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_ShowTrace( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
@@ -359,17 +393,18 @@ void idRenderBackend::DBG_ShowTrace( drawSurf_t **drawSurfs, int numDrawSurfs ) 
 idRenderBackend::DBG_RenderDebugTools
 =================
 */
-void idRenderBackend::DBG_RenderDebugTools( drawSurf_t **drawSurfs, int numDrawSurfs ) {
+void idRenderBackend::DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawSurfs )
+{
 
 }
 
-/* 
-============================================================================== 
- 
-						SCREEN SHOTS 
- 
-============================================================================== 
-*/ 
+/*
+==============================================================================
+
+						SCREEN SHOTS
+
+==============================================================================
+*/
 
 /*
 ====================
@@ -383,6 +418,7 @@ tiling it into window-sized chunks and rendering each chunk separately
 If ref isn't specified, the full session UpdateScreen will be done.
 ====================
 */
-void idRenderSystemLocal::ReadTiledPixels( int width, int height, byte *buffer, renderView_t *ref ) {
+void idRenderSystemLocal::ReadTiledPixels( int width, int height, byte* buffer, renderView_t* ref )
+{
 	// TODO_VK
 }
