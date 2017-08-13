@@ -193,7 +193,7 @@ public:
 	
 	const char* 	GetName() const
 	{
-		return m_imgName;
+		return imgName;
 	}
 	
 	// estimates size of the GL image based on dimensions and storage type
@@ -207,29 +207,29 @@ public:
 	
 	void		AddReference()
 	{
-		m_refCount++;
+		refCount++;
 	};
 	
 	const idImageOpts& 	GetOpts() const
 	{
-		return m_opts;
+		return opts;
 	}
 	int			GetUploadWidth() const
 	{
-		return m_opts.width;
+		return opts.width;
 	}
 	int			GetUploadHeight() const
 	{
-		return m_opts.height;
+		return opts.height;
 	}
 	
 	void		SetReferencedOutsideLevelLoad()
 	{
-		m_referencedOutsideLevelLoad = true;
+		referencedOutsideLevelLoad = true;
 	}
 	void		SetReferencedInsideLevelLoad()
 	{
-		m_levelLoadReferenced = true;
+		levelLoadReferenced = true;
 	}
 	void		ActuallyLoadImage( bool fromBackEnd );
 	//---------------------------------------------
@@ -240,19 +240,19 @@ public:
 	void		CreateFromSwapImage( VkImage image, VkImageView imageView, VkFormat format, const VkExtent2D& extent );
 	VkImage		GetImage() const
 	{
-		return m_image;
+		return image;
 	}
 	VkImageView	GetView() const
 	{
-		return m_view;
+		return view;
 	}
 	VkImageLayout GetLayout() const
 	{
-		return m_layout;
+		return layout;
 	}
 	VkSampler	GetSampler() const
 	{
-		return m_sampler;
+		return sampler;
 	}
 #endif
 	
@@ -261,7 +261,7 @@ public:
 	
 	bool		IsCompressed() const
 	{
-		return ( m_opts.format == FMT_DXT1 || m_opts.format == FMT_DXT5 );
+		return ( opts.format == FMT_DXT1 || opts.format == FMT_DXT5 );
 	}
 	
 	bool		IsLoaded() const;
@@ -315,52 +315,52 @@ private:
 	
 private:
 	// parameters that define this image
-	idStr				m_imgName;				// game path, including extension (except for cube maps), may be an image program
-	cubeFiles_t			m_cubeFiles;			// If this is a cube map, and if so, what kind
-	void	( *m_generatorFunction )( idImage* image );	// NULL for files
-	textureUsage_t		m_usage;				// Used to determine the type of compression to use
-	idImageOpts			m_opts;					// Parameters that determine the storage method
+	idStr				imgName;				// game path, including extension (except for cube maps), may be an image program
+	cubeFiles_t			cubeFiles;			// If this is a cube map, and if so, what kind
+	void	( *generatorFunction )( idImage* image );	// NULL for files
+	textureUsage_t		usage;				// Used to determine the type of compression to use
+	idImageOpts			opts;					// Parameters that determine the storage method
 	
 	// Sampler settings
-	textureFilter_t		m_filter;
-	textureRepeat_t		m_repeat;
+	textureFilter_t		filter;
+	textureRepeat_t		repeat;
 	
-	bool				m_referencedOutsideLevelLoad;
-	bool				m_levelLoadReferenced;	// for determining if it needs to be purged
-	ID_TIME_T			m_sourceFileTime;		// the most recent of all images used in creation, for reloadImages command
-	ID_TIME_T			m_binaryFileTime;		// the time stamp of the binary file
+	bool				referencedOutsideLevelLoad;
+	bool				levelLoadReferenced;	// for determining if it needs to be purged
+	ID_TIME_T			sourceFileTime;		// the most recent of all images used in creation, for reloadImages command
+	ID_TIME_T			binaryFileTime;		// the time stamp of the binary file
 	
-	int					m_refCount;				// overall ref count
+	int					refCount;				// overall ref count
 	
 	static const GLuint TEXTURE_NOT_LOADED = 0xFFFFFFFF;
 	
 #if defined( ID_VULKAN )
-	bool				m_bIsSwapChainImage;
-	VkFormat			m_internalFormat;
-	VkImage				m_image;
-	VkImageView			m_view;
-	VkImageLayout		m_layout;
-	VkSampler			m_sampler;
+	bool				bIsSwapChainImage;
+	VkFormat			internalFormat;
+	VkImage				image;
+	VkImageView			view;
+	VkImageLayout		layout;
+	VkSampler			sampler;
 	
 #if defined( ID_USE_AMD_ALLOCATOR )
-	VmaAllocation		m_allocation;
-	static idList< VmaAllocation >		m_allocationGarbage[ NUM_FRAME_DATA ];
+	VmaAllocation		allocation;
+	static idList< VmaAllocation >		allocationGarbage[ NUM_FRAME_DATA ];
 #else
-	vulkanAllocation_t	m_allocation;
-	static idList< vulkanAllocation_t > m_allocationGarbage[ NUM_FRAME_DATA ];
+	vulkanAllocation_t	allocation;
+	static idList< vulkanAllocation_t > allocationGarbage[ NUM_FRAME_DATA ];
 #endif
 	
-	static int						m_garbageIndex;
-	static idList< VkImage >		m_imageGarbage[ NUM_FRAME_DATA ];
-	static idList< VkImageView >	m_viewGarbage[ NUM_FRAME_DATA ];
-	static idList< VkSampler >		m_samplerGarbage[ NUM_FRAME_DATA ];
+	static int						garbageIndex;
+	static idList< VkImage >		imageGarbage[ NUM_FRAME_DATA ];
+	static idList< VkImageView >	viewGarbage[ NUM_FRAME_DATA ];
+	static idList< VkSampler >		samplerGarbage[ NUM_FRAME_DATA ];
 #elif defined( ID_OPENGL )
-	GLuint				m_texnum;				// gl texture binding
+	GLuint				texnum;				// gl texture binding
 	
 	// we could derive these in subImageUpload each time if necessary
-	GLuint				m_internalFormat;
-	GLuint				m_dataFormat;
-	GLuint				m_dataType;
+	GLuint				internalFormat;
+	GLuint				dataFormat;
+	GLuint				dataType;
 #endif
 };
 
@@ -376,8 +376,8 @@ public:
 
 	idImageManager()
 	{
-		m_insideLevelLoad = false;
-		m_preloadingMapImages = false;
+		insideLevelLoad = false;
+		preloadingMapImages = false;
 	}
 	
 	void				Init();
@@ -435,30 +435,30 @@ public:
 	bool				ExcludePreloadImage( const char* name );
 	
 public:
-	bool				m_insideLevelLoad;			// don't actually load images now
-	bool				m_preloadingMapImages;		// unless this is set
+	bool				insideLevelLoad;			// don't actually load images now
+	bool				preloadingMapImages;		// unless this is set
 	
-	idImage* 			m_defaultImage;
-	idImage* 			m_flatNormalMap;			// 128 128 255 in all pixels
-	idImage* 			m_alphaNotchImage;
-	idImage* 			m_whiteImage;				// full of 0xff
-	idImage* 			m_blackImage;				// full of 0x00
-	idImage* 			m_fogImage;					// increasing alpha is denser fog
-	idImage* 			m_fogEnterImage;			// adjust fogImage alpha based on terminator plane
-	idImage* 			m_noFalloffImage;
-	idImage* 			m_quadraticImage;
-	idImage* 			m_scratchImage;
-	idImage* 			m_scratchImage2;
-	idImage* 			m_currentRenderImage;		// for SS_POST_PROCESS shaders
-	idImage* 			m_currentDepthImage;		// for motion blur
-	idImage* 			m_accumImage;
-	idImage* 			m_loadingIconImage;
-	idImage* 			m_hellLoadingIconImage;
+	idImage* 			defaultImage;
+	idImage* 			flatNormalMap;			// 128 128 255 in all pixels
+	idImage* 			alphaNotchImage;
+	idImage* 			whiteImage;				// full of 0xff
+	idImage* 			blackImage;				// full of 0x00
+	idImage* 			fogImage;					// increasing alpha is denser fog
+	idImage* 			fogEnterImage;			// adjust fogImage alpha based on terminator plane
+	idImage* 			noFalloffImage;
+	idImage* 			quadraticImage;
+	idImage* 			scratchImage;
+	idImage* 			scratchImage2;
+	idImage* 			currentRenderImage;		// for SS_POST_PROCESS shaders
+	idImage* 			currentDepthImage;		// for motion blur
+	idImage* 			accumImage;
+	idImage* 			loadingIconImage;
+	idImage* 			hellLoadingIconImage;
 	
 	//--------------------------------------------------------
 	
-	idList< idImage*, TAG_IDLIB_LIST_IMAGE > m_images;
-	idHashIndex			m_imageHash;
+	idList< idImage*, TAG_IDLIB_LIST_IMAGE > images;
+	idHashIndex			imageHash;
 };
 
 extern idImageManager*	globalImages;		// pointer to global list for the rest of the system

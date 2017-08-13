@@ -112,19 +112,19 @@ public:
 	void			BeginBackEnd();
 	
 public:
-	int				m_currentFrame;	// for determining the active buffers
-	int				m_listNum;		// currentFrame % NUM_FRAME_DATA
-	int				m_drawListNum;	// (currentFrame-1) % NUM_FRAME_DATA
+	int				currentFrame;	// for determining the active buffers
+	int				listNum;		// currentFrame % NUM_FRAME_DATA
+	int				drawListNum;	// (currentFrame-1) % NUM_FRAME_DATA
 	
-	geoBufferSet_t	m_staticData;
-	geoBufferSet_t	m_frameData[ NUM_FRAME_DATA ];
+	geoBufferSet_t	staticData;
+	geoBufferSet_t	frameData[ NUM_FRAME_DATA ];
 	
-	int				m_uniformBufferOffsetAlignment;
+	int				uniformBufferOffsetAlignment;
 	
 	// High water marks for the per-frame buffers
-	int				m_mostUsedVertex;
-	int				m_mostUsedIndex;
-	int				m_mostUsedJoint;
+	int				mostUsedVertex;
+	int				mostUsedIndex;
+	int				mostUsedJoint;
 	
 	// Try to make room for <bytes> bytes
 	vertCacheHandle_t	ActuallyAlloc( geoBufferSet_t& vcs, const void* data, int bytes, cacheType_t type );

@@ -103,9 +103,9 @@ void idRenderWorld::PrintRenderLightDefs()
 	int	totalRef = 0;
 	int	totalIntr = 0;
 	
-	for( int i = 0; i < m_lightDefs.Num(); i++ )
+	for( int i = 0; i < lightDefs.Num(); i++ )
 	{
-		ldef = m_lightDefs[i];
+		ldef = lightDefs[i];
 		if( !ldef )
 		{
 			idLib::Printf( "%4i: FREED\n", i );
@@ -148,9 +148,9 @@ void idRenderWorld::PrintRenderEntityDefs()
 	int	totalRef = 0;
 	int	totalIntr = 0;
 	
-	for( int i = 0; i < m_entityDefs.Num(); i++ )
+	for( int i = 0; i < entityDefs.Num(); i++ )
 	{
-		mdef = m_entityDefs[i];
+		mdef = entityDefs[i];
 		if( !mdef )
 		{
 			idLib::Printf( "%4i: FREED\n", i );
@@ -187,34 +187,34 @@ idRenderWorld::idRenderWorld
 */
 idRenderWorld::idRenderWorld()
 {
-	m_mapName.Clear();
-	m_mapTimeStamp = FILE_NOT_FOUND_TIMESTAMP;
+	mapName.Clear();
+	mapTimeStamp = FILE_NOT_FOUND_TIMESTAMP;
 	
-	m_areaNodes = NULL;
-	m_numAreaNodes = 0;
+	areaNodes = NULL;
+	numAreaNodes = 0;
 	
-	m_portalAreas = NULL;
-	m_numPortalAreas = 0;
+	portalAreas = NULL;
+	numPortalAreas = 0;
 	
-	m_doublePortals = NULL;
-	m_numInterAreaPortals = 0;
+	doublePortals = NULL;
+	numInterAreaPortals = 0;
 	
-	m_interactionTable = 0;
-	m_interactionTableWidth = 0;
-	m_interactionTableHeight = 0;
+	interactionTable = 0;
+	interactionTableWidth = 0;
+	interactionTableHeight = 0;
 	
-	for( int i = 0; i < m_decals.Num(); i++ )
+	for( int i = 0; i < decals.Num(); i++ )
 	{
-		m_decals[i].entityHandle = -1;
-		m_decals[i].lastStartTime = 0;
-		m_decals[i].decals = new( TAG_MODEL ) idRenderModelDecal();
+		decals[i].entityHandle = -1;
+		decals[i].lastStartTime = 0;
+		decals[i].decals = new( TAG_MODEL ) idRenderModelDecal();
 	}
 	
-	for( int i = 0; i < m_overlays.Num(); i++ )
+	for( int i = 0; i < overlays.Num(); i++ )
 	{
-		m_overlays[i].entityHandle = -1;
-		m_overlays[i].lastStartTime = 0;
-		m_overlays[i].overlays = new( TAG_MODEL ) idRenderModelOverlay();
+		overlays[i].entityHandle = -1;
+		overlays[i].lastStartTime = 0;
+		overlays[i].overlays = new( TAG_MODEL ) idRenderModelOverlay();
 	}
 }
 
@@ -229,14 +229,14 @@ idRenderWorld::~idRenderWorld()
 	// free all the entityDefs, lightDefs, portals, etc
 	FreeWorld();
 	
-	for( int i = 0; i < m_decals.Num(); i++ )
+	for( int i = 0; i < decals.Num(); i++ )
 	{
-		delete m_decals[i].decals;
+		delete decals[i].decals;
 	}
 	
-	for( int i = 0; i < m_overlays.Num(); i++ )
+	for( int i = 0; i < overlays.Num(); i++ )
 	{
-		delete m_overlays[i].overlays;
+		delete overlays[i].overlays;
 	}
 	
 	// free up the debug lines, polys, and text
@@ -255,21 +255,21 @@ void idRenderWorld::ResizeInteractionTable()
 	// we overflowed the interaction table, so make it larger
 	idLib::Printf( "idRenderWorld::ResizeInteractionTable: overflowed interactionTable, resizing\n" );
 	
-	const int oldInteractionTableWidth = m_interactionTableWidth;
-	const int oldIinteractionTableHeight = m_interactionTableHeight;
-	idInteraction** oldInteractionTable = m_interactionTable;
+	const int oldInteractionTableWidth = interactionTableWidth;
+	const int oldIinteractionTableHeight = interactionTableHeight;
+	idInteraction** oldInteractionTable = interactionTable;
 	
 	// build the interaction table
 	// this will be dynamically resized if the entity / light counts grow too much
-	m_interactionTableWidth = m_entityDefs.Num() + 100;
-	m_interactionTableHeight = m_lightDefs.Num() + 100;
-	const int	size =  m_interactionTableWidth * m_interactionTableHeight * sizeof( *m_interactionTable );
-	m_interactionTable = ( idInteraction** )R_ClearedStaticAlloc( size );
+	interactionTableWidth = entityDefs.Num() + 100;
+	interactionTableHeight = lightDefs.Num() + 100;
+	const int	size =  interactionTableWidth * interactionTableHeight * sizeof( *interactionTable );
+	interactionTable = ( idInteraction** )R_ClearedStaticAlloc( size );
 	for( int l = 0; l < oldIinteractionTableHeight; l++ )
 	{
 		for( int e = 0; e < oldInteractionTableWidth; e++ )
 		{
-			m_interactionTable[ l * m_interactionTableWidth + e ] = oldInteractionTable[ l * oldInteractionTableWidth + e ];
+			interactionTable[ l * interactionTableWidth + e ] = oldInteractionTable[ l * oldInteractionTableWidth + e ];
 		}
 	}
 	
@@ -284,12 +284,12 @@ AddEntityDef
 qhandle_t idRenderWorld::AddEntityDef( const renderEntity_t* re )
 {
 	// try and reuse a free spot
-	int entityHandle = m_entityDefs.FindNull();
+	int entityHandle = entityDefs.FindNull();
 	if( entityHandle == -1 )
 	{
-		entityHandle = m_entityDefs.Append( NULL );
+		entityHandle = entityDefs.Append( NULL );
 		
-		if( m_interactionTable && m_entityDefs.Num() > m_interactionTableWidth )
+		if( interactionTable && entityDefs.Num() > interactionTableWidth )
 		{
 			ResizeInteractionTable();
 		}
@@ -328,12 +328,12 @@ void idRenderWorld::UpdateEntityDef( qhandle_t entityHandle, const renderEntity_
 	{
 		idLib::Error( "idRenderWorld::UpdateEntityDef: index = %i", entityHandle );
 	}
-	while( entityHandle >= m_entityDefs.Num() )
+	while( entityHandle >= entityDefs.Num() )
 	{
-		m_entityDefs.Append( NULL );
+		entityDefs.Append( NULL );
 	}
 	
-	idRenderEntity*	def = m_entityDefs[entityHandle];
+	idRenderEntity*	def = entityDefs[entityHandle];
 	if( def != NULL )
 	{
 	
@@ -383,7 +383,7 @@ void idRenderWorld::UpdateEntityDef( qhandle_t entityHandle, const renderEntity_
 	{
 		// creating a new one
 		def = new( TAG_RENDER_ENTITY ) idRenderEntity;
-		m_entityDefs[entityHandle] = def;
+		entityDefs[entityHandle] = def;
 		
 		def->world = this;
 		def->index = entityHandle;
@@ -423,13 +423,13 @@ void idRenderWorld::FreeEntityDef( qhandle_t entityHandle )
 {
 	idRenderEntity*	def;
 	
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
-		idLib::Printf( "idRenderWorld::FreeEntityDef: handle %i > %i\n", entityHandle, m_entityDefs.Num() );
+		idLib::Printf( "idRenderWorld::FreeEntityDef: handle %i > %i\n", entityHandle, entityDefs.Num() );
 		return;
 	}
 	
-	def = m_entityDefs[entityHandle];
+	def = entityDefs[entityHandle];
 	if( !def )
 	{
 		idLib::Printf( "idRenderWorld::FreeEntityDef: handle %i is NULL\n", entityHandle );
@@ -447,7 +447,7 @@ void idRenderWorld::FreeEntityDef( qhandle_t entityHandle )
 	def->parms.gui[ 2 ] = NULL;
 	
 	delete def;
-	m_entityDefs[ entityHandle ] = NULL;
+	entityDefs[ entityHandle ] = NULL;
 }
 
 /*
@@ -459,13 +459,13 @@ const renderEntity_t* idRenderWorld::GetRenderEntity( qhandle_t entityHandle ) c
 {
 	idRenderEntity*	def;
 	
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
-		idLib::Printf( "idRenderWorld::GetRenderEntity: invalid handle %i [0, %i]\n", entityHandle, m_entityDefs.Num() );
+		idLib::Printf( "idRenderWorld::GetRenderEntity: invalid handle %i [0, %i]\n", entityHandle, entityDefs.Num() );
 		return NULL;
 	}
 	
-	def = m_entityDefs[entityHandle];
+	def = entityDefs[entityHandle];
 	if( !def )
 	{
 		idLib::Printf( "idRenderWorld::GetRenderEntity: handle %i is NULL\n", entityHandle );
@@ -483,12 +483,12 @@ AddLightDef
 qhandle_t idRenderWorld::AddLightDef( const renderLight_t* rlight )
 {
 	// try and reuse a free spot
-	int lightHandle = m_lightDefs.FindNull();
+	int lightHandle = lightDefs.FindNull();
 	
 	if( lightHandle == -1 )
 	{
-		lightHandle = m_lightDefs.Append( NULL );
-		if( m_interactionTable && m_lightDefs.Num() > m_interactionTableHeight )
+		lightHandle = lightDefs.Append( NULL );
+		if( interactionTable && lightDefs.Num() > interactionTableHeight )
 		{
 			ResizeInteractionTable();
 		}
@@ -522,13 +522,13 @@ void idRenderWorld::UpdateLightDef( qhandle_t lightHandle, const renderLight_t* 
 	{
 		idLib::Error( "idRenderWorld::UpdateLightDef: index = %i", lightHandle );
 	}
-	while( lightHandle >= m_lightDefs.Num() )
+	while( lightHandle >= lightDefs.Num() )
 	{
-		m_lightDefs.Append( NULL );
+		lightDefs.Append( NULL );
 	}
 	
 	bool justUpdate = false;
-	idRenderLight* light = m_lightDefs[lightHandle];
+	idRenderLight* light = lightDefs[lightHandle];
 	if( light )
 	{
 		// if the shape of the light stays the same, we don't need to dump
@@ -554,7 +554,7 @@ void idRenderWorld::UpdateLightDef( qhandle_t lightHandle, const renderLight_t* 
 	{
 		// create a new one
 		light = new( TAG_RENDER_LIGHT ) idRenderLight;
-		m_lightDefs[lightHandle] = light;
+		lightDefs[lightHandle] = light;
 		
 		light->world = this;
 		light->index = lightHandle;
@@ -593,13 +593,13 @@ void idRenderWorld::FreeLightDef( qhandle_t lightHandle )
 {
 	idRenderLight*	light;
 	
-	if( lightHandle < 0 || lightHandle >= m_lightDefs.Num() )
+	if( lightHandle < 0 || lightHandle >= lightDefs.Num() )
 	{
-		idLib::Printf( "idRenderWorld::FreeLightDef: invalid handle %i [0, %i]\n", lightHandle, m_lightDefs.Num() );
+		idLib::Printf( "idRenderWorld::FreeLightDef: invalid handle %i [0, %i]\n", lightHandle, lightDefs.Num() );
 		return;
 	}
 	
-	light = m_lightDefs[lightHandle];
+	light = lightDefs[lightHandle];
 	if( !light )
 	{
 		idLib::Printf( "idRenderWorld::FreeLightDef: handle %i is NULL\n", lightHandle );
@@ -609,7 +609,7 @@ void idRenderWorld::FreeLightDef( qhandle_t lightHandle )
 	FreeLightDefDerivedData( light );
 	
 	delete light;
-	m_lightDefs[lightHandle] = NULL;
+	lightDefs[lightHandle] = NULL;
 }
 
 /*
@@ -621,13 +621,13 @@ const renderLight_t* idRenderWorld::GetRenderLight( qhandle_t lightHandle ) cons
 {
 	idRenderLight* def;
 	
-	if( lightHandle < 0 || lightHandle >= m_lightDefs.Num() )
+	if( lightHandle < 0 || lightHandle >= lightDefs.Num() )
 	{
-		idLib::Printf( "idRenderWorld::GetRenderLight: handle %i > %i\n", lightHandle, m_lightDefs.Num() );
+		idLib::Printf( "idRenderWorld::GetRenderLight: handle %i > %i\n", lightHandle, lightDefs.Num() );
 		return NULL;
 	}
 	
-	def = m_lightDefs[lightHandle];
+	def = lightDefs[lightHandle];
 	if( !def )
 	{
 		idLib::Printf( "idRenderWorld::GetRenderLight: handle %i is NULL\n", lightHandle );
@@ -659,7 +659,7 @@ void idRenderWorld::ProjectDecalOntoWorld( const idFixedWinding& winding, const 
 	for( int i = 0; i < numAreas; i++ )
 	{
 	
-		const portalArea_t* area = &m_portalAreas[ areas[i] ];
+		const portalArea_t* area = &portalAreas[ areas[i] ];
 		
 		// check all models in this area
 		for( const areaReference_t* ref = area->entityRefs.areaNext; ref != &area->entityRefs; ref = ref->areaNext )
@@ -713,13 +713,13 @@ idRenderWorld::ProjectDecal
 */
 void idRenderWorld::ProjectDecal( qhandle_t entityHandle, const idFixedWinding& winding, const idVec3& projectionOrigin, const bool parallel, const float fadeDepth, const idMaterial* material, const int startTime )
 {
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
 		idLib::Error( "idRenderWorld::ProjectOverlay: index = %i", entityHandle );
 		return;
 	}
 	
-	idRenderEntity*	def = m_entityDefs[ entityHandle ];
+	idRenderEntity*	def = entityDefs[ entityHandle ];
 	if( def == NULL )
 	{
 		return;
@@ -766,13 +766,13 @@ idRenderWorld::ProjectOverlay
 */
 void idRenderWorld::ProjectOverlay( qhandle_t entityHandle, const idPlane localTextureAxis[2], const idMaterial* material, const int startTime )
 {
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
 		idLib::Error( "idRenderWorld::ProjectOverlay: index = %i", entityHandle );
 		return;
 	}
 	
-	idRenderEntity*	def = m_entityDefs[ entityHandle ];
+	idRenderEntity*	def = entityDefs[ entityHandle ];
 	if( def == NULL )
 	{
 		return;
@@ -806,30 +806,30 @@ idRenderModelDecal* idRenderWorld::AllocDecal( qhandle_t newEntityHandle, int st
 {
 	int oldest = 0;
 	int oldestTime = MAX_TYPE( oldestTime );
-	for( int i = 0; i < m_decals.Num(); i++ )
+	for( int i = 0; i < decals.Num(); i++ )
 	{
-		if( m_decals[i].lastStartTime < oldestTime )
+		if( decals[i].lastStartTime < oldestTime )
 		{
-			oldestTime = m_decals[i].lastStartTime;
+			oldestTime = decals[i].lastStartTime;
 			oldest = i;
 		}
 	}
 	
 	// remove any reference another model may still have to this decal
-	if( m_decals[oldest].entityHandle >= 0 && m_decals[ oldest ].entityHandle < m_entityDefs.Num() )
+	if( decals[oldest].entityHandle >= 0 && decals[ oldest ].entityHandle < entityDefs.Num() )
 	{
-		idRenderEntity*	def = m_entityDefs[ m_decals[ oldest ].entityHandle ];
-		if( def != NULL && def->decals == m_decals[ oldest ].decals )
+		idRenderEntity*	def = entityDefs[ decals[ oldest ].entityHandle ];
+		if( def != NULL && def->decals == decals[ oldest ].decals )
 		{
 			def->decals = NULL;
 		}
 	}
 	
-	m_decals[ oldest ].entityHandle = newEntityHandle;
-	m_decals[ oldest ].lastStartTime = startTime;
-	m_decals[ oldest ].decals->ReUse();
+	decals[ oldest ].entityHandle = newEntityHandle;
+	decals[ oldest ].lastStartTime = startTime;
+	decals[ oldest ].decals->ReUse();
 	
-	return m_decals[ oldest ].decals;
+	return decals[ oldest ].decals;
 }
 
 /*
@@ -841,30 +841,30 @@ idRenderModelOverlay* idRenderWorld::AllocOverlay( qhandle_t newEntityHandle, in
 {
 	int oldest = 0;
 	int oldestTime = MAX_TYPE( oldestTime );
-	for( int i = 0; i < m_overlays.Num(); i++ )
+	for( int i = 0; i < overlays.Num(); i++ )
 	{
-		if( m_overlays[i].lastStartTime < oldestTime )
+		if( overlays[i].lastStartTime < oldestTime )
 		{
-			oldestTime = m_overlays[i].lastStartTime;
+			oldestTime = overlays[i].lastStartTime;
 			oldest = i;
 		}
 	}
 	
 	// remove any reference another model may still have to this overlay
-	if( m_overlays[oldest].entityHandle >= 0 && m_overlays[ oldest ].entityHandle < m_entityDefs.Num() )
+	if( overlays[oldest].entityHandle >= 0 && overlays[ oldest ].entityHandle < entityDefs.Num() )
 	{
-		idRenderEntity*	def = m_entityDefs[ m_overlays[ oldest ].entityHandle ];
-		if( def != NULL && def->overlays == m_overlays[ oldest ].overlays )
+		idRenderEntity*	def = entityDefs[ overlays[ oldest ].entityHandle ];
+		if( def != NULL && def->overlays == overlays[ oldest ].overlays )
 		{
 			def->overlays = NULL;
 		}
 	}
 	
-	m_overlays[ oldest ].entityHandle = newEntityHandle;
-	m_overlays[ oldest ].lastStartTime = startTime;
-	m_overlays[ oldest ].overlays->ReUse();
+	overlays[ oldest ].entityHandle = newEntityHandle;
+	overlays[ oldest ].lastStartTime = startTime;
+	overlays[ oldest ].overlays->ReUse();
 	
-	return m_overlays[ oldest ].overlays;
+	return overlays[ oldest ].overlays;
 }
 
 /*
@@ -874,13 +874,13 @@ idRenderWorld::RemoveDecals
 */
 void idRenderWorld::RemoveDecals( qhandle_t entityHandle )
 {
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
 		idLib::Error( "idRenderWorld::ProjectOverlay: index = %i", entityHandle );
 		return;
 	}
 	
-	idRenderEntity*	def = m_entityDefs[ entityHandle ];
+	idRenderEntity*	def = entityDefs[ entityHandle ];
 	if( !def )
 	{
 		return;
@@ -897,7 +897,7 @@ idRenderWorld::NumAreas
 */
 int idRenderWorld::NumAreas() const
 {
-	return m_numPortalAreas;
+	return numPortalAreas;
 }
 
 /*
@@ -911,11 +911,11 @@ int idRenderWorld::NumPortalsInArea( int areaNum )
 	int				count;
 	portal_t*		portal;
 	
-	if( areaNum >= m_numPortalAreas || areaNum < 0 )
+	if( areaNum >= numPortalAreas || areaNum < 0 )
 	{
 		idLib::Error( "idRenderWorld::NumPortalsInArea: bad areanum %i", areaNum );
 	}
-	area = &m_portalAreas[areaNum];
+	area = &portalAreas[areaNum];
 	
 	count = 0;
 	for( portal = area->portals; portal; portal = portal->next )
@@ -937,11 +937,11 @@ exitPortal_t idRenderWorld::GetPortal( int areaNum, int portalNum )
 	portal_t*		portal;
 	exitPortal_t	ret;
 	
-	if( areaNum > m_numPortalAreas )
+	if( areaNum > numPortalAreas )
 	{
 		idLib::Error( "idRenderWorld::GetPortal: areaNum > numAreas" );
 	}
-	area = &m_portalAreas[areaNum];
+	area = &portalAreas[areaNum];
 	
 	count = 0;
 	for( portal = area->portals; portal; portal = portal->next )
@@ -952,7 +952,7 @@ exitPortal_t idRenderWorld::GetPortal( int areaNum, int portalNum )
 			ret.areas[1] = portal->intoArea;
 			ret.w = portal->w;
 			ret.blockingBits = portal->doublePortal->blockingBits;
-			ret.portalHandle = portal->doublePortal - m_doublePortals + 1;
+			ret.portalHandle = portal->doublePortal - doublePortals + 1;
 			return ret;
 		}
 		count++;
@@ -978,7 +978,7 @@ int idRenderWorld::PointInArea( const idVec3& point ) const
 	int			nodeNum;
 	float		d;
 	
-	node = m_areaNodes;
+	node = areaNodes;
 	if( !node )
 	{
 		return -1;
@@ -1001,13 +1001,13 @@ int idRenderWorld::PointInArea( const idVec3& point ) const
 		if( nodeNum < 0 )
 		{
 			nodeNum = -1 - nodeNum;
-			if( nodeNum >= m_numPortalAreas )
+			if( nodeNum >= numPortalAreas )
 			{
 				idLib::Error( "idRenderWorld::PointInArea: area out of range" );
 			}
 			return nodeNum;
 		}
-		node = m_areaNodes + nodeNum;
+		node = areaNodes + nodeNum;
 	}
 	
 	return -1;
@@ -1043,7 +1043,7 @@ void idRenderWorld::BoundsInAreas_r( int nodeNum, const idBounds& bounds, int* a
 			return;
 		}
 		
-		node = m_areaNodes + nodeNum;
+		node = areaNodes + nodeNum;
 		
 		side = bounds.PlaneSide( node->plane );
 		if( side == PLANESIDE_FRONT )
@@ -1088,7 +1088,7 @@ int idRenderWorld::BoundsInAreas( const idBounds& bounds, int* areas, int maxAre
 	assert( bounds[0][0] <= bounds[1][0] && bounds[0][1] <= bounds[1][1] && bounds[0][2] <= bounds[1][2] );
 	assert( bounds[1][0] - bounds[0][0] < 1e4f && bounds[1][1] - bounds[0][1] < 1e4f && bounds[1][2] - bounds[0][2] < 1e4f );
 	
-	if( !m_areaNodes )
+	if( !areaNodes )
 	{
 		return numAreas;
 	}
@@ -1113,13 +1113,13 @@ guiPoint_t idRenderWorld::GuiTrace( qhandle_t entityHandle, const idVec3 start, 
 	pt.x = pt.y = -1;
 	pt.guiId = 0;
 	
-	if( ( entityHandle < 0 ) || ( entityHandle >= m_entityDefs.Num() ) )
+	if( ( entityHandle < 0 ) || ( entityHandle >= entityDefs.Num() ) )
 	{
 		idLib::Printf( "idRenderWorld::GuiTrace: invalid handle %i\n", entityHandle );
 		return pt;
 	}
 	
-	idRenderEntity* def = m_entityDefs[ entityHandle ];
+	idRenderEntity* def = entityDefs[ entityHandle ];
 	if( def == NULL )
 	{
 		idLib::Printf( "idRenderWorld::GuiTrace: handle %i is NULL\n", entityHandle );
@@ -1193,12 +1193,12 @@ bool idRenderWorld::ModelTrace( modelTrace_t& trace, qhandle_t entityHandle, con
 	trace.fraction = 1.0f;
 	trace.point = end;
 	
-	if( entityHandle < 0 || entityHandle >= m_entityDefs.Num() )
+	if( entityHandle < 0 || entityHandle >= entityDefs.Num() )
 	{
 		return false;
 	}
 	
-	idRenderEntity*	def = m_entityDefs[ entityHandle ];
+	idRenderEntity*	def = entityDefs[ entityHandle ];
 	if( def == NULL )
 	{
 		return false;
@@ -1322,7 +1322,7 @@ bool idRenderWorld::Trace( modelTrace_t& trace, const idVec3& start, const idVec
 	for( int i = 0; i < numAreas; i++ )
 	{
 	
-		portalArea_t* area = &m_portalAreas[ areas[i] ];
+		portalArea_t* area = &portalAreas[ areas[i] ];
 		
 		// check all models in this area
 		for( areaReference_t* ref = area->entityRefs.areaNext; ref != &area->entityRefs; ref = ref->areaNext )
@@ -1480,12 +1480,12 @@ void idRenderWorld::RecurseProcBSP_r( modelTrace_t* results, int parentNodeNum, 
 		
 			results->fraction = p1f;
 			results->point = p1;
-			node = &m_areaNodes[parentNodeNum];
+			node = &areaNodes[parentNodeNum];
 			results->normal = node->plane.Normal();
 			return;
 		}
 	}
-	node = &m_areaNodes[nodeNum];
+	node = &areaNodes[nodeNum];
 	
 	// distance from plane for trace start and end
 	t1 = node->plane.Normal() * p1 + node->plane[3];
@@ -1520,7 +1520,7 @@ bool idRenderWorld::FastWorldTrace( modelTrace_t& results, const idVec3& start, 
 {
 	memset( &results, 0, sizeof( modelTrace_t ) );
 	results.fraction = 1.0f;
-	if( m_areaNodes != NULL )
+	if( areaNodes != NULL )
 	{
 		RecurseProcBSP_r( &results, -1, 0, 0.0f, 1.0f, start, end );
 		return ( results.fraction < 1.0f );
@@ -1562,7 +1562,7 @@ void idRenderWorld::AddEntityRefToArea( idRenderEntity* def, portalArea_t* area 
 		}
 	}
 	
-	ref = m_areaReferenceAllocator.Alloc();
+	ref = areaReferenceAllocator.Alloc();
 	
 	tr.pc.c_entityReferences++;
 	
@@ -1598,7 +1598,7 @@ void idRenderWorld::AddLightRefToArea( idRenderLight* light, portalArea_t* area 
 	}
 	
 	// add a lightref to this area
-	lref = m_areaReferenceAllocator.Alloc();
+	lref = areaReferenceAllocator.Alloc();
 	lref->light = light;
 	lref->area = area;
 	lref->ownerNext = light->references;
@@ -1631,20 +1631,20 @@ void idRenderWorld::GenerateAllInteractions()
 	
 	// let the interaction creation code know that it shouldn't
 	// try and do any view specific optimizations
-	tr.m_viewDef = NULL;
+	tr.viewDef = NULL;
 	
 	// build the interaction table
 	// this will be dynamically resized if the entity / light counts grow too much
-	m_interactionTableWidth = m_entityDefs.Num() + 100;
-	m_interactionTableHeight = m_lightDefs.Num() + 100;
-	int	size =  m_interactionTableWidth * m_interactionTableHeight * sizeof( *m_interactionTable );
-	m_interactionTable = ( idInteraction** )R_ClearedStaticAlloc( size );
+	interactionTableWidth = entityDefs.Num() + 100;
+	interactionTableHeight = lightDefs.Num() + 100;
+	int	size =  interactionTableWidth * interactionTableHeight * sizeof( *interactionTable );
+	interactionTable = ( idInteraction** )R_ClearedStaticAlloc( size );
 	
 	// itterate through all lights
 	int	count = 0;
-	for( int i = 0; i < m_lightDefs.Num(); i++ )
+	for( int i = 0; i < lightDefs.Num(); i++ )
 	{
-		idRenderLight*	ldef = m_lightDefs[i];
+		idRenderLight*	ldef = lightDefs[i];
 		if( ldef == NULL )
 		{
 			continue;
@@ -1711,9 +1711,9 @@ void idRenderWorld::FreeInteractions()
 	int			i;
 	idRenderEntity*	def;
 	
-	for( i = 0; i < m_entityDefs.Num(); i++ )
+	for( i = 0; i < entityDefs.Num(); i++ )
 	{
-		def = m_entityDefs[i];
+		def = entityDefs[i];
 		if( !def )
 		{
 			continue;
@@ -1747,7 +1747,7 @@ void idRenderWorld::PushFrustumIntoTree_r( idRenderEntity* def, idRenderLight* l
 	if( nodeNum < 0 )
 	{
 		int areaNum = -1 - nodeNum;
-		portalArea_t* area = &m_portalAreas[ areaNum ];
+		portalArea_t* area = &portalAreas[ areaNum ];
 		if( area->viewCount == tr.viewCount )
 		{
 			return;	// already added a reference here
@@ -1766,7 +1766,7 @@ void idRenderWorld::PushFrustumIntoTree_r( idRenderEntity* def, idRenderLight* l
 		return;
 	}
 	
-	areaNode_t* node = m_areaNodes + nodeNum;
+	areaNode_t* node = areaNodes + nodeNum;
 	
 	// if we know that all possible children nodes only touch an area
 	// we have already marked, we can early out
@@ -1776,7 +1776,7 @@ void idRenderWorld::PushFrustumIntoTree_r( idRenderEntity* def, idRenderLight* l
 		// yet, because the test volume may yet wind up being in the
 		// solid part, which would cause bounds slightly poked into
 		// a wall to show up in the next room
-		if( m_portalAreas[ node->commonChildrenArea ].viewCount == tr.viewCount )
+		if( portalAreas[ node->commonChildrenArea ].viewCount == tr.viewCount )
 		{
 			return;
 		}
@@ -1811,7 +1811,7 @@ idRenderWorld::PushFrustumIntoTree
 */
 void idRenderWorld::PushFrustumIntoTree( idRenderEntity* def, idRenderLight* light, const idRenderMatrix& frustumTransform, const idBounds& frustumBounds )
 {
-	if( m_areaNodes == NULL )
+	if( areaNodes == NULL )
 	{
 		return;
 	}

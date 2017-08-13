@@ -119,13 +119,13 @@ idVulkanAllocator
 idVulkanBlock::idVulkanBlock
 =============
 */
-idVulkanBlock::idVulkanBlock( const uint32 memoryTypeIndex, const VkDeviceSize size, vulkanMemoryUsage_t usage ) :
-	m_nextBlockId( 0 ),
-	m_size( size ),
-	m_allocated( 0 ),
-	m_memoryTypeIndex( memoryTypeIndex ),
-	m_usage( usage ),
-	m_deviceMemory( VK_NULL_HANDLE )
+idVulkanBlock::idVulkanBlock( const uint32 _memoryTypeIndex, const VkDeviceSize _size, vulkanMemoryUsage_t _usage ) :
+	nextBlockId( 0 ),
+	size( _size ),
+	allocated( 0 ),
+	memoryTypeIndex( _memoryTypeIndex ),
+	usage( _usage ),
+	deviceMemory( VK_NULL_HANDLE )
 {
 
 }
@@ -147,34 +147,34 @@ idVulkanBlock::Init
 */
 bool idVulkanBlock::Init()
 {
-	if( m_memoryTypeIndex == UINT64_MAX )
+	if( memoryTypeIndex == UINT64_MAX )
 	{
 		return false;
 	}
 	
 	VkMemoryAllocateInfo memoryAllocateInfo = {};
 	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryAllocateInfo.allocationSize = m_size;
-	memoryAllocateInfo.memoryTypeIndex = m_memoryTypeIndex;
+	memoryAllocateInfo.allocationSize = size;
+	memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
 	
-	ID_VK_CHECK( vkAllocateMemory( vkcontext.device, &memoryAllocateInfo, NULL, &m_deviceMemory ) )
+	ID_VK_CHECK( vkAllocateMemory( vkcontext.device, &memoryAllocateInfo, NULL, &deviceMemory ) )
 	
-	if( m_deviceMemory == VK_NULL_HANDLE )
+	if( deviceMemory == VK_NULL_HANDLE )
 	{
 		return false;
 	}
 	
 	if( IsHostVisible() )
 	{
-		ID_VK_CHECK( vkMapMemory( vkcontext.device, m_deviceMemory, 0, m_size, 0, ( void** )&m_data ) );
+		ID_VK_CHECK( vkMapMemory( vkcontext.device, deviceMemory, 0, size, 0, ( void** )&data ) );
 	}
 	
-	m_head = new chunk_t();
-	m_head->size = m_size;
-	m_head->offset = 0;
-	m_head->prev = NULL;
-	m_head->next = NULL;
-	m_head->type = VULKAN_ALLOCATION_TYPE_FREE;
+	head = new chunk_t();
+	head->size = size;
+	head->offset = 0;
+	head->prev = NULL;
+	head->next = NULL;
+	head->type = VULKAN_ALLOCATION_TYPE_FREE;
 	
 	return true;
 }
@@ -189,15 +189,15 @@ void idVulkanBlock::Shutdown()
 	// Unmap the memory
 	if( IsHostVisible() )
 	{
-		vkUnmapMemory( vkcontext.device, m_deviceMemory );
+		vkUnmapMemory( vkcontext.device, deviceMemory );
 	}
 	
 	// Free the memory
-	vkFreeMemory( vkcontext.device, m_deviceMemory, NULL );
-	m_deviceMemory = VK_NULL_HANDLE;
+	vkFreeMemory( vkcontext.device, deviceMemory, NULL );
+	deviceMemory = VK_NULL_HANDLE;
 	
 	chunk_t* prev = NULL;
-	chunk_t* current = m_head;
+	chunk_t* current = head;
 	while( 1 )
 	{
 		if( current->next == NULL )
@@ -213,7 +213,7 @@ void idVulkanBlock::Shutdown()
 		}
 	}
 	
-	m_head = NULL;
+	head = NULL;
 }
 
 /*
@@ -280,15 +280,15 @@ idVulkanBlock::Allocate
 =============
 */
 bool idVulkanBlock::Allocate(
-	const uint32 size,
+	const uint32 _size,
 	const uint32 align,
 	const VkDeviceSize granularity,
 	const vulkanAllocationType_t allocType,
 	vulkanAllocation_t& allocation )
 {
 
-	const VkDeviceSize freeSize = m_size - m_allocated;
-	if( freeSize < size )
+	const VkDeviceSize freeSize = size - allocated;
+	if( freeSize < _size )
 	{
 		return false;
 	}
@@ -301,14 +301,14 @@ bool idVulkanBlock::Allocate(
 	VkDeviceSize offset = 0;
 	VkDeviceSize alignedSize = 0;
 	
-	for( current = m_head; current != NULL; previous = current, current = current->next )
+	for( current = head; current != NULL; previous = current, current = current->next )
 	{
 		if( !current->type == VULKAN_ALLOCATION_TYPE_FREE )
 		{
 			continue;
 		}
 		
-		if( size > current->size )
+		if( _size > current->size )
 		{
 			continue;
 		}
@@ -328,14 +328,14 @@ bool idVulkanBlock::Allocate(
 		}
 		
 		padding = offset - current->offset;
-		alignedSize = padding + size;
+		alignedSize = padding + _size;
 		
 		if( alignedSize > current->size )
 		{
 			continue;
 		}
 		
-		if( alignedSize + m_allocated >= m_size )
+		if( alignedSize + allocated >= size )
 		{
 			return false;
 		}
@@ -343,7 +343,7 @@ bool idVulkanBlock::Allocate(
 		if( granularity > 1 && current->next != NULL )
 		{
 			chunk_t* next = current->next;
-			if( IsOnSamePage( offset, size, next->offset, granularity ) )
+			if( IsOnSamePage( offset, _size, next->offset, granularity ) )
 			{
 				if( HasGranularityConflict( allocType, next->type ) )
 				{
@@ -361,30 +361,30 @@ bool idVulkanBlock::Allocate(
 		return false;
 	}
 	
-	if( bestFit->size > size )
+	if( bestFit->size > _size )
 	{
 		chunk_t* chunk = new chunk_t();
-		chunk->id = m_nextBlockId++;
+		chunk->id = nextBlockId++;
 		chunk->prev = bestFit;
 		chunk->next = bestFit->next;
 		bestFit->next = chunk;
 		
 		chunk->size = bestFit->size - alignedSize;
-		chunk->offset = offset + size;
+		chunk->offset = offset + _size;
 		chunk->type = VULKAN_ALLOCATION_TYPE_FREE;
 	}
 	
 	bestFit->type = allocType;
-	bestFit->size = size;
+	bestFit->size = _size;
 	
-	m_allocated += alignedSize;
+	allocated += alignedSize;
 	
 	allocation.size = bestFit->size;
 	allocation.id = bestFit->id;
-	allocation.deviceMemory = m_deviceMemory;
+	allocation.deviceMemory = deviceMemory;
 	if( IsHostVisible() )
 	{
-		allocation.data = m_data + offset;
+		allocation.data = data + offset;
 	}
 	allocation.offset = offset;
 	allocation.block = this;
@@ -400,7 +400,7 @@ idVulkanBlock::Free
 void idVulkanBlock::Free( vulkanAllocation_t& allocation )
 {
 	chunk_t* current = NULL;
-	for( current = m_head; current != NULL; current = current->next )
+	for( current = head; current != NULL; current = current->next )
 	{
 		if( current->id == allocation.id )
 		{
@@ -446,7 +446,7 @@ void idVulkanBlock::Free( vulkanAllocation_t& allocation )
 		delete next;
 	}
 	
-	m_allocated -= allocation.size;
+	allocated -= allocation.size;
 }
 
 /*
@@ -469,10 +469,10 @@ idVulkanAllocator::idVulkanAllocator
 =============
 */
 idVulkanAllocator::idVulkanAllocator() :
-	m_garbageIndex( 0 ),
-	m_deviceLocalMemoryMB( 0 ),
-	m_hostVisibleMemoryMB( 0 ),
-	m_bufferImageGranularity( 0 )
+	garbageIndex( 0 ),
+	deviceLocalMemoryMB( 0 ),
+	hostVisibleMemoryMB( 0 ),
+	bufferImageGranularity( 0 )
 {
 
 }
@@ -484,9 +484,9 @@ idVulkanAllocator::Init
 */
 void idVulkanAllocator::Init()
 {
-	m_deviceLocalMemoryMB = r_vkDeviceLocalMemoryMB.GetInteger() * 1024 * 1024;
-	m_hostVisibleMemoryMB = r_vkHostVisibleMemoryMB.GetInteger() * 1024 * 1024;
-	m_bufferImageGranularity = vkcontext.gpu->props.limits.bufferImageGranularity;
+	deviceLocalMemoryMB = r_vkDeviceLocalMemoryMB.GetInteger() * 1024 * 1024;
+	hostVisibleMemoryMB = r_vkHostVisibleMemoryMB.GetInteger() * 1024 * 1024;
+	bufferImageGranularity = vkcontext.gpu->props.limits.bufferImageGranularity;
 }
 
 /*
@@ -499,7 +499,7 @@ void idVulkanAllocator::Shutdown()
 	EmptyGarbage();
 	for( int i = 0; i < VK_MAX_MEMORY_TYPES; ++i )
 	{
-		idList< idVulkanBlock* >& blocks = m_blocks[ i ];
+		idList< idVulkanBlock* >& blocks = this->blocks[ i ];
 		const int numBlocks = blocks.Num();
 		for( int j = 0; j < numBlocks; ++j )
 		{
@@ -516,7 +516,7 @@ idVulkanAllocator::Allocate
 =============
 */
 vulkanAllocation_t idVulkanAllocator::Allocate(
-	const uint32 size,
+	const uint32 _size,
 	const uint32 align,
 	const uint32 memoryTypeBits,
 	const vulkanMemoryUsage_t usage,
@@ -531,24 +531,24 @@ vulkanAllocation_t idVulkanAllocator::Allocate(
 		idLib::FatalError( "idVulkanAllocator::Allocate: Unable to find a memoryTypeIndex for allocation request." );
 	}
 	
-	idList< idVulkanBlock* >& blocks = m_blocks[ memoryTypeIndex ];
+	idList< idVulkanBlock* >& blocks = this->blocks[ memoryTypeIndex ];
 	const int numBlocks = blocks.Num();
 	for( int i = 0; i < numBlocks; ++i )
 	{
 		idVulkanBlock* block = blocks[ i ];
 		
-		if( block->m_memoryTypeIndex != memoryTypeIndex )
+		if( block->memoryTypeIndex != memoryTypeIndex )
 		{
 			continue;
 		}
 		
-		if( block->Allocate( size, align, m_bufferImageGranularity, allocType, allocation ) )
+		if( block->Allocate( _size, align, bufferImageGranularity, allocType, allocation ) )
 		{
 			return allocation;
 		}
 	}
 	
-	VkDeviceSize blockSize = ( usage == VULKAN_MEMORY_USAGE_GPU_ONLY ) ? m_deviceLocalMemoryMB : m_hostVisibleMemoryMB;
+	VkDeviceSize blockSize = ( usage == VULKAN_MEMORY_USAGE_GPU_ONLY ) ? deviceLocalMemoryMB : hostVisibleMemoryMB;
 	
 	idVulkanBlock* block = new idVulkanBlock( memoryTypeIndex, blockSize, usage );
 	if( block->Init() )
@@ -560,7 +560,7 @@ vulkanAllocation_t idVulkanAllocator::Allocate(
 		idLib::FatalError( "idVulkanAllocator::Allocate: Could not allocate new memory block." );
 	}
 	
-	block->Allocate( size, align, m_bufferImageGranularity, allocType, allocation );
+	block->Allocate( _size, align, bufferImageGranularity, allocType, allocation );
 	
 	return allocation;
 }
@@ -572,7 +572,7 @@ idVulkanAllocator::Free
 */
 void idVulkanAllocator::Free( const vulkanAllocation_t allocation )
 {
-	m_garbage[ m_garbageIndex ].Append( allocation );
+	garbage[ garbageIndex ].Append( allocation );
 }
 
 /*
@@ -582,9 +582,9 @@ idVulkanAllocator::EmptyGarbage
 */
 void idVulkanAllocator::EmptyGarbage()
 {
-	m_garbageIndex = ( m_garbageIndex + 1 ) % NUM_FRAME_DATA;
+	garbageIndex = ( garbageIndex + 1 ) % NUM_FRAME_DATA;
 	
-	idList< vulkanAllocation_t >& garbage = m_garbage[ m_garbageIndex ];
+	idList< vulkanAllocation_t >& garbage = this->garbage[ garbageIndex ];
 	
 	const int numAllocations = garbage.Num();
 	for( int i = 0; i < numAllocations; ++i )
@@ -593,9 +593,9 @@ void idVulkanAllocator::EmptyGarbage()
 		
 		allocation.block->Free( allocation );
 		
-		if( allocation.block->m_allocated == 0 )
+		if( allocation.block->allocated == 0 )
 		{
-			m_blocks[ allocation.block->m_memoryTypeIndex ].Remove( allocation.block );
+			blocks[ allocation.block->memoryTypeIndex ].Remove( allocation.block );
 			delete allocation.block;
 			allocation.block = NULL;
 		}

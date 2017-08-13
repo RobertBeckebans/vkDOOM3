@@ -90,7 +90,7 @@ public:
 	
 	bool				IsHostVisible() const
 	{
-		return m_usage != VULKAN_MEMORY_USAGE_GPU_ONLY;
+		return usage != VULKAN_MEMORY_USAGE_GPU_ONLY;
 	}
 	
 	bool				Allocate(
@@ -112,15 +112,15 @@ private:
 		chunk_t* 				next;
 		vulkanAllocationType_t	type;
 	};
-	chunk_t* 			m_head;
+	chunk_t* 			head;
 	
-	uint32				m_nextBlockId;
-	uint32				m_memoryTypeIndex;
-	vulkanMemoryUsage_t	m_usage;
-	VkDeviceMemory		m_deviceMemory;
-	VkDeviceSize		m_size;
-	VkDeviceSize		m_allocated;
-	byte* 				m_data;
+	uint32				nextBlockId;
+	uint32				memoryTypeIndex;
+	vulkanMemoryUsage_t	usage;
+	VkDeviceMemory		deviceMemory;
+	VkDeviceSize		size;
+	VkDeviceSize		allocated;
+	byte* 				data;
 };
 
 /*
@@ -149,14 +149,14 @@ public:
 	void					EmptyGarbage();
 	
 private:
-	int							m_garbageIndex;
+	int							garbageIndex;
 	
-	int							m_deviceLocalMemoryMB;
-	int							m_hostVisibleMemoryMB;
-	VkDeviceSize				m_bufferImageGranularity;
+	int							deviceLocalMemoryMB;
+	int							hostVisibleMemoryMB;
+	VkDeviceSize				bufferImageGranularity;
 	
-	idArray< idList< idVulkanBlock* >, VK_MAX_MEMORY_TYPES > m_blocks;
-	idList<vulkanAllocation_t>	m_garbage[ NUM_FRAME_DATA ];
+	idArray< idList< idVulkanBlock* >, VK_MAX_MEMORY_TYPES > blocks;
+	idList<vulkanAllocation_t>	garbage[ NUM_FRAME_DATA ];
 };
 
 #if defined( ID_USE_AMD_ALLOCATOR )

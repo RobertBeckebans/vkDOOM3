@@ -59,22 +59,22 @@ private:
 	void		AdvanceSurf();
 	void		EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16], bool depthHack, bool linkAsEntity );
 	
-	guiModelSurface_t* 			m_surf;
+	guiModelSurface_t* 			surf;
 	
-	float						m_shaderParms[ MAX_ENTITY_SHADER_PARMS ];
+	float						shaderParms[ MAX_ENTITY_SHADER_PARMS ];
 	
 	// if we exceed these limits we stop rendering GUI surfaces
 	static const int MAX_INDEXES = ( 20000 * 6 );
 	static const int MAX_VERTS	 = ( 20000 * 4 );
 	
-	vertCacheHandle_t			m_vertexBlock;
-	vertCacheHandle_t			m_indexBlock;
-	idDrawVert* 				m_vertexPointer;
-	triIndex_t* 				m_indexPointer;
+	vertCacheHandle_t			vertexBlock;
+	vertCacheHandle_t			indexBlock;
+	idDrawVert* 				vertexPointer;
+	triIndex_t* 				indexPointer;
 	
-	int							m_numVerts;
-	int							m_numIndexes;
+	int							numVerts;
+	int							numIndexes;
 	
-	idList< guiModelSurface_t, TAG_MODEL > m_surfaces;
+	idList< guiModelSurface_t, TAG_MODEL > surfaces;
 };
 

@@ -541,7 +541,7 @@ idInteraction* idInteraction::AllocAndLink( idRenderEntity* edef, idRenderLight*
 	
 	idRenderWorld* renderWorld = edef->world;
 	
-	idInteraction* interaction = renderWorld->m_interactionAllocator.Alloc();
+	idInteraction* interaction = renderWorld->interactionAllocator.Alloc();
 	
 	// link and initialize
 	interaction->lightDef = ldef;
@@ -577,14 +577,14 @@ idInteraction* idInteraction::AllocAndLink( idRenderEntity* edef, idRenderLight*
 	}
 	
 	// update the interaction table
-	if( renderWorld->m_interactionTable != NULL )
+	if( renderWorld->interactionTable != NULL )
 	{
-		int index = ldef->index * renderWorld->m_interactionTableWidth + edef->index;
-		if( renderWorld->m_interactionTable[index] != NULL )
+		int index = ldef->index * renderWorld->interactionTableWidth + edef->index;
+		if( renderWorld->interactionTable[index] != NULL )
 		{
 			idLib::Error( "idInteraction::AllocAndLink: non NULL table entry" );
 		}
-		renderWorld->m_interactionTable[ index ] = interaction;
+		renderWorld->interactionTable[ index ] = interaction;
 	}
 	
 	return interaction;
@@ -675,19 +675,19 @@ void idInteraction::UnlinkAndFree()
 {
 	// clear the table pointer
 	idRenderWorld* renderWorld = this->lightDef->world;
-	int index = this->lightDef->index * renderWorld->m_interactionTableWidth + this->entityDef->index;
-	if( renderWorld->m_interactionTable[index] != this && renderWorld->m_interactionTable[index] != INTERACTION_EMPTY )
+	int index = this->lightDef->index * renderWorld->interactionTableWidth + this->entityDef->index;
+	if( renderWorld->interactionTable[index] != this && renderWorld->interactionTable[index] != INTERACTION_EMPTY )
 	{
-		idLib::Error( "idInteraction::UnlinkAndFree: m_interactionTable wasn't set" );
+		idLib::Error( "idInteraction::UnlinkAndFree: interactionTable wasn't set" );
 	}
-	renderWorld->m_interactionTable[index] = NULL;
+	renderWorld->interactionTable[index] = NULL;
 	
 	Unlink();
 	
 	FreeSurfaces();
 	
 	// put it back on the free list
-	renderWorld->m_interactionAllocator.Free( this );
+	renderWorld->interactionAllocator.Free( this );
 }
 
 /*
@@ -735,9 +735,9 @@ void idInteraction::MakeEmpty()
 	}
 	
 	// store the special marker in the interaction table
-	const int interactionIndex = lightDef->index * entityDef->world->m_interactionTableWidth + entityDef->index;
-	assert( entityDef->world->m_interactionTable[ interactionIndex ] == this );
-	entityDef->world->m_interactionTable[ interactionIndex ] = INTERACTION_EMPTY;
+	const int interactionIndex = lightDef->index * entityDef->world->interactionTableWidth + entityDef->index;
+	assert( entityDef->world->interactionTable[ interactionIndex ] == this );
+	entityDef->world->interactionTable[ interactionIndex ] = INTERACTION_EMPTY;
 }
 
 /*

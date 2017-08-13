@@ -282,7 +282,7 @@ public:
 	void					FloodConnectedAreas( portalArea_t* area, int portalAttributeIndex );
 	idScreenRect& 			GetAreaScreenRect( int areaNum ) const
 	{
-		return m_areaScreenRect[areaNum];
+		return areaScreenRect[areaNum];
 	}
 	
 	//--------------------------
@@ -318,41 +318,41 @@ private:
 public:
 	//-----------------------
 	
-	idStr					m_mapName;				// ie: maps/tim_dm2.proc, written to demoFile
-	ID_TIME_T				m_mapTimeStamp;			// for fast reloads of the same level
+	idStr					mapName;				// ie: maps/tim_dm2.proc, written to demoFile
+	ID_TIME_T				mapTimeStamp;			// for fast reloads of the same level
 	
-	areaNode_t* 			m_areaNodes;
-	int						m_numAreaNodes;
+	areaNode_t* 			areaNodes;
+	int						numAreaNodes;
 	
-	portalArea_t* 			m_portalAreas;
-	int						m_numPortalAreas;
-	int						m_connectedAreaNum;		// incremented every time a door portal state changes
+	portalArea_t* 			portalAreas;
+	int						numPortalAreas;
+	int						connectedAreaNum;		// incremented every time a door portal state changes
 	
-	idScreenRect* 			m_areaScreenRect;
+	idScreenRect* 			areaScreenRect;
 	
-	doublePortal_t* 		m_doublePortals;
-	int						m_numInterAreaPortals;
+	doublePortal_t* 		doublePortals;
+	int						numInterAreaPortals;
 	
-	idList< idRenderModel*, TAG_MODEL >		m_localModels;
+	idList< idRenderModel*, TAG_MODEL >		localModels;
 	
-	idList< idRenderEntity*, TAG_ENTITY >		m_entityDefs;
-	idList< idRenderLight*, TAG_LIGHT >		m_lightDefs;
+	idList< idRenderEntity*, TAG_ENTITY >		entityDefs;
+	idList< idRenderLight*, TAG_LIGHT >		lightDefs;
 	
-	idBlockAlloc< areaReference_t, 1024 >		m_areaReferenceAllocator;
-	idBlockAlloc< idInteraction, 256 >			m_interactionAllocator;
+	idBlockAlloc< areaReference_t, 1024 >		areaReferenceAllocator;
+	idBlockAlloc< idInteraction, 256 >			interactionAllocator;
 	
 	static const int MAX_DECAL_SURFACES = 32;
 	
-	idArray< reusableDecal_t, MAX_DECAL_SURFACES >		m_decals;
-	idArray< reusableOverlay_t, MAX_DECAL_SURFACES >	m_overlays;
+	idArray< reusableDecal_t, MAX_DECAL_SURFACES >		decals;
+	idArray< reusableOverlay_t, MAX_DECAL_SURFACES >	overlays;
 	
 	// all light / entity interactions are referenced here for fast lookup without
 	// having to crawl the doubly linked lists.  EnntityDefs are sequential for better cache access.
 	// Growing this table is time consuming, so we add a pad value to the number
 	// of entityDefs and lightDefs
-	idInteraction** 		m_interactionTable;
-	int						m_interactionTableWidth;		// entityDefs
-	int						m_interactionTableHeight;		// lightDefs
+	idInteraction** 		interactionTable;
+	int						interactionTableWidth;		// entityDefs
+	int						interactionTableHeight;		// lightDefs
 };
 
 // if an entity / light combination has been evaluated and found to not genrate any surfaces or shadows,

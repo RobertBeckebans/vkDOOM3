@@ -109,7 +109,7 @@ void idRenderWorld::FreeEntityDefDerivedData( idRenderEntity* def, bool keepDeca
 		ref->areaPrev->areaNext = ref->areaNext;
 		
 		// put it back on the free list for reuse
-		def->world->m_areaReferenceAllocator.Free( ref );
+		def->world->areaReferenceAllocator.Free( ref );
 	}
 	def->entityRefs = NULL;
 }
@@ -505,7 +505,7 @@ void idRenderWorld::FreeLightDefDerivedData( idRenderLight* ldef )
 		lref->areaPrev->areaNext = lref->areaNext;
 		
 		// put it back on the free list for reuse
-		ldef->world->m_areaReferenceAllocator.Free( lref );
+		ldef->world->areaReferenceAllocator.Free( lref );
 	}
 	ldef->references = NULL;
 }

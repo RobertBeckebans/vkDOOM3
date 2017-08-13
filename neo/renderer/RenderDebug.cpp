@@ -257,7 +257,7 @@ void idRenderSystemLocal::TakeScreenshot( int width, int height, const char* fil
 	byte*		buffer;
 	int			i, j, c, temp;
 	
-	m_takingScreenshot = true;
+	takingScreenshot = true;
 	
 	const int pix = width * height;
 	const int bufferSize = pix * 3 + 18;
@@ -314,7 +314,7 @@ void idRenderSystemLocal::TakeScreenshot( int width, int height, const char* fil
 	
 	R_StaticFree( buffer );
 	
-	m_takingScreenshot = false;
+	takingScreenshot = false;
 }
 
 /*
@@ -835,9 +835,9 @@ CONSOLE_COMMAND( modulateLights, "modifies shader parms on all lights", NULL )
 	}
 	
 	int count = 0;
-	for( int i = 0; i < tr.primaryWorld->m_lightDefs.Num(); i++ )
+	for( int i = 0; i < tr.primaryWorld->lightDefs.Num(); i++ )
 	{
-		idRenderLight* light = tr.primaryWorld->m_lightDefs[i];
+		idRenderLight* light = tr.primaryWorld->lightDefs[i];
 		if( light != NULL )
 		{
 			count++;
@@ -878,9 +878,9 @@ CONSOLE_COMMAND( testImage, "displays the given image centered on screen", idCmd
 	if( idStr::IsNumeric( args.Argv( 1 ) ) )
 	{
 		imageNum = atoi( args.Argv( 1 ) );
-		if( imageNum >= 0 && imageNum < globalImages->m_images.Num() )
+		if( imageNum >= 0 && imageNum < globalImages->images.Num() )
 		{
-			testImage = globalImages->m_images[imageNum];
+			testImage = globalImages->images[imageNum];
 		}
 	}
 	else
@@ -929,7 +929,7 @@ CONSOLE_COMMAND( testVideo, "displays the given cinematic", idCmdSystem::ArgComp
 	int	len = testVideo->AnimationLength();
 	idLib::Printf( "%5.1f seconds of video\n", len * 0.001 );
 	
-	testVideoStartTime = tr.m_primaryRenderView.time[1];
+	testVideoStartTime = tr.primaryRenderView.time[1];
 	
 	// try to play the matching wav file
 	idStr	wavString = args.Argv( ( args.Argc() == 2 ) ? 1 : 2 );
@@ -1037,9 +1037,9 @@ CONSOLE_COMMAND( showInteractionMemory, "shows memory used by interactions", NUL
 	int maxInteractionsForEntity = 0;
 	int maxInteractionsForLight = 0;
 	
-	for( int i = 0; i < tr.primaryWorld->m_lightDefs.Num(); i++ )
+	for( int i = 0; i < tr.primaryWorld->lightDefs.Num(); i++ )
 	{
-		idRenderLight* light = tr.primaryWorld->m_lightDefs[i];
+		idRenderLight* light = tr.primaryWorld->lightDefs[i];
 		if( light == NULL )
 		{
 			continue;
@@ -1058,9 +1058,9 @@ CONSOLE_COMMAND( showInteractionMemory, "shows memory used by interactions", NUL
 		}
 	}
 	
-	for( int i = 0; i < tr.primaryWorld->m_entityDefs.Num(); i++ )
+	for( int i = 0; i < tr.primaryWorld->entityDefs.Num(); i++ )
 	{
-		idRenderEntity*	def = tr.primaryWorld->m_entityDefs[i];
+		idRenderEntity*	def = tr.primaryWorld->entityDefs[i];
 		if( def == NULL )
 		{
 			continue;

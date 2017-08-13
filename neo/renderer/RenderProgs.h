@@ -313,7 +313,7 @@ public:
 	
 	const renderProg_t& GetCurrentRenderProg() const
 	{
-		return m_renderProgs[ m_current ];
+		return renderProgs[ current ];
 	}
 	int		FindShader( const char* name, rpStage_t stage );
 	void	BindProgram( int index );
@@ -333,24 +333,24 @@ private:
 #endif
 	
 public:
-	idList< renderProg_t, TAG_RENDER > m_renderProgs;
+	idList< renderProg_t, TAG_RENDER > renderProgs;
 	
 private:
-	int	m_current;
-	idStaticList< idVec4, RENDERPARM_TOTAL > m_uniforms;
+	int	current;
+	idStaticList< idVec4, RENDERPARM_TOTAL > uniforms;
 	
-	int	m_builtinShaders[ MAX_BUILTINS ];
-	idList< shader_t, TAG_RENDER >	m_shaders;
+	int	builtinShaders[ MAX_BUILTINS ];
+	idList< shader_t, TAG_RENDER >	shaders;
 	
 #if defined( ID_VULKAN )
-	int					m_counter;
-	int					m_currentData;
-	int					m_currentDescSet;
-	int					m_currentParmBufferOffset;
-	VkDescriptorPool	m_descriptorPools[ NUM_FRAME_DATA ];
-	VkDescriptorSet		m_descriptorSets[ NUM_FRAME_DATA ][ MAX_DESC_SETS ];
+	int					counter;
+	int					currentData;
+	int					currentDescSet;
+	int					currentParmBufferOffset;
+	VkDescriptorPool	descriptorPools[ NUM_FRAME_DATA ];
+	VkDescriptorSet		descriptorSets[ NUM_FRAME_DATA ][ MAX_DESC_SETS ];
 	
-	idUniformBuffer* 	m_parmBuffers[ NUM_FRAME_DATA ];
+	idUniformBuffer* 	parmBuffers[ NUM_FRAME_DATA ];
 #endif
 };
 

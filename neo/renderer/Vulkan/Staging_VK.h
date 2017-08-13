@@ -71,13 +71,13 @@ private:
 	void			Wait( stagingBuffer_t& stage );
 	
 private:
-	int				m_maxBufferSize;
-	int				m_currentBuffer;
-	byte* 			m_mappedData;
-	VkDeviceMemory	m_memory;
-	VkCommandPool	m_commandPool;
+	int				maxBufferSize;
+	int				currentBuffer;
+	byte* 			mappedData;
+	VkDeviceMemory	memory;
+	VkCommandPool	commandPool;
 	
-	stagingBuffer_t m_buffers[ NUM_FRAME_DATA ];
+	stagingBuffer_t buffers[ NUM_FRAME_DATA ];
 };
 
 extern idVulkanStagingManager stagingManager;

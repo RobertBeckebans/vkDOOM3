@@ -94,10 +94,10 @@ static drawSurf_t* R_AutospriteDeform( drawSurf_t* surf )
 	
 	idVec3 leftDir;
 	idVec3 upDir;
-	R_GlobalVectorToLocal( surf->space->modelMatrix, tr.m_viewDef->renderView.viewaxis[1], leftDir );
-	R_GlobalVectorToLocal( surf->space->modelMatrix, tr.m_viewDef->renderView.viewaxis[2], upDir );
+	R_GlobalVectorToLocal( surf->space->modelMatrix, tr.viewDef->renderView.viewaxis[1], leftDir );
+	R_GlobalVectorToLocal( surf->space->modelMatrix, tr.viewDef->renderView.viewaxis[2], upDir );
 	
-	if( tr.m_viewDef->isMirror )
+	if( tr.viewDef->isMirror )
 	{
 		leftDir = vec3_origin - leftDir;
 	}
@@ -190,7 +190,7 @@ static drawSurf_t* R_TubeDeform( drawSurf_t* surf )
 	// we need the view direction to project the minor axis of the tube
 	// as the view changes
 	idVec3	localView;
-	R_GlobalPointToLocal( surf->space->modelMatrix, tr.m_viewDef->renderView.vieworg, localView );
+	R_GlobalPointToLocal( surf->space->modelMatrix, tr.viewDef->renderView.vieworg, localView );
 	
 	// the srfTriangles_t are in frame memory and will be automatically disposed of
 	srfTriangles_t* newTri = ( srfTriangles_t* )renderSystem->ClearedFrameAlloc( sizeof( *newTri ), FRAME_ALLOC_SURFACE_TRIANGLES );
@@ -410,7 +410,7 @@ static drawSurf_t* R_FlareDeform( drawSurf_t* surf )
 	
 	// if viewer is behind the plane, draw nothing
 	idVec3 localViewer;
-	R_GlobalPointToLocal( surf->space->modelMatrix, tr.m_viewDef->renderView.vieworg, localViewer );
+	R_GlobalPointToLocal( surf->space->modelMatrix, tr.viewDef->renderView.vieworg, localViewer );
 	float distFromPlane = localViewer * plane.Normal() + plane[3];
 	if( distFromPlane <= 0 )
 	{
@@ -900,7 +900,7 @@ static drawSurf_t* R_ParticleDeform( drawSurf_t* surf, bool useArea )
 	particleGen_t g;
 	
 	g.renderEnt = renderEntity;
-	g.renderView = &tr.m_viewDef->renderView;
+	g.renderView = &tr.viewDef->renderView;
 	g.origin.Zero();
 	g.axis = mat3_identity;
 	

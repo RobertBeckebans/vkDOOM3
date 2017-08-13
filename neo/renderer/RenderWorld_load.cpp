@@ -48,12 +48,12 @@ void idRenderWorld::FreeWorld()
 	FreeDefs();
 	
 	// free all the portals and check light/model references
-	for( int i = 0; i < m_numPortalAreas; i++ )
+	for( int i = 0; i < numPortalAreas; i++ )
 	{
 		portalArea_t*	area;
 		portal_t*		portal, *nextPortal;
 		
-		area = &m_portalAreas[i];
+		area = &portalAreas[i];
 		for( portal = area->portals; portal; portal = nextPortal )
 		{
 			nextPortal = portal->next;
@@ -72,40 +72,40 @@ void idRenderWorld::FreeWorld()
 		}
 	}
 	
-	if( m_portalAreas )
+	if( portalAreas )
 	{
-		R_StaticFree( m_portalAreas );
-		m_portalAreas = NULL;
-		m_numPortalAreas = 0;
-		R_StaticFree( m_areaScreenRect );
-		m_areaScreenRect = NULL;
+		R_StaticFree( portalAreas );
+		portalAreas = NULL;
+		numPortalAreas = 0;
+		R_StaticFree( areaScreenRect );
+		areaScreenRect = NULL;
 	}
 	
-	if( m_doublePortals )
+	if( doublePortals )
 	{
-		R_StaticFree( m_doublePortals );
-		m_doublePortals = NULL;
-		m_numInterAreaPortals = 0;
+		R_StaticFree( doublePortals );
+		doublePortals = NULL;
+		numInterAreaPortals = 0;
 	}
 	
-	if( m_areaNodes )
+	if( areaNodes )
 	{
-		R_StaticFree( m_areaNodes );
-		m_areaNodes = NULL;
+		R_StaticFree( areaNodes );
+		areaNodes = NULL;
 	}
 	
 	// free all the inline idRenderModels
-	for( int i = 0; i < m_localModels.Num(); i++ )
+	for( int i = 0; i < localModels.Num(); i++ )
 	{
-		renderModelManager->RemoveModel( m_localModels[i] );
-		delete m_localModels[i];
+		renderModelManager->RemoveModel( localModels[i] );
+		delete localModels[i];
 	}
-	m_localModels.Clear();
+	localModels.Clear();
 	
-	m_areaReferenceAllocator.Shutdown();
-	m_interactionAllocator.Shutdown();
+	areaReferenceAllocator.Shutdown();
+	interactionAllocator.Shutdown();
 	
-	m_mapName = "<FREED>";
+	mapName = "<FREED>";
 }
 
 /*
@@ -115,9 +115,9 @@ idRenderWorld::TouchWorldModels
 */
 void idRenderWorld::TouchWorldModels()
 {
-	for( int i = 0; i < m_localModels.Num(); i++ )
+	for( int i = 0; i < localModels.Num(); i++ )
 	{
-		renderModelManager->CheckModel( m_localModels[i]->Name() );
+		renderModelManager->CheckModel( localModels[i]->Name() );
 	}
 }
 
@@ -132,7 +132,7 @@ idRenderModel* idRenderWorld::ReadBinaryModel( idFile* fileIn )
 	fileIn->ReadString( name );
 	idRenderModel* model = renderModelManager->AllocModel();
 	model->InitEmpty( name );
-	if( model->LoadBinaryModel( fileIn, m_mapTimeStamp ) )
+	if( model->LoadBinaryModel( fileIn, mapTimeStamp ) )
 	{
 		return model;
 	}
@@ -322,7 +322,7 @@ idRenderModel* idRenderWorld::ReadBinaryShadowModel( idFile* fileIn )
 	fileIn->ReadString( name );
 	idRenderModel* model = renderModelManager->AllocModel();
 	model->InitEmpty( name );
-	if( model->LoadBinaryModel( fileIn, m_mapTimeStamp ) )
+	if( model->LoadBinaryModel( fileIn, mapTimeStamp ) )
 	{
 		return model;
 	}
@@ -405,7 +405,7 @@ idRenderModel* idRenderWorld::ParseShadowModel( idLexer* src, idFile* fileOut )
 	
 	if( fileOut != NULL && model->SupportsBinaryModel() && r_binaryLoadRenderModels.GetBool() )
 	{
-		model->WriteBinaryModel( fileOut, &m_mapTimeStamp );
+		model->WriteBinaryModel( fileOut, &mapTimeStamp );
 	}
 	
 	return model;
@@ -418,14 +418,14 @@ idRenderWorld::SetupAreaRefs
 */
 void idRenderWorld::SetupAreaRefs()
 {
-	m_connectedAreaNum = 0;
-	for( int i = 0; i < m_numPortalAreas; i++ )
+	connectedAreaNum = 0;
+	for( int i = 0; i < numPortalAreas; i++ )
 	{
-		m_portalAreas[i].areaNum = i;
-		m_portalAreas[i].lightRefs.areaNext =
-			m_portalAreas[i].lightRefs.areaPrev = &m_portalAreas[i].lightRefs;
-		m_portalAreas[i].entityRefs.areaNext =
-			m_portalAreas[i].entityRefs.areaPrev = &m_portalAreas[i].entityRefs;
+		portalAreas[i].areaNum = i;
+		portalAreas[i].lightRefs.areaNext =
+			portalAreas[i].lightRefs.areaPrev = &portalAreas[i].lightRefs;
+		portalAreas[i].entityRefs.areaNext =
+			portalAreas[i].entityRefs.areaPrev = &portalAreas[i].entityRefs;
 	}
 }
 
@@ -438,10 +438,10 @@ void idRenderWorld::ParseInterAreaPortals( idLexer* src, idFile* fileOut )
 {
 	src->ExpectTokenString( "{" );
 	
-	m_numPortalAreas = src->ParseInt();
-	if( m_numPortalAreas < 0 )
+	numPortalAreas = src->ParseInt();
+	if( numPortalAreas < 0 )
 	{
-		src->Error( "R_ParseInterAreaPortals: bad m_numPortalAreas" );
+		src->Error( "R_ParseInterAreaPortals: bad numPortalAreas" );
 		return;
 	}
 	
@@ -452,29 +452,29 @@ void idRenderWorld::ParseInterAreaPortals( idLexer* src, idFile* fileOut )
 	}
 	
 	
-	m_portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( m_numPortalAreas * sizeof( m_portalAreas[0] ) );
-	m_areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( m_numPortalAreas * sizeof( idScreenRect ) );
+	portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( numPortalAreas * sizeof( portalAreas[0] ) );
+	areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( numPortalAreas * sizeof( idScreenRect ) );
 	
 	// set the doubly linked lists
 	SetupAreaRefs();
 	
-	m_numInterAreaPortals = src->ParseInt();
-	if( m_numInterAreaPortals < 0 )
+	numInterAreaPortals = src->ParseInt();
+	if( numInterAreaPortals < 0 )
 	{
-		src->Error( "R_ParseInterAreaPortals: bad m_numInterAreaPortals" );
+		src->Error( "R_ParseInterAreaPortals: bad numInterAreaPortals" );
 		return;
 	}
 	
 	if( fileOut != NULL )
 	{
-		fileOut->WriteBig( m_numPortalAreas );
-		fileOut->WriteBig( m_numInterAreaPortals );
+		fileOut->WriteBig( numPortalAreas );
+		fileOut->WriteBig( numInterAreaPortals );
 	}
 	
-	m_doublePortals = ( doublePortal_t* )R_ClearedStaticAlloc( m_numInterAreaPortals *
-					  sizeof( m_doublePortals [0] ) );
-					  
-	for( int i = 0; i < m_numInterAreaPortals; i++ )
+	doublePortals = ( doublePortal_t* )R_ClearedStaticAlloc( numInterAreaPortals *
+					sizeof( doublePortals [0] ) );
+					
+	for( int i = 0; i < numInterAreaPortals; i++ )
 	{
 		int		numPoints, a1, a2;
 		idWinding*	w;
@@ -511,26 +511,26 @@ void idRenderWorld::ParseInterAreaPortals( idLexer* src, idFile* fileOut )
 		// add the portal to a1
 		p = ( portal_t* )R_ClearedStaticAlloc( sizeof( *p ) );
 		p->intoArea = a2;
-		p->doublePortal = &m_doublePortals[i];
+		p->doublePortal = &doublePortals[i];
 		p->w = w;
 		p->w->GetPlane( p->plane );
 		
-		p->next = m_portalAreas[a1].portals;
-		m_portalAreas[a1].portals = p;
+		p->next = portalAreas[a1].portals;
+		portalAreas[a1].portals = p;
 		
-		m_doublePortals[i].portals[0] = p;
+		doublePortals[i].portals[0] = p;
 		
 		// reverse it for a2
 		p = ( portal_t* )R_ClearedStaticAlloc( sizeof( *p ) );
 		p->intoArea = a1;
-		p->doublePortal = &m_doublePortals[i];
+		p->doublePortal = &doublePortals[i];
 		p->w = w->Reverse();
 		p->w->GetPlane( p->plane );
 		
-		p->next = m_portalAreas[a2].portals;
-		m_portalAreas[a2].portals = p;
+		p->next = portalAreas[a2].portals;
+		portalAreas[a2].portals = p;
 		
-		m_doublePortals[i].portals[1] = p;
+		doublePortals[i].portals[1] = p;
 	}
 	
 	src->ExpectTokenString( "}" );
@@ -544,18 +544,18 @@ idRenderWorld::ParseInterAreaPortals
 void idRenderWorld::ReadBinaryAreaPortals( idFile* file )
 {
 
-	file->ReadBig( m_numPortalAreas );
-	file->ReadBig( m_numInterAreaPortals );
+	file->ReadBig( numPortalAreas );
+	file->ReadBig( numInterAreaPortals );
 	
-	m_portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( m_numPortalAreas * sizeof( m_portalAreas[0] ) );
-	m_areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( m_numPortalAreas * sizeof( idScreenRect ) );
+	portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( numPortalAreas * sizeof( portalAreas[0] ) );
+	areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( numPortalAreas * sizeof( idScreenRect ) );
 	
 	// set the doubly linked lists
 	SetupAreaRefs();
 	
-	m_doublePortals = ( doublePortal_t* )R_ClearedStaticAlloc( m_numInterAreaPortals * sizeof( m_doublePortals [0] ) );
+	doublePortals = ( doublePortal_t* )R_ClearedStaticAlloc( numInterAreaPortals * sizeof( doublePortals [0] ) );
 	
-	for( int i = 0; i < m_numInterAreaPortals; i++ )
+	for( int i = 0; i < numInterAreaPortals; i++ )
 	{
 		int		numPoints, a1, a2;
 		idWinding*	w;
@@ -579,26 +579,26 @@ void idRenderWorld::ReadBinaryAreaPortals( idFile* file )
 		// add the portal to a1
 		p = ( portal_t* )R_ClearedStaticAlloc( sizeof( *p ) );
 		p->intoArea = a2;
-		p->doublePortal = &m_doublePortals[i];
+		p->doublePortal = &doublePortals[i];
 		p->w = w;
 		p->w->GetPlane( p->plane );
 		
-		p->next = m_portalAreas[a1].portals;
-		m_portalAreas[a1].portals = p;
+		p->next = portalAreas[a1].portals;
+		portalAreas[a1].portals = p;
 		
-		m_doublePortals[i].portals[0] = p;
+		doublePortals[i].portals[0] = p;
 		
 		// reverse it for a2
 		p = ( portal_t* )R_ClearedStaticAlloc( sizeof( *p ) );
 		p->intoArea = a1;
-		p->doublePortal = &m_doublePortals[i];
+		p->doublePortal = &doublePortals[i];
 		p->w = w->Reverse();
 		p->w->GetPlane( p->plane );
 		
-		p->next = m_portalAreas[a2].portals;
-		m_portalAreas[a2].portals = p;
+		p->next = portalAreas[a2].portals;
+		portalAreas[a2].portals = p;
 		
-		m_doublePortals[i].portals[1] = p;
+		doublePortals[i].portals[1] = p;
 	}
 }
 
@@ -612,12 +612,12 @@ void idRenderWorld::ParseNodes( idLexer* src, idFile* fileOut )
 {
 	src->ExpectTokenString( "{" );
 	
-	m_numAreaNodes = src->ParseInt();
-	if( m_numAreaNodes < 0 )
+	numAreaNodes = src->ParseInt();
+	if( numAreaNodes < 0 )
 	{
 		src->Error( "R_ParseNodes: bad numAreaNodes" );
 	}
-	m_areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( m_numAreaNodes * sizeof( m_areaNodes[0] ) );
+	areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( numAreaNodes * sizeof( areaNodes[0] ) );
 	
 	if( fileOut != NULL )
 	{
@@ -627,14 +627,14 @@ void idRenderWorld::ParseNodes( idLexer* src, idFile* fileOut )
 	
 	if( fileOut != NULL )
 	{
-		fileOut->WriteBig( m_numAreaNodes );
+		fileOut->WriteBig( numAreaNodes );
 	}
 	
-	for( int i = 0; i < m_numAreaNodes; i++ )
+	for( int i = 0; i < numAreaNodes; i++ )
 	{
 		areaNode_t*	node;
 		
-		node = &m_areaNodes[i];
+		node = &areaNodes[i];
 		
 		src->Parse1DMatrix( 4, node->plane.ToFloatPtr() );
 		
@@ -663,11 +663,11 @@ idRenderWorld::ReadBinaryNodes
 */
 void idRenderWorld::ReadBinaryNodes( idFile* file )
 {
-	file->ReadBig( m_numAreaNodes );
-	m_areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( m_numAreaNodes * sizeof( m_areaNodes[0] ) );
-	for( int i = 0; i < m_numAreaNodes; i++ )
+	file->ReadBig( numAreaNodes );
+	areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( numAreaNodes * sizeof( areaNodes[0] ) );
+	for( int i = 0; i < numAreaNodes; i++ )
 	{
-		areaNode_t* node = &m_areaNodes[ i ];
+		areaNode_t* node = &areaNodes[ i ];
 		file->ReadBig( node->plane[ 0 ] );
 		file->ReadBig( node->plane[ 1 ] );
 		file->ReadBig( node->plane[ 2 ] );
@@ -694,7 +694,7 @@ int idRenderWorld::CommonChildrenArea_r( areaNode_t* node )
 		}
 		else
 		{
-			nums[i] = CommonChildrenArea_r( &m_areaNodes[ node->children[i] ] );
+			nums[i] = CommonChildrenArea_r( &areaNodes[ node->children[i] ] );
 		}
 	}
 	
@@ -732,19 +732,19 @@ Sets up for a single area world
 */
 void idRenderWorld::ClearWorld()
 {
-	m_numPortalAreas = 1;
-	m_portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( sizeof( m_portalAreas[0] ) );
-	m_areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( sizeof( idScreenRect ) );
+	numPortalAreas = 1;
+	portalAreas = ( portalArea_t* )R_ClearedStaticAlloc( sizeof( portalAreas[0] ) );
+	areaScreenRect = ( idScreenRect* ) R_ClearedStaticAlloc( sizeof( idScreenRect ) );
 	
 	SetupAreaRefs();
 	
 	// even though we only have a single area, create a node
 	// that has both children pointing at it so we don't need to
 	//
-	m_areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( sizeof( m_areaNodes[0] ) );
-	m_areaNodes[0].plane[3] = 1;
-	m_areaNodes[0].children[0] = -1;
-	m_areaNodes[0].children[1] = -1;
+	areaNodes = ( areaNode_t* )R_ClearedStaticAlloc( sizeof( areaNodes[0] ) );
+	areaNodes[0].plane[3] = 1;
+	areaNodes[0].children[0] = -1;
+	areaNodes[0].children[1] = -1;
 }
 
 /*
@@ -756,44 +756,44 @@ dump all the interactions
 */
 void idRenderWorld::FreeDefs()
 {
-	if( m_interactionTable )
+	if( interactionTable )
 	{
-		R_StaticFree( m_interactionTable );
-		m_interactionTable = NULL;
+		R_StaticFree( interactionTable );
+		interactionTable = NULL;
 	}
 	
 	// free all lightDefs
-	for( int i = 0; i < m_lightDefs.Num(); i++ )
+	for( int i = 0; i < lightDefs.Num(); i++ )
 	{
-		idRenderLight* light = m_lightDefs[i];
+		idRenderLight* light = lightDefs[i];
 		if( light != NULL && light->world == this )
 		{
 			FreeLightDef( i );
-			m_lightDefs[i] = NULL;
+			lightDefs[i] = NULL;
 		}
 	}
 	
 	// free all entityDefs
-	for( int i = 0; i < m_entityDefs.Num(); i++ )
+	for( int i = 0; i < entityDefs.Num(); i++ )
 	{
-		idRenderEntity*	 mod = m_entityDefs[i];
+		idRenderEntity*	 mod = entityDefs[i];
 		if( mod != NULL && mod->world == this )
 		{
 			FreeEntityDef( i );
-			m_entityDefs[i] = NULL;
+			entityDefs[i] = NULL;
 		}
 	}
 	
 	// Reset decals and overlays
-	for( int i = 0; i < m_decals.Num(); i++ )
+	for( int i = 0; i < decals.Num(); i++ )
 	{
-		m_decals[i].entityHandle = -1;
-		m_decals[i].lastStartTime = 0;
+		decals[i].entityHandle = -1;
+		decals[i].lastStartTime = 0;
 	}
-	for( int i = 0; i < m_overlays.Num(); i++ )
+	for( int i = 0; i < overlays.Num(); i++ )
 	{
-		m_overlays[i].entityHandle = -1;
-		m_overlays[i].lastStartTime = 0;
+		overlays[i].entityHandle = -1;
+		overlays[i].lastStartTime = 0;
 	}
 }
 
@@ -815,7 +815,7 @@ bool idRenderWorld::InitFromMap( const char* name )
 	if( !name || !name[0] )
 	{
 		FreeWorld();
-		m_mapName.Clear();
+		mapName.Clear();
 		ClearWorld();
 		return true;
 	}
@@ -833,9 +833,9 @@ bool idRenderWorld::InitFromMap( const char* name )
 	// and try to skip all the work
 	ID_TIME_T currentTimeStamp = fileSystem->GetTimestamp( filename );
 	
-	if( name == m_mapName )
+	if( name == mapName )
 	{
-		if( fileSystem->InProductionMode() || ( currentTimeStamp != FILE_NOT_FOUND_TIMESTAMP && currentTimeStamp == m_mapTimeStamp ) )
+		if( fileSystem->InProductionMode() || ( currentTimeStamp != FILE_NOT_FOUND_TIMESTAMP && currentTimeStamp == mapTimeStamp ) )
 		{
 			idLib::Printf( "idRenderWorld::InitFromMap: retaining existing map\n" );
 			FreeDefs();
@@ -862,8 +862,8 @@ bool idRenderWorld::InitFromMap( const char* name )
 		if( magic == BPROC_MAGIC )
 		{
 			file->ReadBig( numEntries );
-			file->ReadString( m_mapName );
-			file->ReadBig( m_mapTimeStamp );
+			file->ReadString( mapName );
+			file->ReadBig( mapTimeStamp );
 			loaded = true;
 			for( int i = 0; i < numEntries; i++ )
 			{
@@ -879,7 +879,7 @@ bool idRenderWorld::InitFromMap( const char* name )
 						break;
 					}
 					renderModelManager->AddModel( lastModel );
-					m_localModels.Append( lastModel );
+					localModels.Append( lastModel );
 				}
 				else if( type == "shadowmodel" )
 				{
@@ -890,7 +890,7 @@ bool idRenderWorld::InitFromMap( const char* name )
 						break;
 					}
 					renderModelManager->AddModel( lastModel );
-					m_localModels.Append( lastModel );
+					localModels.Append( lastModel );
 				}
 				else if( type == "interareaportals" )
 				{
@@ -920,8 +920,8 @@ bool idRenderWorld::InitFromMap( const char* name )
 		}
 		
 		
-		m_mapName = name;
-		m_mapTimeStamp = currentTimeStamp;
+		mapName = name;
+		mapTimeStamp = currentTimeStamp;
 		
 		if( !src->ReadToken( &token ) || token.Icmp( PROC_FILE_ID ) )
 		{
@@ -937,8 +937,8 @@ bool idRenderWorld::InitFromMap( const char* name )
 			int magic = BPROC_MAGIC;
 			outputFile->WriteBig( magic );
 			outputFile->WriteBig( numEntries );
-			outputFile->WriteString( m_mapName );
-			outputFile->WriteBig( m_mapTimeStamp );
+			outputFile->WriteString( mapName );
+			outputFile->WriteBig( mapTimeStamp );
 		}
 		
 		// parse the file
@@ -960,7 +960,7 @@ bool idRenderWorld::InitFromMap( const char* name )
 				renderModelManager->AddModel( lastModel );
 				
 				// save it in the list to free when clearing this map
-				m_localModels.Append( lastModel );
+				localModels.Append( lastModel );
 				
 				numEntries++;
 				
@@ -975,7 +975,7 @@ bool idRenderWorld::InitFromMap( const char* name )
 				renderModelManager->AddModel( lastModel );
 				
 				// save it in the list to free when clearing this map
-				m_localModels.Append( lastModel );
+				localModels.Append( lastModel );
 				
 				numEntries++;
 				continue;
@@ -1015,13 +1015,13 @@ bool idRenderWorld::InitFromMap( const char* name )
 	
 	
 	// if it was a trivial map without any areas, create a single area
-	if( !m_numPortalAreas )
+	if( !numPortalAreas )
 	{
 		ClearWorld();
 	}
 	
 	// find the points where we can early-our of reference pushing into the BSP tree
-	CommonChildrenArea_r( &m_areaNodes[0] );
+	CommonChildrenArea_r( &areaNodes[0] );
 	
 	AddWorldModelEntities();
 	ClearPortalStates();
@@ -1038,18 +1038,18 @@ idRenderWorld::ClearPortalStates
 void idRenderWorld::ClearPortalStates()
 {
 	// all portals start off open
-	for( int i = 0; i < m_numInterAreaPortals; i++ )
+	for( int i = 0; i < numInterAreaPortals; i++ )
 	{
-		m_doublePortals[i].blockingBits = PS_BLOCK_NONE;
+		doublePortals[i].blockingBits = PS_BLOCK_NONE;
 	}
 	
 	// flood fill all area connections
-	for( int i = 0; i < m_numPortalAreas; i++ )
+	for( int i = 0; i < numPortalAreas; i++ )
 	{
 		for( int j = 0; j < NUM_PORTAL_ATTRIBUTES; j++ )
 		{
-			m_connectedAreaNum++;
-			FloodConnectedAreas( &m_portalAreas[i], j );
+			connectedAreaNum++;
+			FloodConnectedAreas( &portalAreas[i], j );
 		}
 	}
 }
@@ -1064,7 +1064,7 @@ void idRenderWorld::AddWorldModelEntities()
 	// add the world model for each portal area
 	// we can't just call AddEntityDef, because that would place the references
 	// based on the bounding box, rather than explicitly into the correct area
-	for( int i = 0; i < m_numPortalAreas; i++ )
+	for( int i = 0; i < numPortalAreas; i++ )
 	{
 		common->UpdateLevelLoadPacifier();
 		
@@ -1072,14 +1072,14 @@ void idRenderWorld::AddWorldModelEntities()
 		idRenderEntity*	 def = new( TAG_RENDER_ENTITY ) idRenderEntity;
 		
 		// try and reuse a free spot
-		int index = m_entityDefs.FindNull();
+		int index = entityDefs.FindNull();
 		if( index == -1 )
 		{
-			index = m_entityDefs.Append( def );
+			index = entityDefs.Append( def );
 		}
 		else
 		{
-			m_entityDefs[index] = def;
+			entityDefs[index] = def;
 		}
 		
 		def->index = index;
@@ -1120,7 +1120,7 @@ void idRenderWorld::AddWorldModelEntities()
 		
 		DeriveEntityData( def );
 		
-		AddEntityRefToArea( def, &m_portalAreas[i] );
+		AddEntityRefToArea( def, &portalAreas[i] );
 	}
 }
 
@@ -1131,11 +1131,11 @@ idRenderWorld::CheckAreaForPortalSky
 */
 bool idRenderWorld::CheckAreaForPortalSky( int areaNum )
 {
-	assert( areaNum >= 0 && areaNum < m_numPortalAreas );
+	assert( areaNum >= 0 && areaNum < numPortalAreas );
 	
-	for( areaReference_t* ref = m_portalAreas[areaNum].entityRefs.areaNext; ref->entity; ref = ref->areaNext )
+	for( areaReference_t* ref = portalAreas[areaNum].entityRefs.areaNext; ref->entity; ref = ref->areaNext )
 	{
-		assert( ref->area == &m_portalAreas[areaNum] );
+		assert( ref->area == &portalAreas[areaNum] );
 		
 		if( ref->entity && ref->entity->needsPortalSky )
 		{
@@ -1153,18 +1153,18 @@ idRenderWorld::ReCreateReferences
 */
 void idRenderWorld::ReCreateReferences()
 {
-	for( int i = 0; i < m_entityDefs.Num(); ++i )
+	for( int i = 0; i < entityDefs.Num(); ++i )
 	{
-		idRenderEntity* def = m_entityDefs[ i ];
+		idRenderEntity* def = entityDefs[ i ];
 		if( def == NULL )
 		{
 			continue;
 		}
 		// the world model entities are put specifically in a single
 		// area, instead of just pushing their bounds into the tree
-		if( i < m_numPortalAreas )
+		if( i < numPortalAreas )
 		{
-			AddEntityRefToArea( def, &m_portalAreas[ i ] );
+			AddEntityRefToArea( def, &portalAreas[ i ] );
 		}
 		else
 		{
@@ -1172,9 +1172,9 @@ void idRenderWorld::ReCreateReferences()
 		}
 	}
 	
-	for( int i = 0; i < m_lightDefs.Num(); ++i )
+	for( int i = 0; i < lightDefs.Num(); ++i )
 	{
-		idRenderLight* light = m_lightDefs[ i ];
+		idRenderLight* light = lightDefs[ i ];
 		if( light == NULL )
 		{
 			continue;
@@ -1193,9 +1193,9 @@ idRenderWorld::FreeDerivedData
 */
 void idRenderWorld::FreeDerivedData()
 {
-	for( int i = 0; i < m_entityDefs.Num(); ++i )
+	for( int i = 0; i < entityDefs.Num(); ++i )
 	{
-		idRenderEntity* def = m_entityDefs[ i ];
+		idRenderEntity* def = entityDefs[ i ];
 		if( def == NULL )
 		{
 			continue;
@@ -1203,9 +1203,9 @@ void idRenderWorld::FreeDerivedData()
 		FreeEntityDefDerivedData( def, false, false );
 	}
 	
-	for( int i = 0; i < m_lightDefs.Num(); ++i )
+	for( int i = 0; i < lightDefs.Num(); ++i )
 	{
-		idRenderLight* light = m_lightDefs[ i ];
+		idRenderLight* light = lightDefs[ i ];
 		if( light == NULL )
 		{
 			continue;
@@ -1221,9 +1221,9 @@ idRenderWorld::CheckForEntityDefsUsingModel
 */
 void idRenderWorld::CheckForEntityDefsUsingModel( idRenderModel* model )
 {
-	for( int i = 0; i < m_entityDefs.Num(); ++i )
+	for( int i = 0; i < entityDefs.Num(); ++i )
 	{
-		idRenderEntity* def = m_entityDefs[ i ];
+		idRenderEntity* def = entityDefs[ i ];
 		if( !def )
 		{
 			continue;

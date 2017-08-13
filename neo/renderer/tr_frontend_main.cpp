@@ -307,7 +307,7 @@ to handle mirrors.
 */
 void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t* renderView )
 {
-	if( !m_bInitialized )
+	if( !bInitialized )
 	{
 		return;
 	}
@@ -334,7 +334,7 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	viewDef_t* parms = ( viewDef_t* )ClearedFrameAlloc( sizeof( *parms ), FRAME_ALLOC_VIEW_DEF );
 	parms->renderView = *renderView;
 	
-	if( m_takingScreenshot )
+	if( takingScreenshot )
 	{
 		parms->renderView.forceUpdate = true;
 	}
@@ -381,7 +381,7 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	
 	// save this world for use by some console commands
 	primaryWorld = world;
-	m_primaryRenderView = *renderView;
+	primaryRenderView = *renderView;
 	primaryView = parms;
 	
 	// rendering this view may cause other views to be rendered
@@ -397,7 +397,7 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	pc.frontEndMicroSec += endTime - startTime;
 	
 	// prepare for any 2D drawing after this
-	m_guiModel->Clear();
+	guiModel->Clear();
 }
 
 /*
@@ -413,40 +413,40 @@ Parms will typically be allocated with R_FrameAlloc
 void idRenderSystemLocal::RenderView( viewDef_t* parms )
 {
 	// save view in case we are a subview
-	viewDef_t* oldView = m_viewDef;
+	viewDef_t* oldView = viewDef;
 	
-	m_viewDef = parms;
+	viewDef = parms;
 	
 	// setup the matrix for world space to eye space
-	R_SetupViewMatrix( m_viewDef );
+	R_SetupViewMatrix( viewDef );
 	
 	// we need to set the projection matrix before doing
 	// portal-to-screen scissor calculations
-	R_SetupProjectionMatrix( m_viewDef );
+	R_SetupProjectionMatrix( viewDef );
 	
 	// setup render matrices for faster culling
-	idRenderMatrix::Transpose( *( idRenderMatrix* )m_viewDef->projectionMatrix, m_viewDef->projectionRenderMatrix );
+	idRenderMatrix::Transpose( *( idRenderMatrix* )viewDef->projectionMatrix, viewDef->projectionRenderMatrix );
 	idRenderMatrix viewRenderMatrix;
-	idRenderMatrix::Transpose( *( idRenderMatrix* )m_viewDef->worldSpace.modelViewMatrix, viewRenderMatrix );
-	idRenderMatrix::Multiply( m_viewDef->projectionRenderMatrix, viewRenderMatrix, m_viewDef->worldSpace.mvp );
+	idRenderMatrix::Transpose( *( idRenderMatrix* )viewDef->worldSpace.modelViewMatrix, viewRenderMatrix );
+	idRenderMatrix::Multiply( viewDef->projectionRenderMatrix, viewRenderMatrix, viewDef->worldSpace.mvp );
 	
 	// the planes of the view frustum are needed for portal visibility culling
-	idRenderMatrix::GetFrustumPlanes( m_viewDef->frustum, m_viewDef->worldSpace.mvp, false, true );
+	idRenderMatrix::GetFrustumPlanes( viewDef->frustum, viewDef->worldSpace.mvp, false, true );
 	
 	// the DOOM 3 frustum planes point outside the frustum
 	for( int i = 0; i < 6; i++ )
 	{
-		m_viewDef->frustum[i] = - m_viewDef->frustum[i];
+		viewDef->frustum[i] = - viewDef->frustum[i];
 	}
 	// remove the Z-near to avoid portals from being near clipped
-	m_viewDef->frustum[4][3] -= r_znear.GetFloat();
+	viewDef->frustum[4][3] -= r_znear.GetFloat();
 	
 	// identify all the visible portal areas, and create view lights and view entities
 	// for all the the entityDefs and lightDefs that are in the visible portal areas
 	parms->renderWorld->FindViewLightsAndEntities();
 	
 	// wait for any shadow volume jobs from the previous frame to finish
-	m_frontEndJobList->Wait();
+	frontEndJobList->Wait();
 	
 	// make sure that interactions exist for all light / entity combinations that are visible
 	// add any pre-generated light shadows, and calculate the light shader values
@@ -456,16 +456,16 @@ void idRenderSystemLocal::RenderView( viewDef_t* parms )
 	AddModels();
 	
 	// build up the GUIs on world surfaces
-	AddInGameGuis( m_viewDef->drawSurfs, m_viewDef->numDrawSurfs );
+	AddInGameGuis( viewDef->drawSurfs, viewDef->numDrawSurfs );
 	
 	// any viewLight that didn't have visible surfaces can have it's shadows removed
-	R_OptimizeViewLightsList( &m_viewDef->viewLights );
+	R_OptimizeViewLightsList( &viewDef->viewLights );
 	
 	// sort all the ambient surfaces for translucency ordering
-	R_SortDrawSurfs( m_viewDef->drawSurfs, m_viewDef->numDrawSurfs );
+	R_SortDrawSurfs( viewDef->drawSurfs, viewDef->numDrawSurfs );
 	
 	// generate any subviews (mirrors, cameras, etc) before adding this view
-	if( GenerateSubViews( m_viewDef->drawSurfs, m_viewDef->numDrawSurfs ) )
+	if( GenerateSubViews( viewDef->drawSurfs, viewDef->numDrawSurfs ) )
 	{
 		// if we are debugging subviews, allow the skipping of the main view draw
 		if( r_subviewOnly.GetBool() )
@@ -478,5 +478,5 @@ void idRenderSystemLocal::RenderView( viewDef_t* parms )
 	AddDrawViewCmd( parms, false );
 	
 	// restore view in case we are a subview
-	m_viewDef = oldView;
+	viewDef = oldView;
 }

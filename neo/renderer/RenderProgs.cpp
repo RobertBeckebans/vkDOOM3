@@ -126,7 +126,7 @@ idRenderProgManager::GetRenderParm
 */
 const idVec4& idRenderProgManager::GetRenderParm( renderParm_t rp )
 {
-	return m_uniforms[ rp ];
+	return uniforms[ rp ];
 }
 
 /*
@@ -138,7 +138,7 @@ void idRenderProgManager::SetRenderParm( renderParm_t rp, const float* value )
 {
 	for( int i = 0; i < 4; ++i )
 	{
-		m_uniforms[rp][i] = value[i];
+		uniforms[rp][i] = value[i];
 	}
 }
 
@@ -165,9 +165,9 @@ int idRenderProgManager::FindShader( const char* name, rpStage_t stage )
 	idStr shaderName( name );
 	shaderName.StripFileExtension();
 	
-	for( int i = 0; i < m_shaders.Num(); i++ )
+	for( int i = 0; i < shaders.Num(); i++ )
 	{
-		shader_t& shader = m_shaders[ i ];
+		shader_t& shader = shaders[ i ];
 		if( shader.name.Icmp( shaderName.c_str() ) == 0 && shader.stage == stage )
 		{
 			LoadShader( i );
@@ -177,7 +177,7 @@ int idRenderProgManager::FindShader( const char* name, rpStage_t stage )
 	shader_t shader;
 	shader.name = shaderName;
 	shader.stage = stage;
-	int index = m_shaders.Append( shader );
+	int index = shaders.Append( shader );
 	LoadShader( index );
 	return index;
 }

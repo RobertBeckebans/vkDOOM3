@@ -80,7 +80,7 @@ void R_ShowColoredScreenRect( const idScreenRect& rect, int colorIndex )
 	if( !rect.IsEmpty() )
 	{
 		static idVec4 colors[] = { colorRed, colorGreen, colorBlue, colorYellow, colorMagenta, colorCyan, colorWhite, colorPurple };
-		tr.m_viewDef->renderWorld->DebugScreenRect( colors[colorIndex & 7], rect, tr.m_viewDef );
+		tr.viewDef->renderWorld->DebugScreenRect( colors[colorIndex & 7], rect, tr.viewDef );
 	}
 }
 
@@ -108,7 +108,7 @@ static void R_AddSingleLight( viewLight_t* vLight )
 	vLight->preLightShadowVolumes = NULL;
 	
 	// globals we really should pass in...
-	const viewDef_t* viewDef = tr.m_viewDef;
+	const viewDef_t* viewDef = tr.viewDef;
 	
 	const idRenderLight* light = vLight->lightDef;
 	const idMaterial* lightShader = light->lightShader;
@@ -136,7 +136,7 @@ static void R_AddSingleLight( viewLight_t* vLight )
 	// evaluate the light shader registers
 	float* lightRegs = ( float* )renderSystem->FrameAlloc( lightShader->GetNumRegisters() * sizeof( float ), FRAME_ALLOC_SHADER_REGISTER );
 	lightShader->EvaluateRegisters( lightRegs, light->parms.shaderParms, viewDef->renderView.shaderParms,
-									tr.m_viewDef->renderView.time[0] * 0.001f, light->parms.referenceSound );
+									tr.viewDef->renderView.time[0] * 0.001f, light->parms.referenceSound );
 									
 	// if this is a purely additive light and no stage in the light shader evaluates
 	// to a positive light value, we can completely skip the light
@@ -267,10 +267,10 @@ static void R_AddSingleLight( viewLight_t* vLight )
 	const int renderViewID = viewDef->renderView.viewID;
 	
 	// this bool array will be set true whenever the entity will visibly interact with the light
-	vLight->entityInteractionState = ( byte* )renderSystem->ClearedFrameAlloc( light->world->m_entityDefs.Num() * sizeof( vLight->entityInteractionState[0] ), FRAME_ALLOC_INTERACTION_STATE );
+	vLight->entityInteractionState = ( byte* )renderSystem->ClearedFrameAlloc( light->world->entityDefs.Num() * sizeof( vLight->entityInteractionState[0] ), FRAME_ALLOC_INTERACTION_STATE );
 	
 	const bool lightCastsShadows = light->LightCastsShadows();
-	idInteraction * * const interactionTableRow = light->world->m_interactionTable + light->index * light->world->m_interactionTableWidth;
+	idInteraction * * const interactionTableRow = light->world->interactionTable + light->index * light->world->interactionTableWidth;
 	
 	for( areaReference_t* lref = light->references; lref != NULL; lref = lref->ownerNext )
 	{
@@ -514,16 +514,16 @@ void idRenderSystemLocal::AddLights()
 	
 	if( r_useParallelAddLights.GetBool() )
 	{
-		for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+		for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 		{
-			m_frontEndJobList->AddJob( ( jobRun_t )R_AddSingleLight, vLight );
+			frontEndJobList->AddJob( ( jobRun_t )R_AddSingleLight, vLight );
 		}
-		m_frontEndJobList->Submit();
-		m_frontEndJobList->Wait();
+		frontEndJobList->Submit();
+		frontEndJobList->Wait();
 	}
 	else
 	{
-		for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+		for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 		{
 			R_AddSingleLight( vLight );
 		}
@@ -534,7 +534,7 @@ void idRenderSystemLocal::AddLights()
 	//-------------------------------------------------
 	
 	pc.c_viewLights = 0;
-	viewLight_t** ptr = &m_viewDef->viewLights;
+	viewLight_t** ptr = &viewDef->viewLights;
 	while( *ptr != NULL )
 	{
 		viewLight_t* vLight = *ptr;
@@ -569,11 +569,11 @@ void idRenderSystemLocal::AddLights()
 	
 	if( r_useParallelAddShadows.GetInteger() == 1 )
 	{
-		for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+		for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 		{
 			for( preLightShadowVolumeParms_t* shadowParms = vLight->preLightShadowVolumes; shadowParms != NULL; shadowParms = shadowParms->next )
 			{
-				m_frontEndJobList->AddJob( ( jobRun_t )PreLightShadowVolumeJob, shadowParms );
+				frontEndJobList->AddJob( ( jobRun_t )PreLightShadowVolumeJob, shadowParms );
 			}
 			vLight->preLightShadowVolumes = NULL;
 		}
@@ -582,7 +582,7 @@ void idRenderSystemLocal::AddLights()
 	{
 		int start = Sys_Microseconds();
 		
-		for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+		for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 		{
 			for( preLightShadowVolumeParms_t* shadowParms = vLight->preLightShadowVolumes; shadowParms != NULL; shadowParms = shadowParms->next )
 			{
@@ -592,6 +592,6 @@ void idRenderSystemLocal::AddLights()
 		}
 		
 		int end = Sys_Microseconds();
-		m_backend.m_pc.shadowMicroSec += end - start;
+		backend.pc.shadowMicroSec += end - start;
 	}
 }

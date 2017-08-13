@@ -477,23 +477,23 @@ idImageManager::CreateIntrinsicImages
 void idImageManager::CreateIntrinsicImages()
 {
 	// create built in images
-	m_defaultImage = ImageFromFunction( "_default", R_DefaultImage );
-	m_whiteImage = ImageFromFunction( "_white", R_WhiteImage );
-	m_blackImage = ImageFromFunction( "_black", R_BlackImage );
-	m_flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage );
-	m_alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage );
-	m_fogImage = ImageFromFunction( "_fog", R_FogImage );
-	m_fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage );
-	m_noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage );
-	m_quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage );
+	defaultImage = ImageFromFunction( "_default", R_DefaultImage );
+	whiteImage = ImageFromFunction( "_white", R_WhiteImage );
+	blackImage = ImageFromFunction( "_black", R_BlackImage );
+	flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage );
+	alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage );
+	fogImage = ImageFromFunction( "_fog", R_FogImage );
+	fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage );
+	noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage );
+	quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage );
 	
 	// scratchImage is used for screen wipes/doublevision etc..
-	m_scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image );
-	m_scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image );
-	m_currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image );
-	m_currentDepthImage = ImageFromFunction( "_currentDepth", R_DepthImage );
-	m_accumImage = ImageFromFunction( "_accum", R_RGBA8Image );
+	scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image );
+	scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image );
+	currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image );
+	currentDepthImage = ImageFromFunction( "_currentDepth", R_DepthImage );
+	accumImage = ImageFromFunction( "_accum", R_RGBA8Image );
 	
-	m_loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
-	m_hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
+	loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
+	hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
 }

@@ -154,9 +154,9 @@ bool R_IssueEntityDefCallback( idRenderEntity* def )
 	def->archived = false;		// will need to be written to the demo file
 	
 	bool update;
-	if( tr.m_viewDef != NULL )
+	if( tr.viewDef != NULL )
 	{
-		update = def->parms.callback( &def->parms, &tr.m_viewDef->renderView );
+		update = def->parms.callback( &def->parms, &tr.viewDef->renderView );
 	}
 	else
 	{
@@ -243,7 +243,7 @@ idRenderModel* R_EntityDefDynamicModel( idRenderEntity* def )
 		SCOPED_PROFILE_EVENT( "InstantiateDynamicModel" );
 		
 		// instantiate the snapshot of the dynamic model, possibly reusing memory from the cached snapshot
-		def->cachedDynamicModel = model->InstantiateDynamicModel( &def->parms, tr.m_viewDef, def->cachedDynamicModel );
+		def->cachedDynamicModel = model->InstantiateDynamicModel( &def->parms, tr.viewDef, def->cachedDynamicModel );
 		
 		if( def->cachedDynamicModel != NULL && r_checkBounds.GetBool() )
 		{
@@ -264,11 +264,11 @@ idRenderModel* R_EntityDefDynamicModel( idRenderEntity* def )
 	}
 	
 	// set model depth hack value
-	if( def->dynamicModel != NULL && model->DepthHack() != 0.0f && tr.m_viewDef != NULL )
+	if( def->dynamicModel != NULL && model->DepthHack() != 0.0f && tr.viewDef != NULL )
 	{
 		idPlane eye, clip;
 		idVec3 ndc;
-		R_TransformModelToClip( def->parms.origin, tr.m_viewDef->worldSpace.modelViewMatrix, tr.m_viewDef->projectionMatrix, eye, clip );
+		R_TransformModelToClip( def->parms.origin, tr.viewDef->worldSpace.modelViewMatrix, tr.viewDef->projectionMatrix, eye, clip );
 		R_TransformClipToDevice( clip, ndc );
 		def->parms.modelDepthHack = model->DepthHack() * ( 1.0f - ndc.z );
 	}
@@ -312,8 +312,8 @@ void R_SetupDrawSurfShader( drawSurf_t* drawSurf, const idMaterial* shader, cons
 			// evaluate the reference shader to find our shader parms
 			float refRegs[MAX_EXPRESSION_REGISTERS];
 			renderEntity->referenceShader->EvaluateRegisters( refRegs, renderEntity->shaderParms,
-					tr.m_viewDef->renderView.shaderParms,
-					tr.m_viewDef->renderView.time[renderEntity->timeGroup] * 0.001f, renderEntity->referenceSound );
+					tr.viewDef->renderView.shaderParms,
+					tr.viewDef->renderView.time[renderEntity->timeGroup] * 0.001f, renderEntity->referenceSound );
 					
 			const shaderStage_t* pStage = renderEntity->referenceShader->GetStage( 0 );
 			
@@ -330,8 +330,8 @@ void R_SetupDrawSurfShader( drawSurf_t* drawSurf, const idMaterial* shader, cons
 		drawSurf->shaderRegisters = regs;
 		
 		// process the shader expressions for conditionals / color / texcoords
-		shader->EvaluateRegisters( regs, shaderParms, tr.m_viewDef->renderView.shaderParms,
-								   tr.m_viewDef->renderView.time[renderEntity->timeGroup] * 0.001f, renderEntity->referenceSound );
+		shader->EvaluateRegisters( regs, shaderParms, tr.viewDef->renderView.shaderParms,
+								   tr.viewDef->renderView.time[renderEntity->timeGroup] * 0.001f, renderEntity->referenceSound );
 	}
 }
 
@@ -383,7 +383,7 @@ void R_AddSingleModel( viewEntity_t* vEntity )
 	vEntity->dynamicShadowVolumes = NULL;
 	
 	// globals we really should pass in...
-	const viewDef_t* viewDef = tr.m_viewDef;
+	const viewDef_t* viewDef = tr.viewDef;
 	
 	idRenderEntity* entityDef = vEntity->entityDef;
 	const renderEntity_t* renderEntity = &entityDef->parms;
@@ -438,7 +438,7 @@ void R_AddSingleModel( viewEntity_t* vEntity )
 				if( vLight->entityInteractionState[entityIndex] == viewLight_t::INTERACTION_YES )
 				{
 					contactedLights[numContactedLights] = vLight;
-					staticInteractions[numContactedLights] = world->m_interactionTable[vLight->lightDef->index * world->m_interactionTableWidth + entityIndex];
+					staticInteractions[numContactedLights] = world->interactionTable[vLight->lightDef->index * world->interactionTableWidth + entityIndex];
 					if( ++numContactedLights == MAX_CONTACTED_LIGHTS )
 					{
 						break;
@@ -494,7 +494,7 @@ void R_AddSingleModel( viewEntity_t* vEntity )
 				}
 			}
 			contactedLights[numContactedLights] = vLight;
-			staticInteractions[numContactedLights] = world->m_interactionTable[vLight->lightDef->index * world->m_interactionTableWidth + entityIndex];
+			staticInteractions[numContactedLights] = world->interactionTable[vLight->lightDef->index * world->interactionTableWidth + entityIndex];
 			if( ++numContactedLights == MAX_CONTACTED_LIGHTS )
 			{
 				break;
@@ -642,9 +642,9 @@ void R_AddSingleModel( viewEntity_t* vEntity )
 		}
 		
 		// optionally override with the renderView->globalMaterial
-		if( tr.m_primaryRenderView.globalMaterial != NULL )
+		if( tr.primaryRenderView.globalMaterial != NULL )
 		{
-			shader = tr.m_primaryRenderView.globalMaterial;
+			shader = tr.primaryRenderView.globalMaterial;
 		}
 		
 		SCOPED_PROFILE_EVENT( shader->GetName() );
@@ -1160,7 +1160,7 @@ void idRenderSystemLocal::AddModels()
 {
 	SCOPED_PROFILE_EVENT( "R_AddModels" );
 	
-	m_viewDef->viewEntitys = R_SortViewEntities( m_viewDef->viewEntitys );
+	viewDef->viewEntitys = R_SortViewEntities( viewDef->viewEntitys );
 	
 	//-------------------------------------------------
 	// Go through each view entity that is either visible to the view, or to
@@ -1169,16 +1169,16 @@ void idRenderSystemLocal::AddModels()
 	
 	if( r_useParallelAddModels.GetBool() )
 	{
-		for( viewEntity_t* vEntity = m_viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
+		for( viewEntity_t* vEntity = viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
 		{
-			m_frontEndJobList->AddJob( ( jobRun_t )R_AddSingleModel, vEntity );
+			frontEndJobList->AddJob( ( jobRun_t )R_AddSingleModel, vEntity );
 		}
-		m_frontEndJobList->Submit();
-		m_frontEndJobList->Wait();
+		frontEndJobList->Submit();
+		frontEndJobList->Wait();
 	}
 	else
 	{
-		for( viewEntity_t* vEntity = m_viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
+		for( viewEntity_t* vEntity = viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
 		{
 			R_AddSingleModel( vEntity );
 		}
@@ -1190,28 +1190,28 @@ void idRenderSystemLocal::AddModels()
 	
 	if( r_useParallelAddShadows.GetInteger() == 1 )
 	{
-		for( viewEntity_t* vEntity = m_viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
+		for( viewEntity_t* vEntity = viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
 		{
 			for( staticShadowVolumeParms_t* shadowParms = vEntity->staticShadowVolumes; shadowParms != NULL; shadowParms = shadowParms->next )
 			{
-				m_frontEndJobList->AddJob( ( jobRun_t )StaticShadowVolumeJob, shadowParms );
+				frontEndJobList->AddJob( ( jobRun_t )StaticShadowVolumeJob, shadowParms );
 			}
 			for( dynamicShadowVolumeParms_t* shadowParms = vEntity->dynamicShadowVolumes; shadowParms != NULL; shadowParms = shadowParms->next )
 			{
-				m_frontEndJobList->AddJob( ( jobRun_t )DynamicShadowVolumeJob, shadowParms );
+				frontEndJobList->AddJob( ( jobRun_t )DynamicShadowVolumeJob, shadowParms );
 			}
 			vEntity->staticShadowVolumes = NULL;
 			vEntity->dynamicShadowVolumes = NULL;
 		}
-		m_frontEndJobList->Submit();
+		frontEndJobList->Submit();
 		// wait here otherwise the shadow volume index buffer may be unmapped before all shadow volumes have been constructed
-		m_frontEndJobList->Wait();
+		frontEndJobList->Wait();
 	}
 	else
 	{
 		int start = Sys_Microseconds();
 		
-		for( viewEntity_t* vEntity = m_viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
+		for( viewEntity_t* vEntity = viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
 		{
 			for( staticShadowVolumeParms_t* shadowParms = vEntity->staticShadowVolumes; shadowParms != NULL; shadowParms = shadowParms->next )
 			{
@@ -1226,24 +1226,24 @@ void idRenderSystemLocal::AddModels()
 		}
 		
 		int end = Sys_Microseconds();
-		m_backend.m_pc.shadowMicroSec += end - start;
+		backend.pc.shadowMicroSec += end - start;
 	}
 	
 	//-------------------------------------------------
 	// Move the draw surfs to the view.
 	//-------------------------------------------------
 	
-	m_viewDef->numDrawSurfs = 0;	// clear the ambient surface list
-	m_viewDef->maxDrawSurfs = 0;	// will be set to INITIAL_DRAWSURFS on R_LinkDrawSurfToView
+	viewDef->numDrawSurfs = 0;	// clear the ambient surface list
+	viewDef->maxDrawSurfs = 0;	// will be set to INITIAL_DRAWSURFS on R_LinkDrawSurfToView
 	
-	for( viewEntity_t* vEntity = m_viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
+	for( viewEntity_t* vEntity = viewDef->viewEntitys; vEntity != NULL; vEntity = vEntity->next )
 	{
 		for( drawSurf_t* ds = vEntity->drawSurfs; ds != NULL; )
 		{
 			drawSurf_t* next = ds->nextOnLight;
 			if( ds->linkChain == NULL )
 			{
-				R_LinkDrawSurfToView( ds, m_viewDef );
+				R_LinkDrawSurfToView( ds, viewDef );
 			}
 			else
 			{

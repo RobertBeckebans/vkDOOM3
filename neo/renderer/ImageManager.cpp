@@ -188,7 +188,7 @@ void R_ListImages_f( const idCmdArgs& args )
 	
 	totalSize = 0;
 	
-	idList< idImage* >& images = globalImages->m_images;
+	idList< idImage* >& images = globalImages->images;
 	const int numImages = images.Num();
 	
 	sortedImage_t* sortedArray = ( sortedImage_t* )alloca( sizeof( sortedImage_t ) * numImages );
@@ -289,7 +289,7 @@ idImage* idImageManager::AllocImage( const char* name )
 	
 	idImage* image = new( TAG_IMAGE ) idImage( name );
 	
-	m_imageHash.Add( hash, m_images.Append( image ) );
+	imageHash.Add( hash, images.Append( image ) );
 	
 	return image;
 }
@@ -329,12 +329,12 @@ idImage* idImageManager::ImageFromFunction( const char* _name, void ( *generator
 	
 	// see if the image already exists
 	int hash = name.FileNameHash();
-	for( int i = m_imageHash.First( hash ); i != -1; i = m_imageHash.Next( i ) )
+	for( int i = imageHash.First( hash ); i != -1; i = imageHash.Next( i ) )
 	{
-		idImage* image = m_images[i];
+		idImage* image = images[i];
 		if( name.Icmp( image->GetName() ) == 0 )
 		{
-			if( image->m_generatorFunction != generatorFunction )
+			if( image->generatorFunction != generatorFunction )
 			{
 				common->DPrintf( "WARNING: reused image %s with mixed generators\n", name.c_str() );
 			}
@@ -345,10 +345,10 @@ idImage* idImageManager::ImageFromFunction( const char* _name, void ( *generator
 	// create the image and issue the callback
 	idImage*	 image = AllocImage( name );
 	
-	image->m_generatorFunction = generatorFunction;
+	image->generatorFunction = generatorFunction;
 	
 	// check for precompressed, load is from the front end
-	image->m_referencedOutsideLevelLoad = true;
+	image->referencedOutsideLevelLoad = true;
 	image->ActuallyLoadImage( false );
 	
 	return image;
@@ -369,7 +369,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	if( !_name || !_name[0] || idStr::Icmp( _name, "default" ) == 0 || idStr::Icmp( _name, "_default" ) == 0 )
 	{
 		declManager->MediaPrint( "DEFAULTED\n" );
-		return globalImages->m_defaultImage;
+		return globalImages->defaultImage;
 	}
 	if( idStr::Icmpn( _name, "fonts", 5 ) == 0 || idStr::Icmpn( _name, "newfonts", 8 ) == 0 )
 	{
@@ -390,9 +390,9 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	// are in a reloadImages call
 	//
 	int hash = name.FileNameHash();
-	for( int i = m_imageHash.First( hash ); i != -1; i = m_imageHash.Next( i ) )
+	for( int i = imageHash.First( hash ); i != -1; i = imageHash.Next( i ) )
 	{
-		idImage*	 image = m_images[i];
+		idImage*	 image = images[i];
 		if( name.Icmp( image->GetName() ) == 0 )
 		{
 			// the built in's, like _white and _flat always match the other options
@@ -400,29 +400,29 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 			{
 				return image;
 			}
-			if( image->m_cubeFiles != cubeMap )
+			if( image->cubeFiles != cubeMap )
 			{
 				idLib::Error( "Image '%s' has been referenced with conflicting cube map states", _name );
 			}
 			
-			if( image->m_filter != filter || image->m_repeat != repeat )
+			if( image->filter != filter || image->repeat != repeat )
 			{
 				// we might want to have the system reset these parameters on every bind and
 				// share the image data
 				continue;
 			}
-			if( image->m_usage != usage )
+			if( image->usage != usage )
 			{
 				// If an image is used differently then we need 2 copies of it because usage affects the way it's compressed and swizzled
 				continue;
 			}
 			
-			image->m_usage = usage;
-			image->m_levelLoadReferenced = true;
+			image->usage = usage;
+			image->levelLoadReferenced = true;
 			
-			if( ( !m_insideLevelLoad  || m_preloadingMapImages ) && !image->IsLoaded() )
+			if( ( !insideLevelLoad  || preloadingMapImages ) && !image->IsLoaded() )
 			{
-				image->m_referencedOutsideLevelLoad = ( !m_insideLevelLoad && !m_preloadingMapImages );
+				image->referencedOutsideLevelLoad = ( !insideLevelLoad && !preloadingMapImages );
 				image->ActuallyLoadImage( false );	// load is from front end
 				declManager->MediaPrint( "%ix%i %s (reload for mixed referneces)\n", image->GetUploadWidth(), image->GetUploadHeight(), image->GetName() );
 			}
@@ -434,17 +434,17 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	// create a new image
 	//
 	idImage*	 image = AllocImage( name );
-	image->m_cubeFiles = cubeMap;
-	image->m_usage = usage;
-	image->m_filter = filter;
-	image->m_repeat = repeat;
+	image->cubeFiles = cubeMap;
+	image->usage = usage;
+	image->filter = filter;
+	image->repeat = repeat;
 	
-	image->m_levelLoadReferenced = true;
+	image->levelLoadReferenced = true;
 	
 	// load it if we aren't in a level preload
-	if( !m_insideLevelLoad || m_preloadingMapImages )
+	if( !insideLevelLoad || preloadingMapImages )
 	{
-		image->m_referencedOutsideLevelLoad = ( !m_insideLevelLoad && !m_preloadingMapImages );
+		image->referencedOutsideLevelLoad = ( !insideLevelLoad && !preloadingMapImages );
 		image->ActuallyLoadImage( false );	// load is from front end
 		declManager->MediaPrint( "%ix%i %s\n", image->GetUploadWidth(), image->GetUploadHeight(), image->GetName() );
 	}
@@ -478,9 +478,9 @@ idImage* idImageManager::ScratchImage( const char* name, const idImageOpts& opts
 		image->PurgeImage();
 	}
 	
-	image->m_opts = opts;
+	image->opts = opts;
 	image->AllocImage();
-	image->m_referencedOutsideLevelLoad = true;
+	image->referencedOutsideLevelLoad = true;
 	
 	return image;
 }
@@ -496,7 +496,7 @@ idImage* idImageManager::GetImage( const char* _name ) const
 	if( !_name || !_name[0] || idStr::Icmp( _name, "default" ) == 0 || idStr::Icmp( _name, "_default" ) == 0 )
 	{
 		declManager->MediaPrint( "DEFAULTED\n" );
-		return globalImages->m_defaultImage;
+		return globalImages->defaultImage;
 	}
 	
 	// strip any .tga file extensions from anywhere in the _name, including image program parameters
@@ -508,9 +508,9 @@ idImage* idImageManager::GetImage( const char* _name ) const
 	// look in loaded images
 	//
 	int hash = name.FileNameHash();
-	for( int i = m_imageHash.First( hash ); i != -1; i = m_imageHash.Next( i ) )
+	for( int i = imageHash.First( hash ); i != -1; i = imageHash.Next( i ) )
 	{
-		idImage* image = m_images[i];
+		idImage* image = images[i];
 		if( name.Icmp( image->GetName() ) == 0 )
 		{
 			return image;
@@ -527,9 +527,9 @@ PurgeAllImages
 */
 void idImageManager::PurgeAllImages()
 {
-	for( int i = 0; i < m_images.Num() ; i++ )
+	for( int i = 0; i < images.Num() ; i++ )
 	{
-		m_images[ i ]->PurgeImage();
+		images[ i ]->PurgeImage();
 	}
 }
 
@@ -540,9 +540,9 @@ ReloadImages
 */
 void idImageManager::ReloadImages( bool all )
 {
-	for( int i = 0 ; i < m_images.Num() ; i++ )
+	for( int i = 0 ; i < images.Num() ; i++ )
 	{
-		m_images[ i ]->Reload( all );
+		images[ i ]->Reload( all );
 	}
 }
 
@@ -645,8 +645,8 @@ Init
 void idImageManager::Init()
 {
 
-	m_images.Resize( 1024, 1024 );
-	m_imageHash.ResizeIndex( 1024 );
+	images.Resize( 1024, 1024 );
+	imageHash.ResizeIndex( 1024 );
 	
 	CreateIntrinsicImages();
 	
@@ -664,8 +664,8 @@ Shutdown
 */
 void idImageManager::Shutdown()
 {
-	m_images.DeleteContents( true );
-	m_imageHash.Clear();
+	images.DeleteContents( true );
+	imageHash.Clear();
 	
 }
 
@@ -677,19 +677,19 @@ Frees all images used by the previous level
 */
 void idImageManager::BeginLevelLoad()
 {
-	m_insideLevelLoad = true;
+	insideLevelLoad = true;
 	
-	for( int i = 0 ; i < m_images.Num() ; i++ )
+	for( int i = 0 ; i < images.Num() ; i++ )
 	{
-		idImage*	image = m_images[ i ];
+		idImage*	image = images[ i ];
 		
 		// generator function images are always kept around
-		if( image->m_generatorFunction )
+		if( image->generatorFunction )
 		{
 			continue;
 		}
 		
-		if( !image->m_referencedOutsideLevelLoad && image->IsLoaded() )
+		if( !image->referencedOutsideLevelLoad && image->IsLoaded() )
 		{
 			image->PurgeImage();
 			//idLib::Printf( "purging %s\n", image->GetName() );
@@ -699,7 +699,7 @@ void idImageManager::BeginLevelLoad()
 			//idLib::Printf( "not purging %s\n", image->GetName() );
 		}
 		
-		image->m_levelLoadReferenced = false;
+		image->levelLoadReferenced = false;
 	}
 }
 
@@ -739,7 +739,7 @@ void idImageManager::Preload( const idPreloadManifest& manifest, const bool& map
 	{
 		// preload this levels images
 		idLib::Printf( "Preloading images...\n" );
-		m_preloadingMapImages = mapPreload;
+		preloadingMapImages = mapPreload;
 		int	start = Sys_Milliseconds();
 		int numLoaded = 0;
 		
@@ -757,7 +757,7 @@ void idImageManager::Preload( const idPreloadManifest& manifest, const bool& map
 		int	end = Sys_Milliseconds();
 		idLib::Printf( "%05d images preloaded ( or were already loaded ) in %5.1f seconds\n", numLoaded, ( end - start ) * 0.001 );
 		idLib::Printf( "----------------------------------------\n" );
-		m_preloadingMapImages = false;
+		preloadingMapImages = false;
 	}
 }
 
@@ -769,7 +769,7 @@ idImageManager::LoadLevelImages
 int idImageManager::LoadLevelImages( bool pacifier )
 {
 	int	loadCount = 0;
-	for( int i = 0 ; i < m_images.Num() ; i++ )
+	for( int i = 0 ; i < images.Num() ; i++ )
 	{
 		if( pacifier )
 		{
@@ -777,12 +777,12 @@ int idImageManager::LoadLevelImages( bool pacifier )
 			
 		}
 		
-		idImage*	image = m_images[ i ];
-		if( image->m_generatorFunction )
+		idImage*	image = images[ i ];
+		if( image->generatorFunction )
 		{
 			continue;
 		}
-		if( image->m_levelLoadReferenced && !image->IsLoaded() )
+		if( image->levelLoadReferenced && !image->IsLoaded() )
 		{
 			loadCount++;
 			image->ActuallyLoadImage( false );
@@ -798,7 +798,7 @@ idImageManager::EndLevelLoad
 */
 void idImageManager::EndLevelLoad()
 {
-	m_insideLevelLoad = false;
+	insideLevelLoad = false;
 	
 	idLib::Printf( "----- idImageManager::EndLevelLoad -----\n" );
 	int start = Sys_Milliseconds();
@@ -828,18 +828,18 @@ void idImageManager::PrintMemInfo( MemInfo_t* mi )
 	}
 	
 	// sort first
-	sortIndex = new( TAG_IMAGE ) int[m_images.Num()];
+	sortIndex = new( TAG_IMAGE ) int[images.Num()];
 	
-	for( i = 0; i < m_images.Num(); i++ )
+	for( i = 0; i < images.Num(); i++ )
 	{
 		sortIndex[i] = i;
 	}
 	
-	for( i = 0; i < m_images.Num() - 1; i++ )
+	for( i = 0; i < images.Num() - 1; i++ )
 	{
-		for( j = i + 1; j < m_images.Num(); j++ )
+		for( j = i + 1; j < images.Num(); j++ )
 		{
-			if( m_images[sortIndex[i]]->StorageSize() < m_images[sortIndex[j]]->StorageSize() )
+			if( images[sortIndex[i]]->StorageSize() < images[sortIndex[j]]->StorageSize() )
 			{
 				int temp = sortIndex[i];
 				sortIndex[i] = sortIndex[j];
@@ -849,15 +849,15 @@ void idImageManager::PrintMemInfo( MemInfo_t* mi )
 	}
 	
 	// print next
-	for( i = 0; i < m_images.Num(); i++ )
+	for( i = 0; i < images.Num(); i++ )
 	{
-		idImage* im = m_images[sortIndex[i]];
+		idImage* im = images[sortIndex[i]];
 		int size;
 		
 		size = im->StorageSize();
 		total += size;
 		
-		f->Printf( "%s %3i %s\n", idStr::FormatNumber( size ).c_str(), im->m_refCount, im->GetName() );
+		f->Printf( "%s %3i %s\n", idStr::FormatNumber( size ).c_str(), im->refCount, im->GetName() );
 	}
 	
 	delete [] sortIndex;

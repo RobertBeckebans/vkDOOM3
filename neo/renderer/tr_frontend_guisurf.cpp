@@ -145,7 +145,7 @@ void idRenderSystemLocal::RenderGuiSurf( idUserInterface* gui, const drawSurf_t*
 	}
 	
 	// don't allow an infinite recursion loop
-	if( m_guiRecursionLevel == 4 )
+	if( guiRecursionLevel == 4 )
 	{
 		return;
 	}
@@ -181,15 +181,15 @@ void idRenderSystemLocal::RenderGuiSurf( idUserInterface* gui, const drawSurf_t*
 	
 	R_MatrixMultiply( guiModelMatrix, drawSurf->space->modelMatrix, modelMatrix );
 	
-	m_guiRecursionLevel++;
+	guiRecursionLevel++;
 	
 	// call the gui, which will call the 2D drawing functions
-	m_guiModel->Clear();
-	gui->Redraw( m_viewDef->renderView.time[0] );
-	m_guiModel->EmitToCurrentView( modelMatrix, drawSurf->space->weaponDepthHack );
-	m_guiModel->Clear();
+	guiModel->Clear();
+	gui->Redraw( viewDef->renderView.time[0] );
+	guiModel->EmitToCurrentView( modelMatrix, drawSurf->space->weaponDepthHack );
+	guiModel->Clear();
 	
-	m_guiRecursionLevel--;
+	guiRecursionLevel--;
 }
 
 /*

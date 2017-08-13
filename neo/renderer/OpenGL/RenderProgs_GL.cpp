@@ -713,7 +713,7 @@ idRenderProgManager::idRenderProgManager
 ========================
 */
 idRenderProgManager::idRenderProgManager() :
-	m_current( 0 )
+	current( 0 )
 {
 
 }
@@ -766,7 +766,7 @@ void idRenderProgManager::Init()
 		{ BUILTIN_BINK, "bink", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_BINK_GUI, "bink_gui", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 	};
-	m_renderProgs.SetNum( MAX_BUILTINS );
+	renderProgs.SetNum( MAX_BUILTINS );
 	
 	for( int i = 0; i < MAX_BUILTINS; i++ )
 	{
@@ -784,20 +784,20 @@ void idRenderProgManager::Init()
 		
 		LoadGLSLProgram( i, vIndex, fIndex );
 		
-		m_renderProgs[ i ].vertexLayoutType = builtins[ i ].layout;
+		renderProgs[ i ].vertexLayoutType = builtins[ i ].layout;
 	}
 	
-	m_uniforms.SetNum( RENDERPARM_TOTAL, vec4_zero );
+	uniforms.SetNum( RENDERPARM_TOTAL, vec4_zero );
 	
-	m_renderProgs[ BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_INTERACTION_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_INTERACTION_AMBIENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_ENVIRONMENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_BUMPY_ENVIRONMENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_DEPTH_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_SHADOW_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_SHADOW_DEBUG_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_FOG_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_INTERACTION_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_INTERACTION_AMBIENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_ENVIRONMENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_BUMPY_ENVIRONMENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_DEPTH_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_SHADOW_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_SHADOW_DEBUG_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_FOG_SKINNED ].usesJoints = true;
 }
 
 /*
@@ -808,18 +808,18 @@ idRenderProgManager::Shutdown
 void idRenderProgManager::Shutdown()
 {
 	Unbind();
-	for( int i = 0; i < m_shaders.Num(); i++ )
+	for( int i = 0; i < shaders.Num(); i++ )
 	{
-		shader_t& shader = m_shaders[ i ];
+		shader_t& shader = shaders[ i ];
 		if( shader.progId != INVALID_PROGID )
 		{
 			qglDeleteShader( shader.progId );
 			shader.progId = INVALID_PROGID;
 		}
 	}
-	for( int i = 0; i < m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = m_renderProgs[ i ];
+		renderProg_t& prog = renderProgs[ i ];
 		if( prog.progId != INVALID_PROGID )
 		{
 			qglDeleteProgram( prog.progId );
@@ -845,14 +845,14 @@ idRenderProgManager::BindProgram
 */
 void idRenderProgManager::BindProgram( int index )
 {
-	if( m_current == index )
+	if( current == index )
 	{
 		return;
 	}
 	
-	m_current = index;
-	RENDERLOG_PRINTF( "Binding GLSL Program %s\n", m_renderProgs[ index ].name.c_str() );
-	qglUseProgram( m_renderProgs[ index ].progId );
+	current = index;
+	RENDERLOG_PRINTF( "Binding GLSL Program %s\n", renderProgs[ index ].name.c_str() );
+	qglUseProgram( renderProgs[ index ].progId );
 }
 
 /*
@@ -862,7 +862,7 @@ idRenderProgManager::Unbind
 */
 void idRenderProgManager::Unbind()
 {
-	m_current = -1;
+	current = -1;
 	qglUseProgram( 0 );
 }
 
@@ -873,8 +873,8 @@ idRenderProgManager::CommitCurrent
 */
 void idRenderProgManager::CommitCurrent( uint64 stateBits )
 {
-	const int progID = m_current;
-	renderProg_t& prog = m_renderProgs[ progID ];
+	const int progID = current;
+	renderProg_t& prog = renderProgs[ progID ];
 	
 	prog.states.AddUnique( stateBits );
 	
@@ -887,7 +887,7 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 		{
 			for( int i = 0; i < numUniforms; ++i )
 			{
-				vectors[ i ] = m_uniforms[ shader.uniforms[ i ] ];
+				vectors[ i ] = uniforms[ shader.uniforms[ i ] ];
 			}
 			qglUniform4fv( shader.uniformArray, numUniforms, localVectors->ToFloatPtr() );
 		}
@@ -895,12 +895,12 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 	
 	if( prog.vertexShaderIndex >= 0 )
 	{
-		commitarray( localVectors, m_shaders[ prog.vertexShaderIndex ] );
+		commitarray( localVectors, shaders[ prog.vertexShaderIndex ] );
 	}
 	
 	if( prog.fragmentShaderIndex >= 0 )
 	{
-		commitarray( localVectors, m_shaders[ prog.fragmentShaderIndex ] );
+		commitarray( localVectors, shaders[ prog.fragmentShaderIndex ] );
 	}
 	
 	switch( prog.vertexLayoutType )
@@ -961,9 +961,9 @@ idRenderProgManager::FindProgram
 */
 int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 {
-	for( int i = 0; i < m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = m_renderProgs[ i ];
+		renderProg_t& prog = renderProgs[ i ];
 		if( ( prog.vertexShaderIndex == vIndex ) && ( prog.fragmentShaderIndex == fIndex ) )
 		{
 			LoadGLSLProgram( i, vIndex, fIndex );
@@ -973,7 +973,7 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 	
 	renderProg_t program;
 	program.name = name;
-	int index = m_renderProgs.Append( program );
+	int index = renderProgs.Append( program );
 	LoadGLSLProgram( index, vIndex, fIndex );
 	return index;
 }
@@ -985,12 +985,12 @@ idRenderProgManager::LoadShader
 */
 void idRenderProgManager::LoadShader( int index )
 {
-	if( m_shaders[ index ].progId != INVALID_PROGID )
+	if( shaders[ index ].progId != INVALID_PROGID )
 	{
 		return; // Already loaded
 	}
 	
-	LoadShader( m_shaders[ index ] );
+	LoadShader( shaders[ index ] );
 }
 
 /*
@@ -1180,15 +1180,15 @@ idRenderProgManager::LoadGLSLProgram
 */
 void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int vertexShaderIndex, const int fragmentShaderIndex )
 {
-	renderProg_t& prog = m_renderProgs[ programIndex ];
+	renderProg_t& prog = renderProgs[ programIndex ];
 	
 	if( prog.progId != INVALID_PROGID )
 	{
 		return; // Already loaded
 	}
 	
-	GLuint vertexProgID = ( vertexShaderIndex != -1 ) ? m_shaders[ vertexShaderIndex ].progId : INVALID_PROGID;
-	GLuint fragmentProgID = ( fragmentShaderIndex != -1 ) ? m_shaders[ fragmentShaderIndex ].progId : INVALID_PROGID;
+	GLuint vertexProgID = ( vertexShaderIndex != -1 ) ? shaders[ vertexShaderIndex ].progId : INVALID_PROGID;
+	GLuint fragmentProgID = ( fragmentShaderIndex != -1 ) ? shaders[ fragmentShaderIndex ].progId : INVALID_PROGID;
 	
 	const GLuint program = qglCreateProgram();
 	if( program )
@@ -1232,8 +1232,8 @@ void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int ver
 			{
 				idLib::Printf( "While linking GLSL program %d with vertexShader %s and fragmentShader %s\n",
 							   programIndex,
-							   ( vertexShaderIndex >= 0 ) ? m_shaders[ vertexShaderIndex ].name.c_str() : "<Invalid>",
-							   ( fragmentShaderIndex >= 0 ) ? m_shaders[ fragmentShaderIndex ].name.c_str() : "<Invalid>" );
+							   ( vertexShaderIndex >= 0 ) ? shaders[ vertexShaderIndex ].name.c_str() : "<Invalid>",
+							   ( fragmentShaderIndex >= 0 ) ? shaders[ fragmentShaderIndex ].name.c_str() : "<Invalid>" );
 				idLib::Printf( "%s\n", infoLog );
 			}
 			
@@ -1248,18 +1248,18 @@ void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int ver
 		qglDeleteProgram( program );
 		idLib::Error( "While linking GLSL program %d with vertexShader %s and fragmentShader %s\n",
 					  programIndex,
-					  ( vertexShaderIndex >= 0 ) ? m_shaders[ vertexShaderIndex ].name.c_str() : "<Invalid>",
-					  ( fragmentShaderIndex >= 0 ) ? m_shaders[ fragmentShaderIndex ].name.c_str() : "<Invalid>" );
+					  ( vertexShaderIndex >= 0 ) ? shaders[ vertexShaderIndex ].name.c_str() : "<Invalid>",
+					  ( fragmentShaderIndex >= 0 ) ? shaders[ fragmentShaderIndex ].name.c_str() : "<Invalid>" );
 		return;
 	}
 	
-	if( vertexShaderIndex > -1 && m_shaders[ vertexShaderIndex ].uniforms.Num() > 0 )
+	if( vertexShaderIndex > -1 && shaders[ vertexShaderIndex ].uniforms.Num() > 0 )
 	{
-		m_shaders[ vertexShaderIndex ].uniformArray = qglGetUniformLocation( program, VERTEX_UNIFORM_ARRAY_NAME );
+		shaders[ vertexShaderIndex ].uniformArray = qglGetUniformLocation( program, VERTEX_UNIFORM_ARRAY_NAME );
 	}
-	if( fragmentShaderIndex > -1 && m_shaders[ fragmentShaderIndex ].uniforms.Num() > 0 )
+	if( fragmentShaderIndex > -1 && shaders[ fragmentShaderIndex ].uniforms.Num() > 0 )
 	{
-		m_shaders[ fragmentShaderIndex ].uniformArray = qglGetUniformLocation( program, FRAGMENT_UNIFORM_ARRAY_NAME );
+		shaders[ fragmentShaderIndex ].uniformArray = qglGetUniformLocation( program, FRAGMENT_UNIFORM_ARRAY_NAME );
 	}
 	
 	// get the uniform buffer binding for skinning joint matrices
@@ -1280,7 +1280,7 @@ void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int ver
 		}
 	}
 	
-	idStr programName = m_shaders[ vertexShaderIndex ].name;
+	idStr programName = shaders[ vertexShaderIndex ].name;
 	programName.StripFileExtension();
 	prog.name = programName;
 	prog.progId = program;
@@ -1300,9 +1300,9 @@ void idRenderProgManager::LoadGLSLProgram( const int programIndex, const int ver
 
 CONSOLE_COMMAND( OpenGL_PrintRenderProgStates, "Print the GLState bits associated with each renderprog.", 0 )
 {
-	for( int i = 0; i < renderProgManager.m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgManager.renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = renderProgManager.m_renderProgs[ i ];
+		renderProg_t& prog = renderProgManager.renderProgs[ i ];
 		for( int j = 0; j < prog.states.Num(); ++j )
 		{
 			idLib::Printf( "%s: %llu\n", prog.name.c_str(), prog.states[ j ] );

@@ -116,28 +116,28 @@ static void AllocGeoBufferSet( geoBufferSet_t& gbs, const int vertexBytes, const
 idVertexCache::Init
 ==============
 */
-void idVertexCache::Init( int uniformBufferOffsetAlignment )
+void idVertexCache::Init( int _uniformBufferOffsetAlignment )
 {
-	m_currentFrame = 0;
-	m_listNum = 0;
+	currentFrame = 0;
+	listNum = 0;
 	
-	m_uniformBufferOffsetAlignment = uniformBufferOffsetAlignment;
+	uniformBufferOffsetAlignment = _uniformBufferOffsetAlignment;
 	
-	m_mostUsedVertex = 0;
-	m_mostUsedIndex = 0;
-	m_mostUsedJoint = 0;
+	mostUsedVertex = 0;
+	mostUsedIndex = 0;
+	mostUsedJoint = 0;
 	
 	for( int i = 0; i < NUM_FRAME_DATA; i++ )
 	{
-		AllocGeoBufferSet( m_frameData[i], VERTCACHE_VERTEX_MEMORY_PER_FRAME, VERTCACHE_INDEX_MEMORY_PER_FRAME, VERTCACHE_JOINT_MEMORY_PER_FRAME, BU_DYNAMIC );
+		AllocGeoBufferSet( frameData[i], VERTCACHE_VERTEX_MEMORY_PER_FRAME, VERTCACHE_INDEX_MEMORY_PER_FRAME, VERTCACHE_JOINT_MEMORY_PER_FRAME, BU_DYNAMIC );
 	}
 #if 1
-	AllocGeoBufferSet( m_staticData, STATIC_VERTEX_MEMORY, STATIC_INDEX_MEMORY, 0, BU_STATIC );
+	AllocGeoBufferSet( staticData, STATIC_VERTEX_MEMORY, STATIC_INDEX_MEMORY, 0, BU_STATIC );
 #else
-	AllocGeoBufferSet( m_staticData, STATIC_VERTEX_MEMORY, STATIC_INDEX_MEMORY, 0, BU_DYNAMIC );
+	AllocGeoBufferSet( staticData, STATIC_VERTEX_MEMORY, STATIC_INDEX_MEMORY, 0, BU_DYNAMIC );
 #endif
 	
-	MapGeoBufferSet( m_frameData[ m_listNum ] );
+	MapGeoBufferSet( frameData[ listNum ] );
 }
 
 /*
@@ -149,9 +149,9 @@ void idVertexCache::Shutdown()
 {
 	for( int i = 0; i < NUM_FRAME_DATA; i++ )
 	{
-		m_frameData[i].vertexBuffer.FreeBufferObject();
-		m_frameData[i].indexBuffer.FreeBufferObject();
-		m_frameData[i].jointBuffer.FreeBufferObject();
+		frameData[i].vertexBuffer.FreeBufferObject();
+		frameData[i].indexBuffer.FreeBufferObject();
+		frameData[i].jointBuffer.FreeBufferObject();
 	}
 }
 
@@ -163,7 +163,7 @@ idVertexCache::PurgeAll
 void idVertexCache::PurgeAll()
 {
 	Shutdown();
-	Init( m_uniformBufferOffsetAlignment );
+	Init( uniformBufferOffsetAlignment );
 }
 
 /*
@@ -175,10 +175,10 @@ call on loading a new map
 */
 void idVertexCache::FreeStaticData()
 {
-	ClearGeoBufferSet( m_staticData );
-	m_mostUsedVertex = 0;
-	m_mostUsedIndex = 0;
-	m_mostUsedJoint = 0;
+	ClearGeoBufferSet( staticData );
+	mostUsedVertex = 0;
+	mostUsedIndex = 0;
+	mostUsedJoint = 0;
 }
 
 /*
@@ -270,10 +270,10 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 	
 	vcs.allocations++;
 	
-	vertCacheHandle_t handle =	( ( uint64 )( m_currentFrame & VERTCACHE_FRAME_MASK ) << VERTCACHE_FRAME_SHIFT ) |
+	vertCacheHandle_t handle =	( ( uint64 )( currentFrame & VERTCACHE_FRAME_MASK ) << VERTCACHE_FRAME_SHIFT ) |
 								( ( uint64 )( offset & VERTCACHE_OFFSET_MASK ) << VERTCACHE_OFFSET_SHIFT ) |
 								( ( uint64 )( bytes & VERTCACHE_SIZE_MASK ) << VERTCACHE_SIZE_SHIFT );
-	if( &vcs == &m_staticData )
+	if( &vcs == &staticData )
 	{
 		handle |= VERTCACHE_STATIC;
 	}
@@ -287,7 +287,7 @@ idVertexCache::AllocVertex
 */
 vertCacheHandle_t idVertexCache::AllocVertex( const void* data, int num, size_t size /*= sizeof( idDrawVert ) */ )
 {
-	return ActuallyAlloc( m_frameData[ m_listNum ], data, ALIGN( num * size, VERTEX_CACHE_ALIGN ), CACHE_VERTEX );
+	return ActuallyAlloc( frameData[ listNum ], data, ALIGN( num * size, VERTEX_CACHE_ALIGN ), CACHE_VERTEX );
 }
 
 /*
@@ -297,7 +297,7 @@ idVertexCache::AllocIndex
 */
 vertCacheHandle_t idVertexCache::AllocIndex( const void* data, int num, size_t size /*= sizeof( triIndex_t ) */ )
 {
-	return ActuallyAlloc( m_frameData[ m_listNum ], data, ALIGN( num * size, INDEX_CACHE_ALIGN ), CACHE_INDEX );
+	return ActuallyAlloc( frameData[ listNum ], data, ALIGN( num * size, INDEX_CACHE_ALIGN ), CACHE_INDEX );
 }
 
 /*
@@ -307,7 +307,7 @@ idVertexCache::AllocJoint
 */
 vertCacheHandle_t idVertexCache::AllocJoint( const void* data, int num, size_t size /*= sizeof( idJointMat ) */ )
 {
-	return ActuallyAlloc( m_frameData[ m_listNum ], data, ALIGN( num * size, m_uniformBufferOffsetAlignment ), CACHE_JOINT );
+	return ActuallyAlloc( frameData[ listNum ], data, ALIGN( num * size, uniformBufferOffsetAlignment ), CACHE_JOINT );
 }
 
 /*
@@ -317,11 +317,11 @@ idVertexCache::AllocStaticVertex
 */
 vertCacheHandle_t idVertexCache::AllocStaticVertex( const void* data, int bytes )
 {
-	if( m_staticData.vertexMemUsed.GetValue() + bytes > STATIC_VERTEX_MEMORY )
+	if( staticData.vertexMemUsed.GetValue() + bytes > STATIC_VERTEX_MEMORY )
 	{
 		idLib::FatalError( "AllocStaticVertex failed, increase STATIC_VERTEX_MEMORY" );
 	}
-	return ActuallyAlloc( m_staticData, data, bytes, CACHE_VERTEX );
+	return ActuallyAlloc( staticData, data, bytes, CACHE_VERTEX );
 }
 
 /*
@@ -331,11 +331,11 @@ idVertexCache::AllocStaticIndex
 */
 vertCacheHandle_t idVertexCache::AllocStaticIndex( const void* data, int bytes )
 {
-	if( m_staticData.indexMemUsed.GetValue() + bytes > STATIC_INDEX_MEMORY )
+	if( staticData.indexMemUsed.GetValue() + bytes > STATIC_INDEX_MEMORY )
 	{
 		idLib::FatalError( "AllocStaticIndex failed, increase STATIC_INDEX_MEMORY" );
 	}
-	return ActuallyAlloc( m_staticData, data, bytes, CACHE_INDEX );
+	return ActuallyAlloc( staticData, data, bytes, CACHE_INDEX );
 }
 
 /*
@@ -348,8 +348,8 @@ byte* idVertexCache::MappedVertexBuffer( vertCacheHandle_t handle )
 	release_assert( !CacheIsStatic( handle ) );
 	const uint64 offset = ( int )( handle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-	release_assert( frameNum == ( m_currentFrame & VERTCACHE_FRAME_MASK ) );
-	return m_frameData[ m_listNum ].mappedVertexBase + offset;
+	release_assert( frameNum == ( currentFrame & VERTCACHE_FRAME_MASK ) );
+	return frameData[ listNum ].mappedVertexBase + offset;
 }
 
 /*
@@ -362,8 +362,8 @@ byte* idVertexCache::MappedIndexBuffer( vertCacheHandle_t handle )
 	release_assert( !CacheIsStatic( handle ) );
 	const uint64 offset = ( int )( handle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-	release_assert( frameNum == ( m_currentFrame & VERTCACHE_FRAME_MASK ) );
-	return m_frameData[ m_listNum ].mappedIndexBase + offset;
+	release_assert( frameNum == ( currentFrame & VERTCACHE_FRAME_MASK ) );
+	return frameData[ listNum ].mappedIndexBase + offset;
 }
 
 /*
@@ -379,7 +379,7 @@ bool idVertexCache::CacheIsCurrent( const vertCacheHandle_t handle )
 		return true;
 	}
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-	if( frameNum != ( m_currentFrame & VERTCACHE_FRAME_MASK ) )
+	if( frameNum != ( currentFrame & VERTCACHE_FRAME_MASK ) )
 	{
 		return false;
 	}
@@ -399,14 +399,14 @@ bool idVertexCache::GetVertexBuffer( vertCacheHandle_t handle, idVertexBuffer* v
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
 	if( isStatic )
 	{
-		vb->Reference( m_staticData.vertexBuffer, offset, size );
+		vb->Reference( staticData.vertexBuffer, offset, size );
 		return true;
 	}
-	if( frameNum != ( ( m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+	if( frameNum != ( ( currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 	{
 		return false;
 	}
-	vb->Reference( m_frameData[ m_drawListNum ].vertexBuffer, offset, size );
+	vb->Reference( frameData[ drawListNum ].vertexBuffer, offset, size );
 	return true;
 }
 
@@ -423,14 +423,14 @@ bool idVertexCache::GetIndexBuffer( vertCacheHandle_t handle, idIndexBuffer* ib 
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
 	if( isStatic )
 	{
-		ib->Reference( m_staticData.indexBuffer, offset, size );
+		ib->Reference( staticData.indexBuffer, offset, size );
 		return true;
 	}
-	if( frameNum != ( ( m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+	if( frameNum != ( ( currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 	{
 		return false;
 	}
-	ib->Reference( m_frameData[ m_drawListNum ].indexBuffer, offset, size );
+	ib->Reference( frameData[ drawListNum ].indexBuffer, offset, size );
 	return true;
 }
 
@@ -447,14 +447,14 @@ bool idVertexCache::GetJointBuffer( vertCacheHandle_t handle, idUniformBuffer* j
 	const uint64 frameNum = ( int )( handle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
 	if( isStatic )
 	{
-		jb->Reference( m_staticData.jointBuffer, jointOffset, numBytes );
+		jb->Reference( staticData.jointBuffer, jointOffset, numBytes );
 		return true;
 	}
-	if( frameNum != ( ( m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+	if( frameNum != ( ( currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 	{
 		return false;
 	}
-	jb->Reference( m_frameData[ m_drawListNum ].jointBuffer, jointOffset, numBytes );
+	jb->Reference( frameData[ drawListNum ].jointBuffer, jointOffset, numBytes );
 	return true;
 }
 
@@ -465,45 +465,45 @@ idVertexCache::BeginBackEnd
 */
 void idVertexCache::BeginBackEnd()
 {
-	m_mostUsedVertex = Max( m_mostUsedVertex, m_frameData[ m_listNum ].vertexMemUsed.GetValue() );
-	m_mostUsedIndex = Max( m_mostUsedIndex, m_frameData[ m_listNum ].indexMemUsed.GetValue() );
-	m_mostUsedJoint = Max( m_mostUsedJoint, m_frameData[ m_listNum ].jointMemUsed.GetValue() );
+	mostUsedVertex = Max( mostUsedVertex, frameData[ listNum ].vertexMemUsed.GetValue() );
+	mostUsedIndex = Max( mostUsedIndex, frameData[ listNum ].indexMemUsed.GetValue() );
+	mostUsedJoint = Max( mostUsedJoint, frameData[ listNum ].jointMemUsed.GetValue() );
 	
 	if( r_showVertexCache.GetBool() )
 	{
 		idLib::Printf( "%08d: %d allocations, %dkB vertex, %dkB index, %kB joint : %dkB vertex, %dkB index, %kB joint\n",
-					   m_currentFrame, m_frameData[ m_listNum ].allocations,
-					   m_frameData[ m_listNum ].vertexMemUsed.GetValue() / 1024,
-					   m_frameData[ m_listNum ].indexMemUsed.GetValue() / 1024,
-					   m_frameData[ m_listNum ].jointMemUsed.GetValue() / 1024,
-					   m_mostUsedVertex / 1024,
-					   m_mostUsedIndex / 1024,
-					   m_mostUsedJoint / 1024 );
+					   currentFrame, frameData[ listNum ].allocations,
+					   frameData[ listNum ].vertexMemUsed.GetValue() / 1024,
+					   frameData[ listNum ].indexMemUsed.GetValue() / 1024,
+					   frameData[ listNum ].jointMemUsed.GetValue() / 1024,
+					   mostUsedVertex / 1024,
+					   mostUsedIndex / 1024,
+					   mostUsedJoint / 1024 );
 	}
 	
 	// unmap the current frame so the GPU can read it
 	const int startUnmap = Sys_Milliseconds();
-	UnmapGeoBufferSet( m_frameData[ m_listNum ] );
-	UnmapGeoBufferSet( m_staticData );
+	UnmapGeoBufferSet( frameData[ listNum ] );
+	UnmapGeoBufferSet( staticData );
 	const int endUnmap = Sys_Milliseconds();
 	if( endUnmap - startUnmap > 1 )
 	{
 		idLib::PrintfIf( r_showVertexCacheTimings.GetBool(), "idVertexCache::unmap took %i msec\n", endUnmap - startUnmap );
 	}
-	m_drawListNum = m_listNum;
+	drawListNum = listNum;
 	
 	// prepare the next frame for writing to by the CPU
-	m_currentFrame++;
+	currentFrame++;
 	
-	m_listNum = m_currentFrame % NUM_FRAME_DATA;
+	listNum = currentFrame % NUM_FRAME_DATA;
 	const int startMap = Sys_Milliseconds();
-	MapGeoBufferSet( m_frameData[ m_listNum ] );
+	MapGeoBufferSet( frameData[ listNum ] );
 	const int endMap = Sys_Milliseconds();
 	if( endMap - startMap > 1 )
 	{
 		idLib::PrintfIf( r_showVertexCacheTimings.GetBool(), "idVertexCache::map took %i msec\n", endMap - startMap );
 	}
 	
-	ClearGeoBufferSet( m_frameData[ m_listNum ] );
+	ClearGeoBufferSet( frameData[ listNum ] );
 }
 

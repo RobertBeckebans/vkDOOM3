@@ -749,14 +749,14 @@ idRenderProgManager::idRenderProgManager
 ========================
 */
 idRenderProgManager::idRenderProgManager() :
-	m_current( 0 ),
-	m_counter( 0 ),
-	m_currentData( 0 ),
-	m_currentDescSet( 0 ),
-	m_currentParmBufferOffset( 0 )
+	current( 0 ),
+	counter( 0 ),
+	currentData( 0 ),
+	currentDescSet( 0 ),
+	currentParmBufferOffset( 0 )
 {
 
-	memset( m_parmBuffers, 0, sizeof( m_parmBuffers ) );
+	memset( parmBuffers, 0, sizeof( parmBuffers ) );
 }
 
 /*
@@ -807,7 +807,7 @@ void idRenderProgManager::Init()
 		{ BUILTIN_BINK, "bink", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_BINK_GUI, "bink_gui", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 	};
-	m_renderProgs.SetNum( MAX_BUILTINS );
+	renderProgs.SetNum( MAX_BUILTINS );
 	
 	for( int i = 0; i < MAX_BUILTINS; i++ )
 	{
@@ -824,40 +824,40 @@ void idRenderProgManager::Init()
 			fIndex = FindShader( builtins[ i ].name, SHADER_STAGE_FRAGMENT );
 		}
 		
-		renderProg_t& prog = m_renderProgs[ i ];
+		renderProg_t& prog = renderProgs[ i ];
 		prog.name = builtins[ i ].name;
 		prog.vertexShaderIndex = vIndex;
 		prog.fragmentShaderIndex = fIndex;
 		prog.vertexLayoutType = builtins[ i ].layout;
 		
 		CreateDescriptorSetLayout(
-			m_shaders[ vIndex ],
-			( fIndex > -1 ) ? m_shaders[ fIndex ] : defaultShader,
+			shaders[ vIndex ],
+			( fIndex > -1 ) ? shaders[ fIndex ] : defaultShader,
 			prog );
 	}
 	
-	m_uniforms.SetNum( RENDERPARM_TOTAL, vec4_zero );
+	uniforms.SetNum( RENDERPARM_TOTAL, vec4_zero );
 	
-	m_renderProgs[ BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_INTERACTION_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_INTERACTION_AMBIENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_ENVIRONMENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_BUMPY_ENVIRONMENT_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_DEPTH_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_SHADOW_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_SHADOW_DEBUG_SKINNED ].usesJoints = true;
-	m_renderProgs[ BUILTIN_FOG_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_INTERACTION_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_INTERACTION_AMBIENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_ENVIRONMENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_BUMPY_ENVIRONMENT_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_DEPTH_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_SHADOW_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_SHADOW_DEBUG_SKINNED ].usesJoints = true;
+	renderProgs[ BUILTIN_FOG_SKINNED ].usesJoints = true;
 	
 	// Create Vertex Descriptions
 	CreateVertexDescriptions();
 	
 	// Create Descriptor Pools
-	CreateDescriptorPools( m_descriptorPools );
+	CreateDescriptorPools( descriptorPools );
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		m_parmBuffers[ i ] = new idUniformBuffer();
-		m_parmBuffers[ i ]->AllocBufferObject( NULL, MAX_DESC_SETS * MAX_DESC_SET_UNIFORMS * sizeof( idVec4 ), BU_DYNAMIC );
+		parmBuffers[ i ] = new idUniformBuffer();
+		parmBuffers[ i ]->AllocBufferObject( NULL, MAX_DESC_SETS * MAX_DESC_SET_UNIFORMS * sizeof( idVec4 ), BU_DYNAMIC );
 	}
 	
 	// Placeholder: mainly for optionalSkinning
@@ -872,17 +872,17 @@ idRenderProgManager::Shutdown
 void idRenderProgManager::Shutdown()
 {
 	// destroy shaders
-	for( int i = 0; i < m_shaders.Num(); ++i )
+	for( int i = 0; i < shaders.Num(); ++i )
 	{
-		shader_t& shader = m_shaders[ i ];
+		shader_t& shader = shaders[ i ];
 		vkDestroyShaderModule( vkcontext.device, shader.module, NULL );
 		shader.module = VK_NULL_HANDLE;
 	}
 	
 	// destroy pipelines
-	for( int i = 0; i < m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = m_renderProgs[ i ];
+		renderProg_t& prog = renderProgs[ i ];
 		
 		for( int j = 0; j < prog.pipelines.Num(); ++j )
 		{
@@ -893,30 +893,30 @@ void idRenderProgManager::Shutdown()
 		vkDestroyDescriptorSetLayout( vkcontext.device, prog.descriptorSetLayout, NULL );
 		vkDestroyPipelineLayout( vkcontext.device, prog.pipelineLayout, NULL );
 	}
-	m_renderProgs.Clear();
+	renderProgs.Clear();
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		m_parmBuffers[ i ]->FreeBufferObject();
-		delete m_parmBuffers[ i ];
-		m_parmBuffers[ i ] = NULL;
+		parmBuffers[ i ]->FreeBufferObject();
+		delete parmBuffers[ i ];
+		parmBuffers[ i ] = NULL;
 	}
 	
 	emptyUBO.FreeBufferObject();
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		//vkFreeDescriptorSets( vkcontext.device, m_descriptorPools[ i ], MAX_DESC_SETS, m_descriptorSets[ i ] );
-		vkResetDescriptorPool( vkcontext.device, m_descriptorPools[ i ], 0 );
-		vkDestroyDescriptorPool( vkcontext.device, m_descriptorPools[ i ], NULL );
+		//vkFreeDescriptorSets( vkcontext.device, descriptorPools[ i ], MAX_DESC_SETS, descriptorSets[ i ] );
+		vkResetDescriptorPool( vkcontext.device, descriptorPools[ i ], 0 );
+		vkDestroyDescriptorPool( vkcontext.device, descriptorPools[ i ], NULL );
 	}
 	
-	memset( m_descriptorSets, 0, sizeof( m_descriptorSets ) );
-	memset( m_descriptorPools, 0, sizeof( m_descriptorPools ) );
+	memset( descriptorSets, 0, sizeof( descriptorSets ) );
+	memset( descriptorPools, 0, sizeof( descriptorPools ) );
 	
-	m_counter = 0;
-	m_currentData = 0;
-	m_currentDescSet = 0;
+	counter = 0;
+	currentData = 0;
+	currentDescSet = 0;
 }
 
 /*
@@ -926,12 +926,12 @@ idRenderProgManager::StartFrame
 */
 void idRenderProgManager::StartFrame()
 {
-	m_counter++;
-	m_currentData = m_counter % NUM_FRAME_DATA;
-	m_currentDescSet = 0;
-	m_currentParmBufferOffset = 0;
+	counter++;
+	currentData = counter % NUM_FRAME_DATA;
+	currentDescSet = 0;
+	currentParmBufferOffset = 0;
 	
-	vkResetDescriptorPool( vkcontext.device, m_descriptorPools[ m_currentData ], 0 );
+	vkResetDescriptorPool( vkcontext.device, descriptorPools[ currentData ], 0 );
 }
 
 /*
@@ -941,13 +941,13 @@ idRenderProgManager::BindProgram
 */
 void idRenderProgManager::BindProgram( int index )
 {
-	if( m_current == index )
+	if( current == index )
 	{
 		return;
 	}
 	
-	m_current = index;
-	RENDERLOG_PRINTF( "Binding SPIRV Program %s\n", m_renderProgs[ index ].name.c_str() );
+	current = index;
+	RENDERLOG_PRINTF( "Binding SPIRV Program %s\n", renderProgs[ index ].name.c_str() );
 }
 
 /*
@@ -957,7 +957,7 @@ idRenderProgManager::Unbind
 */
 void idRenderProgManager::Unbind()
 {
-	m_current = -1;
+	current = -1;
 }
 
 /*
@@ -970,7 +970,7 @@ void idRenderProgManager::AllocParmBlockBuffer( const idList< int >& parmIndices
 	const int numParms = parmIndices.Num();
 	const int bytes = ALIGN( numParms * sizeof( idVec4 ), vkcontext.gpu->props.limits.minUniformBufferOffsetAlignment );
 	
-	ubo.Reference( *m_parmBuffers[ m_currentData ], m_currentParmBufferOffset, bytes );
+	ubo.Reference( *parmBuffers[ currentData ], currentParmBufferOffset, bytes );
 	
 	idVec4* uniforms = ( idVec4* )ubo.MapBuffer( BM_WRITE );
 	
@@ -981,7 +981,7 @@ void idRenderProgManager::AllocParmBlockBuffer( const idList< int >& parmIndices
 	
 	ubo.UnmapBuffer();
 	
-	m_currentParmBufferOffset += bytes;
+	currentParmBufferOffset += bytes;
 }
 
 /*
@@ -991,24 +991,24 @@ idRenderProgManager::CommitCurrent
 */
 void idRenderProgManager::CommitCurrent( uint64 stateBits )
 {
-	renderProg_t& prog = m_renderProgs[ m_current ];
+	renderProg_t& prog = renderProgs[ current ];
 	
 	VkPipeline pipeline = prog.GetPipeline(
 							  stateBits,
-							  m_shaders[ prog.vertexShaderIndex ].module,
-							  prog.fragmentShaderIndex != -1 ? m_shaders[ prog.fragmentShaderIndex ].module : VK_NULL_HANDLE );
+							  shaders[ prog.vertexShaderIndex ].module,
+							  prog.fragmentShaderIndex != -1 ? shaders[ prog.fragmentShaderIndex ].module : VK_NULL_HANDLE );
 							  
 	VkDescriptorSetAllocateInfo setAllocInfo = {};
 	setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	setAllocInfo.pNext = NULL;
-	setAllocInfo.descriptorPool = m_descriptorPools[ m_currentData ];
+	setAllocInfo.descriptorPool = descriptorPools[ currentData ];
 	setAllocInfo.descriptorSetCount = 1;
 	setAllocInfo.pSetLayouts = &prog.descriptorSetLayout;
 	
-	ID_VK_CHECK( vkAllocateDescriptorSets( vkcontext.device, &setAllocInfo, &m_descriptorSets[ m_currentData ][ m_currentDescSet ] ) );
+	ID_VK_CHECK( vkAllocateDescriptorSets( vkcontext.device, &setAllocInfo, &descriptorSets[ currentData ][ currentDescSet ] ) );
 	
-	VkDescriptorSet descSet = m_descriptorSets[ m_currentData ][ m_currentDescSet ];
-	m_currentDescSet++;
+	VkDescriptorSet descSet = descriptorSets[ currentData ][ currentDescSet ];
+	currentDescSet++;
 	
 	int writeIndex = 0;
 	int bufferIndex = 0;
@@ -1023,9 +1023,9 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 	idUniformBuffer* ubos[ 3 ] = { NULL, NULL, NULL };
 	
 	idUniformBuffer vertParms;
-	if( prog.vertexShaderIndex > -1 && m_shaders[ prog.vertexShaderIndex ].parmIndices.Num() > 0 )
+	if( prog.vertexShaderIndex > -1 && shaders[ prog.vertexShaderIndex ].parmIndices.Num() > 0 )
 	{
-		AllocParmBlockBuffer( m_shaders[ prog.vertexShaderIndex ].parmIndices, vertParms );
+		AllocParmBlockBuffer( shaders[ prog.vertexShaderIndex ].parmIndices, vertParms );
 		
 		ubos[ uboIndex++ ] = &vertParms;
 	}
@@ -1048,9 +1048,9 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 	}
 	
 	idUniformBuffer fragParms;
-	if( prog.fragmentShaderIndex > -1 && m_shaders[ prog.fragmentShaderIndex ].parmIndices.Num() > 0 )
+	if( prog.fragmentShaderIndex > -1 && shaders[ prog.fragmentShaderIndex ].parmIndices.Num() > 0 )
 	{
-		AllocParmBlockBuffer( m_shaders[ prog.fragmentShaderIndex ].parmIndices, fragParms );
+		AllocParmBlockBuffer( shaders[ prog.fragmentShaderIndex ].parmIndices, fragParms );
 		
 		ubos[ uboIndex++ ] = &fragParms;
 	}
@@ -1128,9 +1128,9 @@ idRenderProgManager::FindProgram
 */
 int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 {
-	for( int i = 0; i < m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = m_renderProgs[ i ];
+		renderProg_t& prog = renderProgs[ i ];
 		if( prog.vertexShaderIndex == vIndex &&
 				prog.fragmentShaderIndex == fIndex )
 		{
@@ -1143,7 +1143,7 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 	program.vertexShaderIndex = vIndex;
 	program.fragmentShaderIndex = fIndex;
 	
-	CreateDescriptorSetLayout( m_shaders[ vIndex ], m_shaders[ fIndex ], program );
+	CreateDescriptorSetLayout( shaders[ vIndex ], shaders[ fIndex ], program );
 	
 	// HACK: HeatHaze ( optional skinning )
 	{
@@ -1157,7 +1157,7 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 		for( int i = 0; i < heatHazeNameNum; ++i )
 		{
 			// Use the vertex shader name because the renderProg name is more unreliable
-			if( idStr::Icmp( m_shaders[ vIndex ].name.c_str(), heatHazeNames[ i ] ) == 0 )
+			if( idStr::Icmp( shaders[ vIndex ].name.c_str(), heatHazeNames[ i ] ) == 0 )
 			{
 				program.usesJoints = true;
 				program.optionalSkinning = true;
@@ -1166,7 +1166,7 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 		}
 	}
 	
-	int index = m_renderProgs.Append( program );
+	int index = renderProgs.Append( program );
 	return index;
 }
 
@@ -1177,12 +1177,12 @@ idRenderProgManager::LoadShader
 */
 void idRenderProgManager::LoadShader( int index )
 {
-	if( m_shaders[ index ].module != VK_NULL_HANDLE )
+	if( shaders[ index ].module != VK_NULL_HANDLE )
 	{
 		return; // Already loaded
 	}
 	
-	LoadShader( m_shaders[ index ] );
+	LoadShader( shaders[ index ] );
 }
 
 /*
@@ -1291,9 +1291,9 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 
 CONSOLE_COMMAND( Vulkan_ClearPipelines, "Clear all existing pipelines, forcing them to be recreated.", 0 )
 {
-	for( int i = 0; i < renderProgManager.m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgManager.renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = renderProgManager.m_renderProgs[ i ];
+		renderProg_t& prog = renderProgManager.renderProgs[ i ];
 		for( int j = 0; j < prog.pipelines.Num(); ++j )
 		{
 			vkDestroyPipeline( vkcontext.device, prog.pipelines[ j ].pipeline, NULL );
@@ -1304,9 +1304,9 @@ CONSOLE_COMMAND( Vulkan_ClearPipelines, "Clear all existing pipelines, forcing t
 
 CONSOLE_COMMAND( Vulkan_PrintPipelineStates, "Print the GLState bits associated with each pipeline.", 0 )
 {
-	for( int i = 0; i < renderProgManager.m_renderProgs.Num(); ++i )
+	for( int i = 0; i < renderProgManager.renderProgs.Num(); ++i )
 	{
-		renderProg_t& prog = renderProgManager.m_renderProgs[ i ];
+		renderProg_t& prog = renderProgManager.renderProgs[ i ];
 		for( int j = 0; j < prog.pipelines.Num(); ++j )
 		{
 			idLib::Printf( "%s: %llu\n", prog.name.c_str(), prog.pipelines[ j ].stateBits );

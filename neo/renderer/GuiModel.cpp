@@ -39,19 +39,19 @@ idGuiModel::idGuiModel
 ================
 */
 idGuiModel::idGuiModel() :
-	m_surf( NULL ),
-	m_vertexBlock( 0 ),
-	m_indexBlock( 0 ),
-	m_vertexPointer( NULL ),
-	m_indexPointer( NULL ),
-	m_numVerts( 0 ),
-	m_numIndexes( 0 )
+	surf( NULL ),
+	vertexBlock( 0 ),
+	indexBlock( 0 ),
+	vertexPointer( NULL ),
+	indexPointer( NULL ),
+	numVerts( 0 ),
+	numIndexes( 0 )
 {
 
 	// identity color for drawsurf register evaluation
 	for( int i = 0; i < MAX_ENTITY_SHADER_PARMS; i++ )
 	{
-		m_shaderParms[i] = 1.0f;
+		shaderParms[i] = 1.0f;
 	}
 }
 
@@ -64,7 +64,7 @@ Begins collecting draw commands into surfaces
 */
 void idGuiModel::Clear()
 {
-	m_surfaces.SetNum( 0 );
+	surfaces.SetNum( 0 );
 	AdvanceSurf();
 }
 
@@ -75,12 +75,12 @@ idGuiModel::BeginFrame
 */
 void idGuiModel::BeginFrame()
 {
-	m_vertexBlock = vertexCache.AllocVertex( NULL, MAX_VERTS );
-	m_indexBlock = vertexCache.AllocIndex( NULL, MAX_INDEXES );
-	m_vertexPointer = ( idDrawVert* )vertexCache.MappedVertexBuffer( m_vertexBlock );
-	m_indexPointer = ( triIndex_t* )vertexCache.MappedIndexBuffer( m_indexBlock );
-	m_numVerts = 0;
-	m_numIndexes = 0;
+	vertexBlock = vertexCache.AllocVertex( NULL, MAX_VERTS );
+	indexBlock = vertexCache.AllocIndex( NULL, MAX_INDEXES );
+	vertexPointer = ( idDrawVert* )vertexCache.MappedVertexBuffer( vertexBlock );
+	indexPointer = ( triIndex_t* )vertexCache.MappedIndexBuffer( indexBlock );
+	numVerts = 0;
+	numIndexes = 0;
 	Clear();
 }
 
@@ -105,8 +105,8 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 	// display bypass matrix fixup.
 	if( linkAsEntity )
 	{
-		guiSpace->next = tr.m_viewDef->viewEntitys;
-		tr.m_viewDef->viewEntitys = guiSpace;
+		guiSpace->next = tr.viewDef->viewEntitys;
+		tr.viewDef->viewEntitys = guiSpace;
 	}
 	
 	//---------------------------
@@ -114,16 +114,16 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 	//---------------------------
 	idRenderMatrix viewMat;
 	idRenderMatrix::Transpose( *( idRenderMatrix* )modelViewMatrix, viewMat );
-	idRenderMatrix::Multiply( tr.m_viewDef->projectionRenderMatrix, viewMat, guiSpace->mvp );
+	idRenderMatrix::Multiply( tr.viewDef->projectionRenderMatrix, viewMat, guiSpace->mvp );
 	if( depthHack )
 	{
 		idRenderMatrix::ApplyDepthHack( guiSpace->mvp );
 	}
 	
 	// add the surfaces to this view
-	for( int i = 0; i < m_surfaces.Num(); i++ )
+	for( int i = 0; i < surfaces.Num(); i++ )
 	{
-		const guiModelSurface_t& guiSurf = m_surfaces[i];
+		const guiModelSurface_t& guiSurf = surfaces[i];
 		if( guiSurf.numIndexes == 0 )
 		{
 			continue;
@@ -133,16 +133,16 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 		drawSurf_t* drawSurf = ( drawSurf_t* )renderSystem->FrameAlloc( sizeof( *drawSurf ), FRAME_ALLOC_DRAW_SURFACE );
 		
 		drawSurf->numIndexes = guiSurf.numIndexes;
-		drawSurf->ambientCache = m_vertexBlock;
+		drawSurf->ambientCache = vertexBlock;
 		// build a vertCacheHandle_t that points inside the allocated block
-		drawSurf->indexCache = m_indexBlock + ( ( int64 )( guiSurf.firstIndex * sizeof( triIndex_t ) ) << VERTCACHE_OFFSET_SHIFT );
+		drawSurf->indexCache = indexBlock + ( ( int64 )( guiSurf.firstIndex * sizeof( triIndex_t ) ) << VERTCACHE_OFFSET_SHIFT );
 		drawSurf->shadowCache = 0;
 		drawSurf->jointCache = 0;
 		drawSurf->frontEndGeo = NULL;
 		drawSurf->space = guiSpace;
 		drawSurf->material = shader;
 		drawSurf->extraGLState = guiSurf.glState;
-		drawSurf->scissorRect = tr.m_viewDef->scissor;
+		drawSurf->scissorRect = tr.viewDef->scissor;
 		drawSurf->sort = shader->GetSort();
 		drawSurf->renderZFail = 0;
 		// process the shader expressions for conditionals / color / texcoords
@@ -156,9 +156,9 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 		{
 			float* regs = ( float* )renderSystem->FrameAlloc( shader->GetNumRegisters() * sizeof( float ), FRAME_ALLOC_SHADER_REGISTER );
 			drawSurf->shaderRegisters = regs;
-			shader->EvaluateRegisters( regs, m_shaderParms, tr.m_viewDef->renderView.shaderParms, tr.m_viewDef->renderView.time[1] * 0.001f, NULL );
+			shader->EvaluateRegisters( regs, shaderParms, tr.viewDef->renderView.shaderParms, tr.viewDef->renderView.time[1] * 0.001f, NULL );
 		}
-		R_LinkDrawSurfToView( drawSurf, tr.m_viewDef );
+		R_LinkDrawSurfToView( drawSurf, tr.viewDef );
 	}
 }
 
@@ -171,7 +171,7 @@ void idGuiModel::EmitToCurrentView( float modelMatrix[16], bool depthHack )
 {
 	float	modelViewMatrix[16];
 	
-	R_MatrixMultiply( modelMatrix, tr.m_viewDef->worldSpace.modelViewMatrix, modelViewMatrix );
+	R_MatrixMultiply( modelMatrix, tr.viewDef->worldSpace.modelViewMatrix, modelViewMatrix );
 	
 	EmitSurfaces( modelMatrix, modelViewMatrix, depthHack, true /* link as entity */ );
 }
@@ -187,7 +187,7 @@ Creates a view that covers the screen and emit the surfaces
 viewDef_t* idGuiModel::EmitFullScreen()
 {
 
-	if( m_surfaces[0].numIndexes == 0 )
+	if( surfaces[0].numIndexes == 0 )
 	{
 		return NULL;
 	}
@@ -244,17 +244,17 @@ viewDef_t* idGuiModel::EmitFullScreen()
 	viewDef->worldSpace.modelViewMatrix[2 * 4 + 2] = 1.0f;
 	viewDef->worldSpace.modelViewMatrix[3 * 4 + 3] = 1.0f;
 	
-	viewDef->maxDrawSurfs = m_surfaces.Num();
+	viewDef->maxDrawSurfs = surfaces.Num();
 	viewDef->drawSurfs = ( drawSurf_t** )renderSystem->FrameAlloc( viewDef->maxDrawSurfs * sizeof( viewDef->drawSurfs[0] ), FRAME_ALLOC_DRAW_SURFACE_POINTER );
 	viewDef->numDrawSurfs = 0;
 	
-	viewDef_t* oldViewDef = tr.m_viewDef;
-	tr.m_viewDef = viewDef;
+	viewDef_t* oldViewDef = tr.viewDef;
+	tr.viewDef = viewDef;
 	
 	EmitSurfaces( viewDef->worldSpace.modelMatrix, viewDef->worldSpace.modelViewMatrix,
 				  false /* depthHack */ , false /* link as entity */ );
 				  
-	tr.m_viewDef = oldViewDef;
+	tr.viewDef = oldViewDef;
 	
 	return viewDef;
 }
@@ -268,10 +268,10 @@ void idGuiModel::AdvanceSurf()
 {
 	guiModelSurface_t	s;
 	
-	if( m_surfaces.Num() )
+	if( surfaces.Num() )
 	{
-		s.material = m_surf->material;
-		s.glState = m_surf->glState;
+		s.material = surf->material;
+		s.glState = surf->glState;
 	}
 	else
 	{
@@ -280,13 +280,13 @@ void idGuiModel::AdvanceSurf()
 	}
 	
 	// advance indexes so the pointer to each surface will be 16 byte aligned
-	m_numIndexes = ALIGN( m_numIndexes, 8 );
+	numIndexes = ALIGN( numIndexes, 8 );
 	
 	s.numIndexes = 0;
-	s.firstIndex = m_numIndexes;
+	s.firstIndex = numIndexes;
 	
-	m_surfaces.Append( s );
-	m_surf = &m_surfaces[ m_surfaces.Num() - 1 ];
+	surfaces.Append( s );
+	surf = &surfaces[ surfaces.Num() - 1 ];
 }
 
 /*
@@ -300,7 +300,7 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 	{
 		return NULL;
 	}
-	if( m_numIndexes + indexCount > MAX_INDEXES )
+	if( numIndexes + indexCount > MAX_INDEXES )
 	{
 		static int warningFrame = 0;
 		if( warningFrame != tr.frameCount )
@@ -310,7 +310,7 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 		}
 		return NULL;
 	}
-	if( m_numVerts + vertCount > MAX_VERTS )
+	if( numVerts + vertCount > MAX_VERTS )
 	{
 		static int warningFrame = 0;
 		if( warningFrame != tr.frameCount )
@@ -323,23 +323,23 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 	
 	// break the current surface if we are changing to a new material or we can't
 	// fit the data into our allocated block
-	if( material != m_surf->material || glState != m_surf->glState )
+	if( material != surf->material || glState != surf->glState )
 	{
-		if( m_surf->numIndexes )
+		if( surf->numIndexes )
 		{
 			AdvanceSurf();
 		}
-		m_surf->material = material;
-		m_surf->glState = glState;
+		surf->material = material;
+		surf->glState = glState;
 	}
 	
-	int startVert = m_numVerts;
-	int startIndex = m_numIndexes;
+	int startVert = numVerts;
+	int startIndex = numIndexes;
 	
-	m_numVerts += vertCount;
-	m_numIndexes += indexCount;
+	numVerts += vertCount;
+	numIndexes += indexCount;
 	
-	m_surf->numIndexes += indexCount;
+	surf->numIndexes += indexCount;
 	
 	if( ( startIndex & 1 ) || ( indexCount & 1 ) )
 	{
@@ -347,16 +347,16 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 		// this should be very rare, since quads are always an even index count
 		for( int i = 0; i < indexCount; i++ )
 		{
-			m_indexPointer[ startIndex + i ] = startVert + tempIndexes[i];
+			indexPointer[ startIndex + i ] = startVert + tempIndexes[i];
 		}
 	}
 	else
 	{
 		for( int i = 0; i < indexCount; i += 2 )
 		{
-			WriteIndexPair( m_indexPointer + startIndex + i, startVert + tempIndexes[i], startVert + tempIndexes[i + 1] );
+			WriteIndexPair( indexPointer + startIndex + i, startVert + tempIndexes[i], startVert + tempIndexes[i + 1] );
 		}
 	}
 	
-	return m_vertexPointer + startVert;
+	return vertexPointer + startVert;
 }

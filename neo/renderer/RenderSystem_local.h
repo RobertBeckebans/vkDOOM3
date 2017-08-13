@@ -59,7 +59,7 @@ public:
 	virtual void			Shutdown();
 	virtual bool			IsInitialized() const
 	{
-		return m_bInitialized;
+		return bInitialized;
 	}
 	virtual void			VidRestart();
 	
@@ -85,7 +85,7 @@ public:
 	// Render
 	virtual void			SetRenderView( const renderView_t* renderView )
 	{
-		m_primaryRenderView = *renderView;
+		primaryRenderView = *renderView;
 	}
 	virtual void			RenderScene( idRenderWorld* world, const renderView_t* renderView );
 	
@@ -175,7 +175,7 @@ public:
 	// and every R_MarkFragments call
 	
 	idRenderWorld* 			primaryWorld;
-	renderView_t			m_primaryRenderView;
+	renderView_t			primaryRenderView;
 	viewDef_t* 				primaryView;
 	// many console commands need to know which world they should operate on
 	
@@ -185,7 +185,7 @@ public:
 	const idMaterial* 		defaultProjectedLight;
 	const idMaterial* 		defaultMaterial;
 	
-	viewDef_t* 				m_viewDef;
+	viewDef_t* 				viewDef;
 	
 	struct performanceCounters_t
 	{
@@ -214,43 +214,43 @@ public:
 	} pc;
 	
 private:
-	bool					m_bInitialized;
-	bool					m_takingScreenshot;
+	bool					bInitialized;
+	bool					takingScreenshot;
 	
-	idList< idRenderWorld* >	m_worlds;
+	idList< idRenderWorld* >	worlds;
 	
-	srfTriangles_t* 		m_unitSquareTriangles;
-	srfTriangles_t* 		m_zeroOneCubeTriangles;
-	srfTriangles_t* 		m_testImageTriangles;
+	srfTriangles_t* 		unitSquareTriangles;
+	srfTriangles_t* 		zeroOneCubeTriangles;
+	srfTriangles_t* 		testImageTriangles;
 	
 	// these are allocated at buffer swap time, but
 	// the back end should only use the ones in the backEnd stucture,
 	// which are copied over from the frame that was just swapped.
-	drawSurf_t				m_unitSquareSurface;
-	drawSurf_t				m_zeroOneCubeSurface;
-	drawSurf_t				m_testImageSurface;
+	drawSurf_t				unitSquareSurface;
+	drawSurf_t				zeroOneCubeSurface;
+	drawSurf_t				testImageSurface;
 	
-	idScreenRect			m_renderCrops[ MAX_RENDER_CROPS ];
-	int						m_currentRenderCrop;
+	idScreenRect			renderCrops[ MAX_RENDER_CROPS ];
+	int						currentRenderCrop;
 	
 	// GUI drawing variables for surface creation
-	int						m_guiRecursionLevel;	// to prevent infinite overruns
-	uint32					m_currentColorNativeBytesOrder;
-	uint64					m_currentGLState;
+	int						guiRecursionLevel;	// to prevent infinite overruns
+	uint32					currentColorNativeBytesOrder;
+	uint64					currentGLState;
 	//
 	
-	idList< idFont*, TAG_FONT >	m_fonts;
+	idList< idFont*, TAG_FONT >	fonts;
 	
 	// GUI drawing variables for surface creation
-	class idGuiModel* 		m_guiModel;
+	class idGuiModel* 		guiModel;
 	
-	idParallelJobList* 		m_frontEndJobList;
+	idParallelJobList* 		frontEndJobList;
 	
-	idRenderBackend			m_backend;
+	idRenderBackend			backend;
 	
-	idFrameData				m_smpFrameData[ NUM_FRAME_DATA ];
-	idFrameData* 			m_frameData;
-	uint32					m_smpFrame;
+	idFrameData				smpFrameData[ NUM_FRAME_DATA ];
+	idFrameData* 			frameData;
+	uint32					smpFrame;
 };
 
 extern idRenderSystemLocal	tr;

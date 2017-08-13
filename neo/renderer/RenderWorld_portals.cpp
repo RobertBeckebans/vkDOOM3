@@ -99,8 +99,8 @@ viewLight_t* R_SetLightDefViewLight( idRenderLight* light )
 	vLight->scissorRect.Clear();
 	
 	// link the view light
-	vLight->next = tr.m_viewDef->viewLights;
-	tr.m_viewDef->viewLights = vLight;
+	vLight->next = tr.viewDef->viewLights;
+	tr.viewDef->viewLights = vLight;
 	
 	light->viewLight = vLight;
 	
@@ -131,8 +131,8 @@ viewEntity_t* R_SetEntityDefViewEntity( idRenderEntity* def )
 	// It will remain clear if the model is only needed for shadows.
 	vModel->scissorRect.Clear();
 	
-	vModel->next = tr.m_viewDef->viewEntitys;
-	tr.m_viewDef->viewEntitys = vModel;
+	vModel->next = tr.viewDef->viewEntitys;
+	tr.viewDef->viewEntitys = vModel;
 	
 	def->viewEntity = vModel;
 	
@@ -177,7 +177,7 @@ bool idRenderWorld::CullEntityByPortals( const idRenderEntity* entity, const por
 			// the entity frustum planes face inward, so the planes that have the
 			// view origin on the positive side will be the "back" faces of the entity,
 			// which must have some fragment inside the portal stack planes to be visible
-			if( frustumPlanes[i].Distance( tr.m_viewDef->renderView.vieworg ) <= 0.0f )
+			if( frustumPlanes[i].Distance( tr.viewDef->renderView.vieworg ) <= 0.0f )
 			{
 				continue;
 			}
@@ -239,7 +239,7 @@ Any models that are visible through the current portalStack will have their scis
 */
 void idRenderWorld::AddAreaViewEntities( int areaNum, const portalStack_t* ps )
 {
-	portalArea_t* area = &m_portalAreas[ areaNum ];
+	portalArea_t* area = &portalAreas[ areaNum ];
 	
 	for( areaReference_t* ref = area->entityRefs.areaNext; ref != &area->entityRefs; ref = ref->areaNext )
 	{
@@ -252,18 +252,18 @@ void idRenderWorld::AddAreaViewEntities( int areaNum, const portalStack_t* ps )
 		}
 		
 		// remove decals that are completely faded away
-		FreeEntityDefFadedDecals( entity, tr.m_viewDef->renderView.time[0] );
+		FreeEntityDefFadedDecals( entity, tr.viewDef->renderView.time[0] );
 		
 		// check for completely suppressing the model
 		if( !r_skipSuppress.GetBool() )
 		{
 			if( entity->parms.suppressSurfaceInViewID
-					&& entity->parms.suppressSurfaceInViewID == tr.m_viewDef->renderView.viewID )
+					&& entity->parms.suppressSurfaceInViewID == tr.viewDef->renderView.viewID )
 			{
 				continue;
 			}
 			if( entity->parms.allowSurfaceInViewID
-					&& entity->parms.allowSurfaceInViewID != tr.m_viewDef->renderView.viewID )
+					&& entity->parms.allowSurfaceInViewID != tr.viewDef->renderView.viewID )
 			{
 				continue;
 			}
@@ -319,7 +319,7 @@ bool idRenderWorld::CullLightByPortals( const idRenderLight* light, const portal
 			// the light frustum planes face inward, so the planes that have the
 			// view origin on the positive side will be the "back" faces of the light,
 			// which must have some fragment inside the the portal stack planes to be visible
-			if( frustumPlanes[i].Distance( tr.m_viewDef->renderView.vieworg ) <= 0.0f )
+			if( frustumPlanes[i].Distance( tr.viewDef->renderView.vieworg ) <= 0.0f )
 			{
 				continue;
 			}
@@ -381,7 +381,7 @@ Any lights that are visible through the current portalStack will have their scis
 */
 void idRenderWorld::AddAreaViewLights( int areaNum, const portalStack_t* ps )
 {
-	portalArea_t* area = &m_portalAreas[ areaNum ];
+	portalArea_t* area = &portalAreas[ areaNum ];
 	
 	for( areaReference_t* lref = area->lightRefs.areaNext; lref != &area->lightRefs; lref = lref->areaNext )
 	{
@@ -396,7 +396,7 @@ void idRenderWorld::AddAreaViewLights( int areaNum, const portalStack_t* ps )
 		// check for being closed off behind a door
 		// a light that doesn't cast shadows will still light even if it is behind a door
 		if( r_useLightAreaCulling.GetBool() && !light->LightCastsShadows()
-				&& light->areaNum != -1 && !tr.m_viewDef->connectedAreas[ light->areaNum ] )
+				&& light->areaNum != -1 && !tr.viewDef->connectedAreas[ light->areaNum ] )
 		{
 			continue;
 		}
@@ -427,7 +427,7 @@ if more than one portal sees into the area
 void idRenderWorld::AddAreaToView( int areaNum, const portalStack_t* ps )
 {
 	// mark the viewCount, so r_showPortals can display the considered portals
-	m_portalAreas[ areaNum ].viewCount = tr.viewCount;
+	portalAreas[ areaNum ].viewCount = tr.viewCount;
 	
 	// add the models and lights, using more precise culling to the planes
 	AddAreaViewEntities( areaNum, ps );
@@ -441,8 +441,8 @@ idRenderWorld::ScreenRectForWinding
 */
 idScreenRect idRenderWorld::ScreenRectFromWinding( const idWinding* w, const float modelMatrix[ 16 ] )
 {
-	const float viewWidth = ( float ) tr.m_viewDef->viewport.x2 - ( float ) tr.m_viewDef->viewport.x1;
-	const float viewHeight = ( float ) tr.m_viewDef->viewport.y2 - ( float ) tr.m_viewDef->viewport.y1;
+	const float viewWidth = ( float ) tr.viewDef->viewport.x2 - ( float ) tr.viewDef->viewport.x1;
+	const float viewHeight = ( float ) tr.viewDef->viewport.y2 - ( float ) tr.viewDef->viewport.y1;
 	
 	idScreenRect r;
 	r.Clear();
@@ -483,7 +483,7 @@ bool idRenderWorld::PortalIsFoggedOut( const portal_t* p )
 	float* regs = ( float* )_alloca( size );
 	
 	lightShader->EvaluateRegisters( regs, ldef->parms.shaderParms,
-									tr.m_viewDef->renderView.shaderParms, tr.m_viewDef->renderView.time[0] * 0.001f, ldef->parms.referenceSound );
+									tr.viewDef->renderView.shaderParms, tr.viewDef->renderView.time[0] * 0.001f, ldef->parms.referenceSound );
 									
 	const shaderStage_t*	stage = lightShader->GetStage( 0 );
 	
@@ -502,10 +502,10 @@ bool idRenderWorld::PortalIsFoggedOut( const portal_t* p )
 	}
 	
 	idPlane forward;
-	forward[0] = a * tr.m_viewDef->worldSpace.modelViewMatrix[0 * 4 + 2];
-	forward[1] = a * tr.m_viewDef->worldSpace.modelViewMatrix[1 * 4 + 2];
-	forward[2] = a * tr.m_viewDef->worldSpace.modelViewMatrix[2 * 4 + 2];
-	forward[3] = a * tr.m_viewDef->worldSpace.modelViewMatrix[3 * 4 + 2];
+	forward[0] = a * tr.viewDef->worldSpace.modelViewMatrix[0 * 4 + 2];
+	forward[1] = a * tr.viewDef->worldSpace.modelViewMatrix[1 * 4 + 2];
+	forward[2] = a * tr.viewDef->worldSpace.modelViewMatrix[2 * 4 + 2];
+	forward[3] = a * tr.viewDef->worldSpace.modelViewMatrix[3 * 4 + 2];
 	
 	const idWinding*	 w = p->w;
 	for( int i = 0; i < w->GetNumPoints(); i++ )
@@ -527,18 +527,18 @@ idRenderWorld::FloodViewThroughArea_r
 */
 void idRenderWorld::FloodViewThroughArea_r( const idVec3& origin, int areaNum, const portalStack_t* ps )
 {
-	portalArea_t* area = &m_portalAreas[ areaNum ];
+	portalArea_t* area = &portalAreas[ areaNum ];
 	
 	// cull models and lights to the current collection of planes
 	AddAreaToView( areaNum, ps );
 	
-	if( m_areaScreenRect[areaNum].IsEmpty() )
+	if( areaScreenRect[areaNum].IsEmpty() )
 	{
-		m_areaScreenRect[areaNum] = ps->rect;
+		areaScreenRect[areaNum] = ps->rect;
 	}
 	else
 	{
-		m_areaScreenRect[areaNum].Union( ps->rect );
+		areaScreenRect[areaNum].Union( ps->rect );
 	}
 	
 	// go through all the portals
@@ -682,21 +682,21 @@ void idRenderWorld::FlowViewThroughPortals( const idVec3& origin, int numPlanes,
 	}
 	
 	ps.numPortalPlanes = numPlanes;
-	ps.rect = tr.m_viewDef->scissor;
+	ps.rect = tr.viewDef->scissor;
 	
 	// if outside the world, mark everything
-	if( tr.m_viewDef->areaNum < 0 )
+	if( tr.viewDef->areaNum < 0 )
 	{
-		for( int i = 0; i < m_numPortalAreas; i++ )
+		for( int i = 0; i < numPortalAreas; i++ )
 		{
-			m_areaScreenRect[i] = tr.m_viewDef->scissor;
+			areaScreenRect[i] = tr.viewDef->scissor;
 			AddAreaToView( i, &ps );
 		}
 	}
 	else
 	{
 		// flood out through portals, setting area viewCount
-		FloodViewThroughArea_r( origin, tr.m_viewDef->areaNum, &ps );
+		FloodViewThroughArea_r( origin, tr.viewDef->areaNum, &ps );
 	}
 }
 
@@ -707,15 +707,15 @@ idRenderWorld::BuildConnectedAreas_r
 */
 void idRenderWorld::BuildConnectedAreas_r( int areaNum )
 {
-	if( tr.m_viewDef->connectedAreas[areaNum] )
+	if( tr.viewDef->connectedAreas[areaNum] )
 	{
 		return;
 	}
 	
-	tr.m_viewDef->connectedAreas[areaNum] = true;
+	tr.viewDef->connectedAreas[areaNum] = true;
 	
 	// flood through all non-blocked portals
-	portalArea_t* area = &m_portalAreas[ areaNum ];
+	portalArea_t* area = &portalAreas[ areaNum ];
 	for( const portal_t* portal = area->portals; portal; portal = portal->next )
 	{
 		if( ( portal->doublePortal->blockingBits & PS_BLOCK_VIEW ) == 0 )
@@ -734,21 +734,21 @@ This is only valid for a given view, not all views in a frame
 */
 void idRenderWorld::BuildConnectedAreas()
 {
-	tr.m_viewDef->connectedAreas = ( bool* )renderSystem->FrameAlloc( m_numPortalAreas * sizeof( tr.m_viewDef->connectedAreas[0] ) );
+	tr.viewDef->connectedAreas = ( bool* )renderSystem->FrameAlloc( numPortalAreas * sizeof( tr.viewDef->connectedAreas[0] ) );
 	
 	// if we are outside the world, we can see all areas
-	if( tr.m_viewDef->areaNum == -1 )
+	if( tr.viewDef->areaNum == -1 )
 	{
-		for( int i = 0; i < m_numPortalAreas; i++ )
+		for( int i = 0; i < numPortalAreas; i++ )
 		{
-			tr.m_viewDef->connectedAreas[i] = true;
+			tr.viewDef->connectedAreas[i] = true;
 		}
 		return;
 	}
 	
 	// start with none visible, and flood fill from the current area
-	memset( tr.m_viewDef->connectedAreas, 0, m_numPortalAreas * sizeof( tr.m_viewDef->connectedAreas[0] ) );
-	BuildConnectedAreas_r( tr.m_viewDef->areaNum );
+	memset( tr.viewDef->connectedAreas, 0, numPortalAreas * sizeof( tr.viewDef->connectedAreas[0] ) );
+	BuildConnectedAreas_r( tr.viewDef->areaNum );
 }
 
 /*
@@ -775,25 +775,25 @@ void idRenderWorld::FindViewLightsAndEntities()
 	tr.viewCount++;
 	
 	// clear the visible lightDef and entityDef lists
-	tr.m_viewDef->viewLights = NULL;
-	tr.m_viewDef->viewEntitys = NULL;
+	tr.viewDef->viewLights = NULL;
+	tr.viewDef->viewEntitys = NULL;
 	
 	// all areas are initially not visible, but each portal
 	// chain that leads to them will expand the visible rectangle
-	for( int i = 0; i < m_numPortalAreas; i++ )
+	for( int i = 0; i < numPortalAreas; i++ )
 	{
-		m_areaScreenRect[i].Clear();
+		areaScreenRect[i].Clear();
 	}
 	
 	// find the area to start the portal flooding in
 	if( !r_usePortals.GetBool() )
 	{
 		// debug tool to force no portal culling
-		tr.m_viewDef->areaNum = -1;
+		tr.viewDef->areaNum = -1;
 	}
 	else
 	{
-		tr.m_viewDef->areaNum = PointInArea( tr.m_viewDef->initialViewAreaOrigin );
+		tr.viewDef->areaNum = PointInArea( tr.viewDef->initialViewAreaOrigin );
 	}
 	
 	// determine all possible connected areas for
@@ -805,24 +805,24 @@ void idRenderWorld::FindViewLightsAndEntities()
 	{
 		// if debugging, only mark this area
 		// if we are outside the world, don't draw anything
-		if( tr.m_viewDef->areaNum >= 0 )
+		if( tr.viewDef->areaNum >= 0 )
 		{
 			static int lastPrintedAreaNum;
-			if( tr.m_viewDef->areaNum != lastPrintedAreaNum )
+			if( tr.viewDef->areaNum != lastPrintedAreaNum )
 			{
-				lastPrintedAreaNum = tr.m_viewDef->areaNum;
-				idLib::Printf( "entering portal area %i\n", tr.m_viewDef->areaNum );
+				lastPrintedAreaNum = tr.viewDef->areaNum;
+				idLib::Printf( "entering portal area %i\n", tr.viewDef->areaNum );
 			}
 			
 			portalStack_t ps;
 			for( int i = 0; i < 5; i++ )
 			{
-				ps.portalPlanes[i] = tr.m_viewDef->frustum[i];
+				ps.portalPlanes[i] = tr.viewDef->frustum[i];
 			}
 			ps.numPortalPlanes = 5;
-			ps.rect = tr.m_viewDef->scissor;
+			ps.rect = tr.viewDef->scissor;
 			
-			AddAreaToView( tr.m_viewDef->areaNum, &ps );
+			AddAreaToView( tr.viewDef->areaNum, &ps );
 		}
 	}
 	else
@@ -830,7 +830,7 @@ void idRenderWorld::FindViewLightsAndEntities()
 		// note that the center of projection for flowing through portals may
 		// be a different point than initialViewAreaOrigin for subviews that
 		// may have the viewOrigin in a solid/invalid area
-		FlowViewThroughPortals( tr.m_viewDef->renderView.vieworg, 5, tr.m_viewDef->frustum );
+		FlowViewThroughPortals( tr.viewDef->renderView.vieworg, 5, tr.viewDef->frustum );
 	}
 }
 
@@ -861,7 +861,7 @@ void idRenderWorld::FloodLightThroughArea_r( idRenderLight* light, int areaNum,
 	int				addPlanes;
 	idFixedWinding	w;		// we won't overflow because MAX_PORTAL_PLANES = 20
 	
-	area = &m_portalAreas[ areaNum ];
+	area = &portalAreas[ areaNum ];
 	
 	// add an areaRef
 	AddLightRefToArea( light, area );
@@ -1018,7 +1018,7 @@ NumPortals
 */
 int idRenderWorld::NumPortals() const
 {
-	return m_numInterAreaPortals;
+	return numInterAreaPortals;
 }
 
 /*
@@ -1036,9 +1036,9 @@ qhandle_t idRenderWorld::FindPortal( const idBounds& b ) const
 	doublePortal_t*	portal;
 	idWinding*		w;
 	
-	for( i = 0; i < m_numInterAreaPortals; i++ )
+	for( i = 0; i < numInterAreaPortals; i++ )
 	{
-		portal = &m_doublePortals[i];
+		portal = &doublePortals[i];
 		w = portal->portals[0]->w;
 		
 		wb.Clear();
@@ -1062,17 +1062,17 @@ FloodConnectedAreas
 */
 void idRenderWorld::FloodConnectedAreas( portalArea_t* area, int portalAttributeIndex )
 {
-	if( area->connectedAreaNum[portalAttributeIndex] == m_connectedAreaNum )
+	if( area->connectedAreaNum[portalAttributeIndex] == connectedAreaNum )
 	{
 		return;
 	}
-	area->connectedAreaNum[portalAttributeIndex] = m_connectedAreaNum;
+	area->connectedAreaNum[portalAttributeIndex] = connectedAreaNum;
 	
 	for( portal_t* p = area->portals; p != NULL; p = p->next )
 	{
 		if( !( p->doublePortal->blockingBits & ( 1 << portalAttributeIndex ) ) )
 		{
-			FloodConnectedAreas( &m_portalAreas[p->intoArea], portalAttributeIndex );
+			FloodConnectedAreas( &portalAreas[p->intoArea], portalAttributeIndex );
 		}
 	}
 }
@@ -1088,7 +1088,7 @@ bool idRenderWorld::AreasAreConnected( int areaNum1, int areaNum2, portalConnect
 	{
 		return false;
 	}
-	if( areaNum1 > m_numPortalAreas || areaNum2 > m_numPortalAreas || areaNum1 < 0 || areaNum2 < 0 )
+	if( areaNum1 > numPortalAreas || areaNum2 > numPortalAreas || areaNum1 < 0 || areaNum2 < 0 )
 	{
 		idLib::Error( "idRenderWorld::AreAreasConnected: bad parms: %i, %i", areaNum1, areaNum2 );
 	}
@@ -1107,7 +1107,7 @@ bool idRenderWorld::AreasAreConnected( int areaNum1, int areaNum2, portalConnect
 		idLib::Error( "idRenderWorld::AreasAreConnected: bad connection number: %i\n", ( int )connection );
 	}
 	
-	return m_portalAreas[areaNum1].connectedAreaNum[attribute] == m_portalAreas[areaNum2].connectedAreaNum[attribute];
+	return portalAreas[areaNum1].connectedAreaNum[attribute] == portalAreas[areaNum2].connectedAreaNum[attribute];
 }
 
 /*
@@ -1124,16 +1124,16 @@ void idRenderWorld::SetPortalState( qhandle_t portal, int blockTypes )
 		return;
 	}
 	
-	if( portal < 1 || portal > m_numInterAreaPortals )
+	if( portal < 1 || portal > numInterAreaPortals )
 	{
 		idLib::Error( "SetPortalState: bad portal number %i", portal );
 	}
-	int	old = m_doublePortals[portal - 1].blockingBits;
+	int	old = doublePortals[portal - 1].blockingBits;
 	if( old == blockTypes )
 	{
 		return;
 	}
-	m_doublePortals[portal - 1].blockingBits = blockTypes;
+	doublePortals[portal - 1].blockingBits = blockTypes;
 	
 	// leave the connectedAreaGroup the same on one side,
 	// then flood fill from the other side with a new number for each changed attribute
@@ -1141,8 +1141,8 @@ void idRenderWorld::SetPortalState( qhandle_t portal, int blockTypes )
 	{
 		if( ( old ^ blockTypes ) & ( 1 << i ) )
 		{
-			m_connectedAreaNum++;
-			FloodConnectedAreas( &m_portalAreas[m_doublePortals[portal - 1].portals[1]->intoArea], i );
+			connectedAreaNum++;
+			FloodConnectedAreas( &portalAreas[doublePortals[portal - 1].portals[1]->intoArea], i );
 		}
 	}
 }
@@ -1159,10 +1159,10 @@ int idRenderWorld::GetPortalState( qhandle_t portal )
 		return 0;
 	}
 	
-	if( portal < 1 || portal > m_numInterAreaPortals )
+	if( portal < 1 || portal > numInterAreaPortals )
 	{
 		idLib::Error( "GetPortalState: bad portal number %i", portal );
 	}
 	
-	return m_doublePortals[portal - 1].blockingBits;
+	return doublePortals[portal - 1].blockingBits;
 }

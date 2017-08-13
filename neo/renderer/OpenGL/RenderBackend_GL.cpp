@@ -412,7 +412,7 @@ CreateOpenGLContextOnDC
 static HGLRC CreateOpenGLContextOnDC( const HDC hdc, const bool debugContext )
 {
 	int useOpenGL32 = r_useOpenGL32.GetInteger();
-	HGLRC m_hrc = NULL;
+	HGLRC hrc = NULL;
 	
 	for( int i = 0; i < 2; i++ )
 	{
@@ -430,8 +430,8 @@ static HGLRC CreateOpenGLContextOnDC( const HDC hdc, const bool debugContext )
 			0
 		};
 		
-		m_hrc = wglCreateContextAttribsARB( hdc, 0, attribs );
-		if( m_hrc != NULL )
+		hrc = wglCreateContextAttribsARB( hdc, 0, attribs );
+		if( hrc != NULL )
 		{
 			idLib::Printf( "created OpenGL %d.%d context\n", glMajorVersion, glMinorVersion );
 			break;
@@ -441,7 +441,7 @@ static HGLRC CreateOpenGLContextOnDC( const HDC hdc, const bool debugContext )
 		useOpenGL32 = 0;	// fall back to OpenGL 2.0
 	}
 	
-	if( m_hrc == NULL )
+	if( hrc == NULL )
 	{
 		int	err = GetLastError();
 		switch( err )
@@ -458,7 +458,7 @@ static HGLRC CreateOpenGLContextOnDC( const HDC hdc, const bool debugContext )
 		}
 	}
 	
-	return m_hrc;
+	return hrc;
 }
 
 /*
@@ -1139,7 +1139,7 @@ void idRenderBackend::BlockingSwapBuffers()
 		int interval = 0;
 		if( r_swapInterval.GetInteger() == 1 )
 		{
-			interval = ( m_swapControlTearAvailable ) ? -1 : 1;
+			interval = ( swapControlTearAvailable ) ? -1 : 1;
 		}
 		else if( r_swapInterval.GetInteger() == 2 )
 		{
@@ -1225,7 +1225,7 @@ idRenderBackend::idRenderBackend
 */
 idRenderBackend::idRenderBackend()
 {
-	memset( m_gammaTable, 0, sizeof( m_gammaTable ) );
+	memset( gammaTable, 0, sizeof( gammaTable ) );
 	
 	glcontext.bAnisotropicFilterAvailable = false;
 	glcontext.bTextureLODBiasAvailable = false;
@@ -1259,27 +1259,27 @@ void idRenderBackend::Print()
 		"fullscreen"
 	};
 	
-	idLib::Printf( "\nGL_VENDOR: %s\n", m_vendorString.c_str() );
-	idLib::Printf( "GL_RENDERER: %s\n", m_rendererString.c_str() );
-	idLib::Printf( "GL_VERSION: %s\n", m_versionString.c_str() );
-	idLib::Printf( "GL_EXTENSIONS: %s\n", m_extensionsString.c_str() );
-	if( !m_wglExtensionsString.IsEmpty() )
+	idLib::Printf( "\nGL_VENDOR: %s\n", vendorString.c_str() );
+	idLib::Printf( "GL_RENDERER: %s\n", rendererString.c_str() );
+	idLib::Printf( "GL_VERSION: %s\n", versionString.c_str() );
+	idLib::Printf( "GL_EXTENSIONS: %s\n", extensionsString.c_str() );
+	if( !wglExtensionsString.IsEmpty() )
 	{
-		idLib::Printf( "WGL_EXTENSIONS: %s\n", m_wglExtensionsString.c_str() );
+		idLib::Printf( "WGL_EXTENSIONS: %s\n", wglExtensionsString.c_str() );
 	}
-	idLib::Printf( "GL_MAX_TEXTURE_SIZE: %d\n", m_maxTextureSize );
-	idLib::Printf( "GL_MAX_TEXTURE_COORDS_ARB: %d\n", m_maxTextureCoords );
-	idLib::Printf( "GL_MAX_TEXTURE_IMAGE_UNITS_ARB: %d\n", m_maxTextureImageUnits );
+	idLib::Printf( "GL_MAX_TEXTURE_SIZE: %d\n", maxTextureSize );
+	idLib::Printf( "GL_MAX_TEXTURE_COORDS_ARB: %d\n", maxTextureCoords );
+	idLib::Printf( "GL_MAX_TEXTURE_IMAGE_UNITS_ARB: %d\n", maxTextureImageUnits );
 	
 	// print all the display adapters, monitors, and video modes
 	void DumpAllDisplayDevices();
 	DumpAllDisplayDevices();
 	
-	idLib::Printf( "\nPIXELFORMAT: color(%d-bits) Z(%d-bit) stencil(%d-bits)\n", m_colorBits, m_depthBits, m_stencilBits );
+	idLib::Printf( "\nPIXELFORMAT: color(%d-bits) Z(%d-bit) stencil(%d-bits)\n", colorBits, depthBits, stencilBits );
 	idLib::Printf( "MODE: %d, %d x %d %s hz:", r_vidMode.GetInteger(), renderSystem->GetWidth(), renderSystem->GetHeight(), fsstrings[r_fullscreen.GetBool()] );
-	if( m_displayFrequency )
+	if( displayFrequency )
 	{
-		idLib::Printf( "%d\n", m_displayFrequency );
+		idLib::Printf( "%d\n", displayFrequency );
 	}
 	else
 	{
@@ -1330,21 +1330,21 @@ void idRenderBackend::Init()
 		idLib::FatalError( "Unable to initialize OpenGL" );
 	}
 	
-	m_colorBits = win32.pfd.cColorBits;
-	m_depthBits = win32.pfd.cDepthBits;
-	m_stencilBits = win32.pfd.cStencilBits;
+	colorBits = win32.pfd.cColorBits;
+	depthBits = win32.pfd.cDepthBits;
+	stencilBits = win32.pfd.cStencilBits;
 	
 	// input and sound systems need to be tied to the new window
 	Sys_InitInput();
 	
 	// get our config strings
-	m_vendorString = ( const char* )qglGetString( GL_VENDOR );
-	m_rendererString = ( const char* )qglGetString( GL_RENDERER );
-	m_versionString = ( const char* )qglGetString( GL_VERSION );
-	m_shadingLanguageString = ( const char* )qglGetString( GL_SHADING_LANGUAGE_VERSION );
-	m_extensionsString = ( const char* )qglGetString( GL_EXTENSIONS );
+	vendorString = ( const char* )qglGetString( GL_VENDOR );
+	rendererString = ( const char* )qglGetString( GL_RENDERER );
+	versionString = ( const char* )qglGetString( GL_VERSION );
+	shadingLanguageString = ( const char* )qglGetString( GL_SHADING_LANGUAGE_VERSION );
+	extensionsString = ( const char* )qglGetString( GL_EXTENSIONS );
 	
-	if( m_extensionsString.IsEmpty() )
+	if( extensionsString.IsEmpty() )
 	{
 		// As of OpenGL 3.2, glGetStringi is requir	ed to obtain the available extensions
 		qglGetStringi = ( PFNGLGETSTRINGIPROC )GL_ExtensionPointer( "glGetStringi" );
@@ -1362,57 +1362,57 @@ void idRenderBackend::Init()
 				extensions_string.Append( ' ' );
 			}
 		}
-		m_extensionsString = extensions_string;
+		extensionsString = extensions_string;
 	}
 	
-	float glVersion = atof( m_versionString.c_str() );
-	float glslVersion = atof( m_shadingLanguageString.c_str() );
+	float glVersion = atof( versionString.c_str() );
+	float glslVersion = atof( shadingLanguageString.c_str() );
 	idLib::Printf( "OpenGL Version: %3.1f\n", glVersion );
-	idLib::Printf( "OpenGL Vendor : %s\n", m_vendorString.c_str() );
+	idLib::Printf( "OpenGL Vendor : %s\n", vendorString.c_str() );
 	idLib::Printf( "OpenGL GLSL   : %3.1f\n", glslVersion );
 	
 	// OpenGL driver constants
 	GLint temp;
 	qglGetIntegerv( GL_MAX_TEXTURE_SIZE, &temp );
-	m_maxTextureSize = temp;
+	maxTextureSize = temp;
 	
 	// stubbed or broken drivers may have reported 0...
-	if( m_maxTextureSize <= 0 )
+	if( maxTextureSize <= 0 )
 	{
-		m_maxTextureSize = 256;
+		maxTextureSize = 256;
 	}
 	
 	// Get both portable and platform extension pointers.
 	{
-		m_glVersion = atof( m_versionString.c_str() );
+		glVersion = atof( versionString.c_str() );
 		const char* badVideoCard = idLocalization::GetString( "#str_06780" );
-		if( m_glVersion < 2.0f )
+		if( glVersion < 2.0f )
 		{
 			idLib::FatalError( badVideoCard );
 		}
 		
-		if( m_rendererString.Icmpn( "ATI", 4 ) == 0 || m_rendererString.Icmpn( "AMD", 4 ) == 0 )
+		if( rendererString.Icmpn( "ATI", 4 ) == 0 || rendererString.Icmpn( "AMD", 4 ) == 0 )
 		{
-			m_vendor = VENDOR_AMD;
+			vendor = VENDOR_AMD;
 		}
-		else if( m_rendererString.Icmpn( "NVIDIA", 6 ) == 0 )
+		else if( rendererString.Icmpn( "NVIDIA", 6 ) == 0 )
 		{
-			m_vendor = VENDOR_NVIDIA;
+			vendor = VENDOR_NVIDIA;
 		}
-		else if( m_rendererString.Icmpn( "Intel", 5 ) == 0 )
+		else if( rendererString.Icmpn( "Intel", 5 ) == 0 )
 		{
-			m_vendor = VENDOR_INTEL;
+			vendor = VENDOR_INTEL;
 		}
 		
 #if defined( ID_PC_WIN )
 		wglGetExtensionsStringARB = ( PFNWGLGETEXTENSIONSSTRINGARBPROC )GL_ExtensionPointer( "wglGetExtensionsStringARB" );
 		if( wglGetExtensionsStringARB )
 		{
-			m_wglExtensionsString = ( const char* ) wglGetExtensionsStringARB( win32.hDC );
+			wglExtensionsString = ( const char* ) wglGetExtensionsStringARB( win32.hDC );
 		}
 		else
 		{
-			m_wglExtensionsString = "";
+			wglExtensionsString = "";
 		}
 		
 		// WGL_EXT_swap_control
@@ -1420,7 +1420,7 @@ void idRenderBackend::Init()
 		r_swapInterval.SetModified();	// force a set next frame
 		
 		// WGL_EXT_swap_control_tear
-		m_swapControlTearAvailable = GL_CheckExtension( "WGL_EXT_swap_control_tear", m_wglExtensionsString.c_str() );
+		swapControlTearAvailable = GL_CheckExtension( "WGL_EXT_swap_control_tear", wglExtensionsString.c_str() );
 		
 		// WGL_ARB_pixel_format
 		wglChoosePixelFormatARB = ( PFNWGLCHOOSEPIXELFORMATARBPROC )GL_ExtensionPointer( "wglChoosePixelFormatARB" );
@@ -1430,7 +1430,7 @@ void idRenderBackend::Init()
 #endif
 		
 		// GL_ARB_multitexture
-		if( GL_CheckExtension( "GL_ARB_multitexture", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_multitexture", extensionsString.c_str() ) )
 		{
 			qglActiveTextureARB = ( void( APIENTRY* )( GLenum ) )GL_ExtensionPointer( "glActiveTextureARB" );
 		}
@@ -1440,7 +1440,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_EXT_direct_state_access
-		if( GL_CheckExtension( "GL_EXT_direct_state_access", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_EXT_direct_state_access", extensionsString.c_str() ) )
 		{
 			qglBindMultiTextureEXT = ( PFNGLBINDMULTITEXTUREEXTPROC )GL_ExtensionPointer( "glBindMultiTextureEXT" );
 		}
@@ -1451,8 +1451,8 @@ void idRenderBackend::Init()
 		
 		// GL_ARB_texture_compression + GL_S3_s3tc
 		// DRI drivers may have GL_ARB_texture_compression but no GL_EXT_texture_compression_s3tc
-		if( GL_CheckExtension( "GL_ARB_texture_compression", m_extensionsString.c_str() )
-				&& GL_CheckExtension( "GL_EXT_texture_compression_s3tc", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_texture_compression", extensionsString.c_str() )
+				&& GL_CheckExtension( "GL_EXT_texture_compression_s3tc", extensionsString.c_str() ) )
 		{
 			qglCompressedTexImage2DARB = ( PFNGLCOMPRESSEDTEXIMAGE2DARBPROC )GL_ExtensionPointer( "glCompressedTexImage2DARB" );
 			qglCompressedTexSubImage2DARB = ( PFNGLCOMPRESSEDTEXSUBIMAGE2DARBPROC )GL_ExtensionPointer( "glCompressedTexSubImage2DARB" );
@@ -1463,7 +1463,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_EXT_texture_filter_anisotropic
-		glcontext.bAnisotropicFilterAvailable = GL_CheckExtension( "GL_EXT_texture_filter_anisotropic", m_extensionsString.c_str() );
+		glcontext.bAnisotropicFilterAvailable = GL_CheckExtension( "GL_EXT_texture_filter_anisotropic", extensionsString.c_str() );
 		if( glcontext.bAnisotropicFilterAvailable )
 		{
 			qglGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glcontext.maxTextureAnisotropy );
@@ -1477,7 +1477,7 @@ void idRenderBackend::Init()
 		// GL_EXT_texture_lod_bias
 		// The actual extension is broken as specificed, storing the state in the texture unit instead
 		// of the texture object.  The behavior in GL 1.4 is the behavior we use.
-		glcontext.bTextureLODBiasAvailable = ( m_glVersion >= 1.4 || GL_CheckExtension( "GL_EXT_texture_lod_bias", m_extensionsString.c_str() ) );
+		glcontext.bTextureLODBiasAvailable = ( glVersion >= 1.4 || GL_CheckExtension( "GL_EXT_texture_lod_bias", extensionsString.c_str() ) );
 		if( glcontext.bTextureLODBiasAvailable )
 		{
 			idLib::Printf( "...using %s\n", "GL_EXT_texture_lod_bias" );
@@ -1488,7 +1488,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_vertex_buffer_object
-		if( GL_CheckExtension( "GL_ARB_vertex_buffer_object", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_vertex_buffer_object", extensionsString.c_str() ) )
 		{
 			qglBindBufferARB = ( PFNGLBINDBUFFERARBPROC )GL_ExtensionPointer( "glBindBufferARB" );
 			qglBindBufferRange = ( PFNGLBINDBUFFERRANGEPROC )GL_ExtensionPointer( "glBindBufferRange" );
@@ -1505,7 +1505,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_map_buffer_range, map a section of a buffer object's data store
-		if( GL_CheckExtension( "GL_ARB_map_buffer_range", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_map_buffer_range", extensionsString.c_str() ) )
 		{
 			qglMapBufferRange = ( PFNGLMAPBUFFERRANGEPROC )GL_ExtensionPointer( "glMapBufferRange" );
 		}
@@ -1515,7 +1515,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_vertex_array_object
-		if( GL_CheckExtension( "GL_ARB_vertex_array_object", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_vertex_array_object", extensionsString.c_str() ) )
 		{
 			qglGenVertexArrays = ( PFNGLGENVERTEXARRAYSPROC )GL_ExtensionPointer( "glGenVertexArrays" );
 			qglBindVertexArray = ( PFNGLBINDVERTEXARRAYPROC )GL_ExtensionPointer( "glBindVertexArray" );
@@ -1526,7 +1526,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_draw_elements_base_vertex
-		if( GL_CheckExtension( "GL_ARB_draw_elements_base_vertex", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_draw_elements_base_vertex", extensionsString.c_str() ) )
 		{
 			qglDrawElementsBaseVertex = ( PFNGLDRAWELEMENTSBASEVERTEXPROC )GL_ExtensionPointer( "glDrawElementsBaseVertex" );
 		}
@@ -1536,7 +1536,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GLSL, core in OpenGL > 2.0
-		if( m_glVersion >= 2.0f )
+		if( glVersion >= 2.0f )
 		{
 			qglCreateShader = ( PFNGLCREATESHADERPROC )GL_ExtensionPointer( "glCreateShader" );
 			qglDeleteShader = ( PFNGLDELETESHADERPROC )GL_ExtensionPointer( "glDeleteShader" );
@@ -1564,8 +1564,8 @@ void idRenderBackend::Init()
 			qglGenProgramsARB = ( PFNGLGENPROGRAMSARBPROC )GL_ExtensionPointer( "glGenProgramsARB" );
 			qglDeleteProgramsARB = ( PFNGLDELETEPROGRAMSARBPROC )GL_ExtensionPointer( "glDeleteProgramsARB" );
 			
-			qglGetIntegerv( GL_MAX_TEXTURE_COORDS_ARB, ( GLint* )&m_maxTextureCoords );
-			qglGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS_ARB, ( GLint* )&m_maxTextureImageUnits );
+			qglGetIntegerv( GL_MAX_TEXTURE_COORDS_ARB, ( GLint* )&maxTextureCoords );
+			qglGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS_ARB, ( GLint* )&maxTextureImageUnits );
 		}
 		else
 		{
@@ -1573,15 +1573,15 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_uniform_buffer_object
-		if( GL_CheckExtension( "GL_ARB_uniform_buffer_object", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_uniform_buffer_object", extensionsString.c_str() ) )
 		{
 			qglGetUniformBlockIndex = ( PFNGLGETUNIFORMBLOCKINDEXPROC )GL_ExtensionPointer( "glGetUniformBlockIndex" );
 			qglUniformBlockBinding = ( PFNGLUNIFORMBLOCKBINDINGPROC )GL_ExtensionPointer( "glUniformBlockBinding" );
 			
-			qglGetIntegerv( GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, ( GLint* )&m_uniformBufferOffsetAlignment );
-			if( m_uniformBufferOffsetAlignment < 256 )
+			qglGetIntegerv( GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, ( GLint* )&uniformBufferOffsetAlignment );
+			if( uniformBufferOffsetAlignment < 256 )
 			{
-				m_uniformBufferOffsetAlignment = 256;
+				uniformBufferOffsetAlignment = 256;
 			}
 		}
 		else
@@ -1590,7 +1590,7 @@ void idRenderBackend::Init()
 		}
 		
 		// ATI_separate_stencil / OpenGL 2.0 separate stencil
-		if( ( m_glVersion >= 2.0f ) || GL_CheckExtension( "GL_ATI_separate_stencil", m_extensionsString.c_str() ) )
+		if( ( glVersion >= 2.0f ) || GL_CheckExtension( "GL_ATI_separate_stencil", extensionsString.c_str() ) )
 		{
 			qglStencilOpSeparate = ( PFNGLSTENCILOPSEPARATEATIPROC )GL_ExtensionPointer( "glStencilOpSeparate" );
 		}
@@ -1600,14 +1600,14 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_EXT_depth_bounds_test
-		m_depthBoundsTestAvailable = GL_CheckExtension( "GL_EXT_depth_bounds_test", m_extensionsString.c_str() );
-		if( m_depthBoundsTestAvailable )
+		depthBoundsTestAvailable = GL_CheckExtension( "GL_EXT_depth_bounds_test", extensionsString.c_str() );
+		if( depthBoundsTestAvailable )
 		{
 			qglDepthBoundsEXT = ( PFNGLDEPTHBOUNDSEXTPROC )GL_ExtensionPointer( "glDepthBoundsEXT" );
 		}
 		
 		// GL_ARB_sync
-		if( GL_CheckExtension( "GL_ARB_sync", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_sync", extensionsString.c_str() ) )
 		{
 			qglFenceSync = ( PFNGLFENCESYNCPROC )GL_ExtensionPointer( "glFenceSync" );
 			qglIsSync = ( PFNGLISSYNCPROC )GL_ExtensionPointer( "glIsSync" );
@@ -1620,7 +1620,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_occlusion_query
-		if( GL_CheckExtension( "GL_ARB_occlusion_query", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_occlusion_query", extensionsString.c_str() ) )
 		{
 			// defined in GL_ARB_occlusion_query, which is required for GL_EXT_timer_query
 			qglGenQueriesARB = ( PFNGLGENQUERIESARBPROC )GL_ExtensionPointer( "glGenQueriesARB" );
@@ -1634,8 +1634,8 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_timer_query
-		m_timerQueryAvailable = GL_CheckExtension( "GL_ARB_timer_query", m_extensionsString.c_str() ) || GL_CheckExtension( "GL_EXT_timer_query", m_extensionsString.c_str() );
-		if( m_timerQueryAvailable )
+		timerQueryAvailable = GL_CheckExtension( "GL_ARB_timer_query", extensionsString.c_str() ) || GL_CheckExtension( "GL_EXT_timer_query", extensionsString.c_str() );
+		if( timerQueryAvailable )
 		{
 			qglGetQueryObjectui64vEXT = ( PFNGLGETQUERYOBJECTUI64VEXTPROC )GL_ExtensionPointer( "glGetQueryObjectui64vARB" );
 			if( qglGetQueryObjectui64vEXT == NULL )
@@ -1645,7 +1645,7 @@ void idRenderBackend::Init()
 		}
 		
 		// GL_ARB_debug_output
-		if( GL_CheckExtension( "GL_ARB_debug_output", m_extensionsString.c_str() ) )
+		if( GL_CheckExtension( "GL_ARB_debug_output", extensionsString.c_str() ) )
 		{
 			qglDebugMessageControlARB   = ( PFNGLDEBUGMESSAGECONTROLARBPROC )GL_ExtensionPointer( "glDebugMessageControlARB" );
 			qglDebugMessageCallbackARB  = ( PFNGLDEBUGMESSAGECALLBACKARBPROC )GL_ExtensionPointer( "glDebugMessageCallbackARB" );
@@ -1673,7 +1673,7 @@ void idRenderBackend::Init()
 	renderProgManager.Init();
 	
 	// allocate the vertex array range or vertex objects
-	vertexCache.Init( m_uniformBufferOffsetAlignment );
+	vertexCache.Init( uniformBufferOffsetAlignment );
 	
 	// Reset our gamma
 	SetColorMappings();
@@ -1682,7 +1682,7 @@ void idRenderBackend::Init()
 	if( !glCheck && win32.osversion.dwMajorVersion == 6 )
 	{
 		glCheck = true;
-		if( !m_vendorString.Icmp( "Microsoft" ) && idStr::FindText( m_rendererString.c_str(), "OpenGL-D3D" ) != -1 )
+		if( !vendorString.Icmp( "Microsoft" ) && idStr::FindText( rendererString.c_str(), "OpenGL-D3D" ) != -1 )
 		{
 			if( cvarSystem->GetCVarBool( "r_fullscreen" ) )
 			{
@@ -1741,17 +1741,17 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	idVertexBuffer* vertexBuffer;
 	if( vertexCache.CacheIsStatic( vbHandle ) )
 	{
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
 	const int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -1760,17 +1760,17 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	idIndexBuffer* indexBuffer;
 	if( vertexCache.CacheIsStatic( ibHandle ) )
 	{
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
+		indexBuffer = &vertexCache.staticData.indexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
 	const int indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -1803,25 +1803,25 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, jointBuffer == NULL" );
 			return;
 		}
-		assert( ( jointBuffer.GetOffset() & ( m_uniformBufferOffsetAlignment - 1 ) ) == 0 );
+		assert( ( jointBuffer.GetOffset() & ( uniformBufferOffsetAlignment - 1 ) ) == 0 );
 		
 		qglBindBufferRange( GL_UNIFORM_BUFFER, 0, jointBuffer.GetAPIObject(), jointBuffer.GetOffset(), jointBuffer.GetSize() );
 	}
 	
-	if( m_currentIndexBuffer != indexBuffer->GetAPIObject() )
+	if( currentIndexBuffer != indexBuffer->GetAPIObject() )
 	{
 		qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, indexBuffer->GetAPIObject() );
-		m_currentIndexBuffer = indexBuffer->GetAPIObject();
+		currentIndexBuffer = indexBuffer->GetAPIObject();
 	}
 	
-	if( m_currentVertexBuffer != vertexBuffer->GetAPIObject() )
+	if( currentVertexBuffer != vertexBuffer->GetAPIObject() )
 	{
 		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, vertexBuffer->GetAPIObject() );
-		m_currentVertexBuffer = vertexBuffer->GetAPIObject();
+		currentVertexBuffer = vertexBuffer->GetAPIObject();
 	}
 	
-	PrintState( m_glStateBits, glcontext.stencilOperations );
-	renderProgManager.CommitCurrent( m_glStateBits );
+	PrintState( glStateBits, glcontext.stencilOperations );
+	renderProgManager.CommitCurrent( glStateBits );
 	
 	//idLib::Printf( "GL: indices=%d, index_offset=%d, vert_offset=%d\n", surf->numIndexes, indexOffset, vertOffset );
 	
@@ -1879,12 +1879,12 @@ void idRenderBackend::GL_SetDefaultState()
 	
 	// make sure our GL state vector is set correctly
 	memset( &glcontext.tmu, 0, sizeof( glcontext.tmu ) );
-	m_currenttmu = 0;
-	m_currentVertexBuffer = 0;
-	m_currentIndexBuffer = 0;
-	m_polyOfsScale = 0.0f;
-	m_polyOfsBias = 0.0f;
-	m_glStateBits = 0;
+	currenttmu = 0;
+	currentVertexBuffer = 0;
+	currentIndexBuffer = 0;
+	polyOfsScale = 0.0f;
+	polyOfsBias = 0.0f;
+	glStateBits = 0;
 	
 	GL_State( 0, true );
 	
@@ -1927,7 +1927,7 @@ This routine is responsible for setting the most commonly changed state
 */
 void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 {
-	uint64 diff = stateBits ^ m_glStateBits;
+	uint64 diff = stateBits ^ glStateBits;
 	
 	if( forceGlState )
 	{
@@ -1952,7 +1952,7 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 				break;
 			case GLS_CULL_BACKSIDED:
 				qglEnable( GL_CULL_FACE );
-				if( m_viewDef != NULL && m_viewDef->isMirror )
+				if( viewDef != NULL && viewDef->isMirror )
 				{
 					stateBits |= GLS_MIRROR_VIEW;
 					qglCullFace( GL_FRONT );
@@ -1965,7 +1965,7 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 			case GLS_CULL_FRONTSIDED:
 			default:
 				qglEnable( GL_CULL_FACE );
-				if( m_viewDef != NULL && m_viewDef->isMirror )
+				if( viewDef != NULL && viewDef->isMirror )
 				{
 					stateBits |= GLS_MIRROR_VIEW;
 					qglCullFace( GL_BACK );
@@ -2131,7 +2131,7 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 	{
 		if( stateBits & GLS_POLYGON_OFFSET )
 		{
-			qglPolygonOffset( m_polyOfsScale, m_polyOfsBias );
+			qglPolygonOffset( polyOfsScale, polyOfsBias );
 			qglEnable( GL_POLYGON_OFFSET_FILL );
 			qglEnable( GL_POLYGON_OFFSET_LINE );
 		}
@@ -2281,9 +2281,9 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 		qglStencilOp( sFail, zFail, pass );
 	}
 	
-	m_glStateBits = stateBits | ( m_glStateBits & GLS_KEEP );
+	glStateBits = stateBits | ( glStateBits & GLS_KEEP );
 	
-	//PrintState( m_glStateBits );
+	//PrintState( glStateBits );
 }
 
 /*
@@ -2402,12 +2402,12 @@ idRenderBackend::GL_SelectTexture
 */
 void idRenderBackend::GL_SelectTexture( int unit )
 {
-	if( m_currenttmu == unit )
+	if( currenttmu == unit )
 	{
 		return;
 	}
 	
-	if( unit < 0 || unit >= m_maxTextureImageUnits )
+	if( unit < 0 || unit >= maxTextureImageUnits )
 	{
 		idLib::Warning( "GL_SelectTexture: unit = %i", unit );
 		return;
@@ -2415,7 +2415,7 @@ void idRenderBackend::GL_SelectTexture( int unit )
 	
 	RENDERLOG_PRINTF( "GL_SelectTexture( %d );\n", unit );
 	
-	m_currenttmu = unit;
+	currenttmu = unit;
 }
 
 /*
@@ -2438,25 +2438,25 @@ void idRenderBackend::GL_BindTexture( idImage* image )
 		image->ActuallyLoadImage( true );
 	}
 	
-	const int texUnit = m_currenttmu;
+	const int texUnit = currenttmu;
 	
 	tmu_t* tmu = &glcontext.tmu[ texUnit ];
 	
 	// bind the textures
-	if( image->m_opts.textureType == TT_2D )
+	if( image->opts.textureType == TT_2D )
 	{
-		if( tmu->current2DMap != image->m_texnum )
+		if( tmu->current2DMap != image->texnum )
 		{
-			tmu->current2DMap = image->m_texnum;
-			qglBindMultiTextureEXT( GL_TEXTURE0_ARB + texUnit, GL_TEXTURE_2D, image->m_texnum );
+			tmu->current2DMap = image->texnum;
+			qglBindMultiTextureEXT( GL_TEXTURE0_ARB + texUnit, GL_TEXTURE_2D, image->texnum );
 		}
 	}
-	else if( image->m_opts.textureType == TT_CUBIC )
+	else if( image->opts.textureType == TT_CUBIC )
 	{
-		if( tmu->currentCubeMap != image->m_texnum )
+		if( tmu->currentCubeMap != image->texnum )
 		{
-			tmu->currentCubeMap = image->m_texnum;
-			qglBindMultiTextureEXT( GL_TEXTURE0_ARB + texUnit, GL_TEXTURE_CUBE_MAP_EXT, image->m_texnum );
+			tmu->currentCubeMap = image->texnum;
+			qglBindMultiTextureEXT( GL_TEXTURE0_ARB + texUnit, GL_TEXTURE_CUBE_MAP_EXT, image->texnum );
 		}
 	}
 }
@@ -2468,12 +2468,12 @@ idRenderBackend::GL_CopyFrameBuffer
 */
 void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight )
 {
-	qglBindTexture( ( image->m_opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, image->m_texnum );
+	qglBindTexture( ( image->opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, image->texnum );
 	
 	qglReadBuffer( GL_BACK );
 	
-	image->m_opts.width = imageWidth;
-	image->m_opts.height = imageHeight;
+	image->opts.width = imageWidth;
+	image->opts.height = imageHeight;
 	
 	qglCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, x, y, imageWidth, imageHeight, 0 );
 	
@@ -2484,7 +2484,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	
-	m_pc.c_copyFrameBuffer++;
+	pc.c_copyFrameBuffer++;
 }
 
 /*
@@ -2494,16 +2494,16 @@ idRenderBackend::GL_CopyDepthBuffer
 */
 void idRenderBackend::GL_CopyDepthBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight )
 {
-	qglBindTexture( ( image->m_opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, image->m_texnum );
+	qglBindTexture( ( image->opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, image->texnum );
 	
 	qglReadBuffer( GL_BACK );
 	
-	image->m_opts.width = imageWidth;
-	image->m_opts.height = imageHeight;
+	image->opts.width = imageWidth;
+	image->opts.height = imageHeight;
 	
 	qglCopyTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, x, y, imageWidth, imageHeight, 0 );
 	
-	m_pc.c_copyFrameBuffer++;
+	pc.c_copyFrameBuffer++;
 }
 
 /*
@@ -2541,7 +2541,7 @@ idRenderBackend::GL_DepthBoundsTest
 */
 void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax )
 {
-	if( !m_depthBoundsTestAvailable || zmin > zmax )
+	if( !depthBoundsTestAvailable || zmin > zmax )
 	{
 		return;
 	}
@@ -2549,13 +2549,13 @@ void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax )
 	if( zmin == 0.0f && zmax == 0.0f )
 	{
 		qglDisable( GL_DEPTH_BOUNDS_TEST_EXT );
-		m_glStateBits = m_glStateBits & ~GLS_DEPTH_TEST_MASK;
+		glStateBits = glStateBits & ~GLS_DEPTH_TEST_MASK;
 	}
 	else
 	{
 		qglEnable( GL_DEPTH_BOUNDS_TEST_EXT );
 		qglDepthBoundsEXT( zmin, zmax );
-		m_glStateBits |= GLS_DEPTH_TEST_MASK;
+		glStateBits |= GLS_DEPTH_TEST_MASK;
 	}
 	
 	RENDERLOG_PRINTF( "GL_DepthBoundsTest( zmin=%f, zmax=%f )\n", zmin, zmax );
@@ -2568,9 +2568,9 @@ idRenderBackend::GL_PolygonOffset
 */
 void idRenderBackend::GL_PolygonOffset( float scale, float bias )
 {
-	m_polyOfsScale = scale;
-	m_polyOfsBias = bias;
-	if( m_glStateBits & GLS_POLYGON_OFFSET )
+	polyOfsScale = scale;
+	polyOfsBias = bias;
+	if( glStateBits & GLS_POLYGON_OFFSET )
 	{
 		qglPolygonOffset( scale, bias );
 	}
@@ -2635,17 +2635,17 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	idVertexBuffer* vertexBuffer;
 	if( vertexCache.CacheIsStatic( vbHandle ) )
 	{
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawStencilShadowPass, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
 	const int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -2654,26 +2654,26 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	idIndexBuffer* indexBuffer;
 	if( vertexCache.CacheIsStatic( ibHandle ) )
 	{
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
+		indexBuffer = &vertexCache.staticData.indexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawStencilShadowPass, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
 	const uint64 indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
 	RENDERLOG_PRINTF( "Binding Buffers(%d): %p:%i %p:%i\n", drawSurf->numIndexes, vertexBuffer, vertOffset, indexBuffer, indexOffset );
 	
-	if( m_currentIndexBuffer != indexBuffer->GetAPIObject() )
+	if( currentIndexBuffer != indexBuffer->GetAPIObject() )
 	{
 		qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, indexBuffer->GetAPIObject() );
-		m_currentIndexBuffer = indexBuffer->GetAPIObject();
+		currentIndexBuffer = indexBuffer->GetAPIObject();
 	}
 	
 	if( drawSurf->jointCache )
@@ -2686,19 +2686,19 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 			idLib::Warning( "idRenderBackend::DrawStencilShadowPass, jointBuffer == NULL" );
 			return;
 		}
-		assert( ( jointBuffer.GetOffset() & ( m_uniformBufferOffsetAlignment - 1 ) ) == 0 );
+		assert( ( jointBuffer.GetOffset() & ( uniformBufferOffsetAlignment - 1 ) ) == 0 );
 		
 		qglBindBufferRange( GL_UNIFORM_BUFFER, 0, jointBuffer.GetAPIObject(), jointBuffer.GetOffset(), jointBuffer.GetSize() );
 	}
 	
-	if( m_currentVertexBuffer != vertexBuffer->GetAPIObject() )
+	if( currentVertexBuffer != vertexBuffer->GetAPIObject() )
 	{
 		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, vertexBuffer->GetAPIObject() );
-		m_currentVertexBuffer = vertexBuffer->GetAPIObject();
+		currentVertexBuffer = vertexBuffer->GetAPIObject();
 	}
 	
-	PrintState( m_glStateBits, glcontext.stencilOperations );
-	renderProgManager.CommitCurrent( m_glStateBits );
+	PrintState( glStateBits, glcontext.stencilOperations );
+	renderProgManager.CommitCurrent( glStateBits );
 	
 	const int baseVertex = vertOffset / ( drawSurf->jointCache ? sizeof( idShadowVertSkinned ) : sizeof( idShadowVert ) );
 	

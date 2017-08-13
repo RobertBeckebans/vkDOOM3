@@ -343,61 +343,61 @@ private:
 	void				DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawSurfs );
 	
 public:
-	backEndCounters_t	m_pc;
+	backEndCounters_t	pc;
 	
 	// surfaces used for code-based drawing
-	drawSurf_t			m_unitSquareSurface;
-	drawSurf_t			m_zeroOneCubeSurface;
-	drawSurf_t			m_testImageSurface;
+	drawSurf_t			unitSquareSurface;
+	drawSurf_t			zeroOneCubeSurface;
+	drawSurf_t			testImageSurface;
 	
 private:
-	uint64				m_glStateBits;
+	uint64				glStateBits;
 	
-	const viewDef_t* 	m_viewDef;
+	const viewDef_t* 	viewDef;
 	
-	const viewEntity_t*	m_currentSpace;			// for detecting when a matrix must change
-	idScreenRect		m_currentScissor;		// for scissor clipping, local inside renderView viewport
+	const viewEntity_t*	currentSpace;			// for detecting when a matrix must change
+	idScreenRect		currentScissor;		// for scissor clipping, local inside renderView viewport
 	
-	bool				m_currentRenderCopied;	// true if any material has already referenced _currentRender
+	bool				currentRenderCopied;	// true if any material has already referenced _currentRender
 	
-	idRenderMatrix		m_prevMVP;				// world MVP from previous frame for motion blur
+	idRenderMatrix		prevMVP;				// world MVP from previous frame for motion blur
 	
-	unsigned short		m_gammaTable[ 256 ];	// brightness / gamma modify this
+	unsigned short		gammaTable[ 256 ];	// brightness / gamma modify this
 	
 private:
 #if defined( ID_OPENGL )
-	int					m_currenttmu;
+	int					currenttmu;
 	
-	unsigned int		m_currentVertexBuffer;
-	unsigned int		m_currentIndexBuffer;
+	unsigned int		currentVertexBuffer;
+	unsigned int		currentIndexBuffer;
 	
-	float				m_polyOfsScale;
-	float				m_polyOfsBias;
+	float				polyOfsScale;
+	float				polyOfsBias;
 	
-	idStr				m_rendererString;
-	idStr				m_vendorString;
-	idStr				m_versionString;
-	idStr				m_extensionsString;
-	idStr				m_wglExtensionsString;
-	idStr				m_shadingLanguageString;
+	idStr				rendererString;
+	idStr				vendorString;
+	idStr				versionString;
+	idStr				extensionsString;
+	idStr				wglExtensionsString;
+	idStr				shadingLanguageString;
 	
-	float				m_glVersion;			// atof( version_string )
-	graphicsVendor_t	m_vendor;
+	float				glVersion;			// atof( version_string )
+	graphicsVendor_t	vendor;
 	
-	int					m_maxTextureSize;		// queried from GL
-	int					m_maxTextureCoords;
-	int					m_maxTextureImageUnits;
-	int					m_uniformBufferOffsetAlignment;
+	int					maxTextureSize;		// queried from GL
+	int					maxTextureCoords;
+	int					maxTextureImageUnits;
+	int					uniformBufferOffsetAlignment;
 	
-	int					m_colorBits;
-	int					m_depthBits;
-	int					m_stencilBits;
+	int					colorBits;
+	int					depthBits;
+	int					stencilBits;
 	
-	bool				m_depthBoundsTestAvailable;
-	bool				m_timerQueryAvailable;
-	bool				m_swapControlTearAvailable;
+	bool				depthBoundsTestAvailable;
+	bool				timerQueryAvailable;
+	bool				swapControlTearAvailable;
 	
-	int					m_displayFrequency;
+	int					displayFrequency;
 #endif
 };
 

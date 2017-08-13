@@ -60,12 +60,12 @@ public:
 	virtual	void			PrintMemInfo( MemInfo_t* mi );
 	
 private:
-	idList<idRenderModel*, TAG_MODEL>	m_models;
-	idHashIndex				m_hash;
-	idRenderModel* 			m_defaultModel;
-	idRenderModel* 			m_beamModel;
-	idRenderModel* 			m_spriteModel;
-	bool					m_insideLevelLoad;		// don't actually load now
+	idList<idRenderModel*, TAG_MODEL>	models;
+	idHashIndex				hash;
+	idRenderModel* 			defaultModel;
+	idRenderModel* 			beamModel;
+	idRenderModel* 			spriteModel;
+	bool					insideLevelLoad;		// don't actually load now
 	
 	idRenderModel* 			GetModel( const char* modelName, bool createIfNotFound );
 	
@@ -86,10 +86,10 @@ idRenderModelManagerLocal::idRenderModelManagerLocal
 */
 idRenderModelManagerLocal::idRenderModelManagerLocal()
 {
-	m_defaultModel = NULL;
-	m_beamModel = NULL;
-	m_spriteModel = NULL;
-	m_insideLevelLoad = false;
+	defaultModel = NULL;
+	beamModel = NULL;
+	spriteModel = NULL;
+	insideLevelLoad = false;
 }
 
 /*
@@ -130,9 +130,9 @@ void idRenderModelManagerLocal::ListModels_f( const idCmdArgs& args )
 	idLib::Printf( " mem   srf verts tris\n" );
 	idLib::Printf( " ---   --- ----- ----\n" );
 	
-	for( int i = 0; i < localModelManager.m_models.Num(); i++ )
+	for( int i = 0; i < localModelManager.models.Num(); i++ )
 	{
-		idRenderModel*	model = localModelManager.m_models[i];
+		idRenderModel*	model = localModelManager.models[i];
 		
 		if( !model->IsLoaded() )
 		{
@@ -200,9 +200,9 @@ idRenderModelManagerLocal::WritePrecacheCommands
 */
 void idRenderModelManagerLocal::WritePrecacheCommands( idFile* f )
 {
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
-		idRenderModel*	model = m_models[i];
+		idRenderModel*	model = models[i];
 		
 		if( !model )
 		{
@@ -232,27 +232,27 @@ void idRenderModelManagerLocal::Init()
 	cmdSystem->AddCommand( "reloadModels", ReloadModels_f, CMD_FL_RENDERER | CMD_FL_CHEAT, "reloads models" );
 	cmdSystem->AddCommand( "touchModel", TouchModel_f, CMD_FL_RENDERER, "touches a model", idCmdSystem::ArgCompletion_ModelName );
 	
-	m_insideLevelLoad = false;
+	insideLevelLoad = false;
 	
 	// create a default model
 	idRenderModelStatic* model = new( TAG_MODEL ) idRenderModelStatic;
 	model->InitEmpty( "_DEFAULT" );
 	model->MakeDefaultModel();
 	model->SetLevelLoadReferenced( true );
-	m_defaultModel = model;
+	defaultModel = model;
 	AddModel( model );
 	
 	// create the beam model
 	idRenderModelStatic* beam = new( TAG_MODEL ) idRenderModelBeam;
 	beam->InitEmpty( "_BEAM" );
 	beam->SetLevelLoadReferenced( true );
-	m_beamModel = beam;
+	beamModel = beam;
 	AddModel( beam );
 	
 	idRenderModelStatic* sprite = new( TAG_MODEL ) idRenderModelSprite;
 	sprite->InitEmpty( "_SPRITE" );
 	sprite->SetLevelLoadReferenced( true );
-	m_spriteModel = sprite;
+	spriteModel = sprite;
 	AddModel( sprite );
 }
 
@@ -263,8 +263,8 @@ idRenderModelManagerLocal::Shutdown
 */
 void idRenderModelManagerLocal::Shutdown()
 {
-	m_models.DeleteContents( true );
-	m_hash.Free();
+	models.DeleteContents( true );
+	hash.Free();
 }
 
 /*
@@ -287,10 +287,10 @@ idRenderModel* idRenderModelManagerLocal::GetModel( const char* _modelName, bool
 	canonical.ExtractFileExtension( extension );
 	
 	// see if it is already present
-	int key = m_hash.GenerateKey( canonical, false );
-	for( int i = m_hash.First( key ); i != -1; i = m_hash.Next( i ) )
+	int key = hash.GenerateKey( canonical, false );
+	for( int i = hash.First( key ); i != -1; i = hash.Next( i ) )
 	{
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		
 		if( canonical.Icmp( model->Name() ) == 0 )
 		{
@@ -314,7 +314,7 @@ idRenderModel* idRenderModelManagerLocal::GetModel( const char* _modelName, bool
 					model->LoadModel();
 				}
 			}
-			else if( m_insideLevelLoad && !model->IsLevelLoadReferenced() )
+			else if( insideLevelLoad && !model->IsLevelLoadReferenced() )
 			{
 				// we are reusing a model already in memory, but
 				// touch all the materials to make sure they stay
@@ -457,17 +457,17 @@ void idRenderModelManagerLocal::FreeModel( idRenderModel* model )
 		idLib::Error( "idRenderModelManager::FreeModel: model '%s' is not a static model", model->Name() );
 		return;
 	}
-	if( model == m_defaultModel )
+	if( model == defaultModel )
 	{
 		idLib::Error( "idRenderModelManager::FreeModel: can't free the default model" );
 		return;
 	}
-	if( model == m_beamModel )
+	if( model == beamModel )
 	{
 		idLib::Error( "idRenderModelManager::FreeModel: can't free the beam model" );
 		return;
 	}
-	if( model == m_spriteModel )
+	if( model == spriteModel )
 	{
 		idLib::Error( "idRenderModelManager::FreeModel: can't free the sprite model" );
 		return;
@@ -505,7 +505,7 @@ idRenderModelManagerLocal::DefaultModel
 */
 idRenderModel* idRenderModelManagerLocal::DefaultModel()
 {
-	return m_defaultModel;
+	return defaultModel;
 }
 
 /*
@@ -515,7 +515,7 @@ idRenderModelManagerLocal::AddModel
 */
 void idRenderModelManagerLocal::AddModel( idRenderModel* model )
 {
-	m_hash.Add( m_hash.GenerateKey( model->Name(), false ), m_models.Append( model ) );
+	hash.Add( hash.GenerateKey( model->Name(), false ), models.Append( model ) );
 }
 
 /*
@@ -525,11 +525,11 @@ idRenderModelManagerLocal::RemoveModel
 */
 void idRenderModelManagerLocal::RemoveModel( idRenderModel* model )
 {
-	int index = m_models.FindIndex( model );
+	int index = models.FindIndex( model );
 	if( index != -1 )
 	{
-		m_hash.RemoveIndex( m_hash.GenerateKey( model->Name(), false ), index );
-		m_models.RemoveIndex( index );
+		hash.RemoveIndex( hash.GenerateKey( model->Name(), false ), index );
+		models.RemoveIndex( index );
 	}
 }
 
@@ -552,9 +552,9 @@ void idRenderModelManagerLocal::ReloadModels( bool forceAll )
 	renderSystem->FreeWorldDerivedData();
 	
 	// skip the default model at index 0
-	for( int i = 1; i < m_models.Num(); i++ )
+	for( int i = 1; i < models.Num(); i++ )
 	{
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		
 		// we may want to allow world model reloading in the future, but we don't now
 		if( !model->IsReloadable() )
@@ -591,9 +591,9 @@ idRenderModelManagerLocal::FreeModelVertexCaches
 */
 void idRenderModelManagerLocal::FreeModelVertexCaches()
 {
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		model->FreeVertexCache();
 	}
 }
@@ -605,11 +605,11 @@ idRenderModelManagerLocal::BeginLevelLoad
 */
 void idRenderModelManagerLocal::BeginLevelLoad()
 {
-	m_insideLevelLoad = true;
+	insideLevelLoad = true;
 	
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		
 		// always reload all models
 		if( model->IsReloadable() )
@@ -709,15 +709,15 @@ void idRenderModelManagerLocal::EndLevelLoad()
 	
 	int start = Sys_Milliseconds();
 	
-	m_insideLevelLoad = false;
+	insideLevelLoad = false;
 	int	purgeCount = 0;
 	int	keepCount = 0;
 	int	loadCount = 0;
 	
 	// purge any models not touched
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		
 		if( !model->IsLevelLoadReferenced() && model->IsLoaded() && model->IsReloadable() )
 		{
@@ -743,11 +743,11 @@ void idRenderModelManagerLocal::EndLevelLoad()
 	}
 	
 	// load any new ones
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
 		common->UpdateLevelLoadPacifier();
 		
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		
 		if( model->IsLevelLoadReferenced() && !model->IsLoaded() && model->IsReloadable() )
 		{
@@ -757,11 +757,11 @@ void idRenderModelManagerLocal::EndLevelLoad()
 	}
 	
 	// create static vertex/index buffers for all models
-	for( int i = 0; i < m_models.Num(); i++ )
+	for( int i = 0; i < models.Num(); i++ )
 	{
 		common->UpdateLevelLoadPacifier();
 		
-		idRenderModel* model = m_models[i];
+		idRenderModel* model = models[i];
 		if( model->IsLoaded() )
 		{
 			for( int j = 0; j < model->NumSurfaces(); j++ )
@@ -801,18 +801,18 @@ void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t* mi )
 	}
 	
 	// sort first
-	sortIndex = new( TAG_MODEL ) int[ m_models.Num()];
+	sortIndex = new( TAG_MODEL ) int[ models.Num()];
 	
-	for( i = 0; i <  m_models.Num(); i++ )
+	for( i = 0; i <  models.Num(); i++ )
 	{
 		sortIndex[i] = i;
 	}
 	
-	for( i = 0; i <  m_models.Num() - 1; i++ )
+	for( i = 0; i <  models.Num() - 1; i++ )
 	{
-		for( j = i + 1; j < m_models.Num(); j++ )
+		for( j = i + 1; j < models.Num(); j++ )
 		{
-			if( m_models[sortIndex[i]]->Memory() <  m_models[sortIndex[j]]->Memory() )
+			if( models[sortIndex[i]]->Memory() <  models[sortIndex[j]]->Memory() )
 			{
 				int temp = sortIndex[i];
 				sortIndex[i] = sortIndex[j];
@@ -822,9 +822,9 @@ void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t* mi )
 	}
 	
 	// print next
-	for( i = 0; i < m_models.Num(); i++ )
+	for( i = 0; i < models.Num(); i++ )
 	{
-		idRenderModel* model = m_models[sortIndex[i]];
+		idRenderModel* model = models[sortIndex[i]];
 		int mem;
 		
 		if( !model->IsLoaded() )

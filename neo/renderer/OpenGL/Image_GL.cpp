@@ -41,23 +41,23 @@ extern idCVar r_lodBias;
 idImage::idImage
 ====================
 */
-idImage::idImage( const char* name ) : m_imgName( name )
+idImage::idImage( const char* name ) : imgName( name )
 {
-	m_texnum = TEXTURE_NOT_LOADED;
-	m_internalFormat = 0;
-	m_dataFormat = 0;
-	m_dataType = 0;
-	m_generatorFunction = NULL;
-	m_filter = TF_DEFAULT;
-	m_repeat = TR_REPEAT;
-	m_usage = TD_DEFAULT;
-	m_cubeFiles = CF_2D;
+	texnum = TEXTURE_NOT_LOADED;
+	internalFormat = 0;
+	dataFormat = 0;
+	dataType = 0;
+	generatorFunction = NULL;
+	filter = TF_DEFAULT;
+	repeat = TR_REPEAT;
+	usage = TD_DEFAULT;
+	cubeFiles = CF_2D;
 	
-	m_referencedOutsideLevelLoad = false;
-	m_levelLoadReferenced = false;
-	m_sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
-	m_binaryFileTime = FILE_NOT_FOUND_TIMESTAMP;
-	m_refCount = 0;
+	referencedOutsideLevelLoad = false;
+	levelLoadReferenced = false;
+	sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
+	binaryFileTime = FILE_NOT_FOUND_TIMESTAMP;
+	refCount = 0;
 }
 
 /*
@@ -77,7 +77,7 @@ idImage::IsLoaded
 */
 bool idImage::IsLoaded() const
 {
-	return m_texnum != TEXTURE_NOT_LOADED;
+	return texnum != TEXTURE_NOT_LOADED;
 }
 
 /*
@@ -95,70 +95,70 @@ void idImage::AllocImage()
 	GL_CheckErrors();
 	PurgeImage();
 	
-	switch( m_opts.format )
+	switch( opts.format )
 	{
 		case FMT_RGBA8:
-			m_internalFormat = GL_RGBA8;
-			m_dataFormat = GL_RGBA;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_RGBA8;
+			dataFormat = GL_RGBA;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_XRGB8:
-			m_internalFormat = GL_RGB;
-			m_dataFormat = GL_RGBA;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_RGB;
+			dataFormat = GL_RGBA;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_RGB565:
-			m_internalFormat = GL_RGB;
-			m_dataFormat = GL_RGB;
-			m_dataType = GL_UNSIGNED_SHORT_5_6_5;
+			internalFormat = GL_RGB;
+			dataFormat = GL_RGB;
+			dataType = GL_UNSIGNED_SHORT_5_6_5;
 			break;
 		case FMT_ALPHA:
-			m_internalFormat = GL_R8;
-			m_dataFormat = GL_RED;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_R8;
+			dataFormat = GL_RED;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_L8A8:
-			m_internalFormat = GL_RG8;
-			m_dataFormat = GL_RG;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_RG8;
+			dataFormat = GL_RG;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_LUM8:
-			m_internalFormat = GL_R8;
-			m_dataFormat = GL_RED;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_R8;
+			dataFormat = GL_RED;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_INT8:
-			m_internalFormat = GL_R8;
-			m_dataFormat = GL_RED;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_R8;
+			dataFormat = GL_RED;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_DXT1:
-			m_internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-			m_dataFormat = GL_RGBA;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			dataFormat = GL_RGBA;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_DXT5:
-			m_internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-			m_dataFormat = GL_RGBA;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			dataFormat = GL_RGBA;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_DEPTH:
-			m_internalFormat = GL_DEPTH_COMPONENT;
-			m_dataFormat = GL_DEPTH_COMPONENT;
-			m_dataType = GL_UNSIGNED_BYTE;
+			internalFormat = GL_DEPTH_COMPONENT;
+			dataFormat = GL_DEPTH_COMPONENT;
+			dataType = GL_UNSIGNED_BYTE;
 			break;
 		case FMT_X16:
-			m_internalFormat = GL_INTENSITY16;
-			m_dataFormat = GL_LUMINANCE;
-			m_dataType = GL_UNSIGNED_SHORT;
+			internalFormat = GL_INTENSITY16;
+			dataFormat = GL_LUMINANCE;
+			dataType = GL_UNSIGNED_SHORT;
 			break;
 		case FMT_Y16_X16:
-			m_internalFormat = GL_LUMINANCE16_ALPHA16;
-			m_dataFormat = GL_LUMINANCE_ALPHA;
-			m_dataType = GL_UNSIGNED_SHORT;
+			internalFormat = GL_LUMINANCE16_ALPHA16;
+			dataFormat = GL_LUMINANCE_ALPHA;
+			dataType = GL_UNSIGNED_SHORT;
 			break;
 		default:
-			idLib::Error( "Unhandled image format %d in %s\n", m_opts.format, GetName() );
+			idLib::Error( "Unhandled image format %d in %s\n", opts.format, GetName() );
 	}
 	
 	// if we don't have a rendering context, just return after we
@@ -171,8 +171,8 @@ void idImage::AllocImage()
 	}
 	
 	// generate the texture number
-	qglGenTextures( 1, ( GLuint* )&m_texnum );
-	assert( m_texnum != idImage::TEXTURE_NOT_LOADED );
+	qglGenTextures( 1, ( GLuint* )&texnum );
+	assert( texnum != idImage::TEXTURE_NOT_LOADED );
 	
 	//----------------------------------------------------
 	// allocate all the mip levels with NULL data
@@ -181,12 +181,12 @@ void idImage::AllocImage()
 	int numSides;
 	int target;
 	int uploadTarget;
-	if( m_opts.textureType == TT_2D )
+	if( opts.textureType == TT_2D )
 	{
 		target = uploadTarget = GL_TEXTURE_2D;
 		numSides = 1;
 	}
-	else if( m_opts.textureType == TT_CUBIC )
+	else if( opts.textureType == TT_CUBIC )
 	{
 		target = GL_TEXTURE_CUBE_MAP_EXT;
 		uploadTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT;
@@ -199,24 +199,24 @@ void idImage::AllocImage()
 		numSides = 1;
 	}
 	
-	qglBindTexture( target, m_texnum );
+	qglBindTexture( target, texnum );
 	
 	for( int side = 0; side < numSides; ++side )
 	{
-		int w = m_opts.width;
-		int h = m_opts.height;
-		if( m_opts.textureType == TT_CUBIC )
+		int w = opts.width;
+		int h = opts.height;
+		if( opts.textureType == TT_CUBIC )
 		{
 			h = w;
 		}
-		for( int level = 0; level < m_opts.numLevels; ++level )
+		for( int level = 0; level < opts.numLevels; ++level )
 		{
 			// clear out any previous error
 			GL_CheckErrors();
 			
 			if( IsCompressed() )
 			{
-				int compressedSize = ( ( ( w + 3 ) / 4 ) * ( ( h + 3 ) / 4 ) * int64( 16 ) * BitsForFormat( m_opts.format ) ) / 8;
+				int compressedSize = ( ( ( w + 3 ) / 4 ) * ( ( h + 3 ) / 4 ) * int64( 16 ) * BitsForFormat( opts.format ) ) / 8;
 				
 				// Even though the OpenGL specification allows the 'data' pointer to be NULL, for some
 				// drivers we actually need to upload data to get it to allocate the texture.
@@ -227,7 +227,7 @@ void idImage::AllocImage()
 				// with the exact size otherwise large image allocation (for instance for physical page textures)
 				// may fail on Vista 32-bit.
 				void* data = HeapAlloc( GetProcessHeap(), 0, compressedSize );
-				qglCompressedTexImage2DARB( uploadTarget + side, level, m_internalFormat, w, h, 0, compressedSize, data );
+				qglCompressedTexImage2DARB( uploadTarget + side, level, internalFormat, w, h, 0, compressedSize, data );
 				if( data != NULL )
 				{
 					HeapFree( GetProcessHeap(), 0, data );
@@ -235,7 +235,7 @@ void idImage::AllocImage()
 			}
 			else
 			{
-				qglTexImage2D( uploadTarget + side, level, m_internalFormat, w, h, 0, m_dataFormat, m_dataType, NULL );
+				qglTexImage2D( uploadTarget + side, level, internalFormat, w, h, 0, dataFormat, dataType, NULL );
 			}
 			
 			GL_CheckErrors();
@@ -245,7 +245,7 @@ void idImage::AllocImage()
 		}
 	}
 	
-	qglTexParameteri( target, GL_TEXTURE_MAX_LEVEL, m_opts.numLevels - 1 );
+	qglTexParameteri( target, GL_TEXTURE_MAX_LEVEL, opts.numLevels - 1 );
 	
 	// see if we messed anything up
 	GL_CheckErrors();
@@ -264,10 +264,10 @@ Deletes the texture object, but leaves the structure so it can be reloaded or re
 */
 void idImage::PurgeImage()
 {
-	if( m_texnum != TEXTURE_NOT_LOADED )
+	if( texnum != TEXTURE_NOT_LOADED )
 	{
-		qglDeleteTextures( 1, ( GLuint* )&m_texnum );
-		m_texnum = TEXTURE_NOT_LOADED;
+		qglDeleteTextures( 1, ( GLuint* )&texnum );
+		texnum = TEXTURE_NOT_LOADED;
 	}
 	
 	// clear all the current binding caches, so the next bind will do a real one
@@ -286,7 +286,7 @@ idImage::SetImageParameters
 void idImage::SetImageParameters()
 {
 	int target = GL_TEXTURE_2D;
-	switch( m_opts.textureType )
+	switch( opts.textureType )
 	{
 		case TT_2D:
 			target = GL_TEXTURE_2D;
@@ -295,41 +295,41 @@ void idImage::SetImageParameters()
 			target = GL_TEXTURE_CUBE_MAP_EXT;
 			break;
 		default:
-			idLib::FatalError( "%s: bad texture type %d", GetName(), m_opts.textureType );
+			idLib::FatalError( "%s: bad texture type %d", GetName(), opts.textureType );
 			return;
 	}
 	
 	// ALPHA, LUMINANCE, LUMINANCE_ALPHA, and INTENSITY have been removed
 	// in OpenGL 3.2. In order to mimic those modes, we use the swizzle operators
-	if( m_opts.colorFormat == CFM_GREEN_ALPHA )
+	if( opts.colorFormat == CFM_GREEN_ALPHA )
 	{
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_R, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_G, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_B, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_A, GL_GREEN );
 	}
-	else if( m_opts.format == FMT_LUM8 )
+	else if( opts.format == FMT_LUM8 )
 	{
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_R, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_G, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_B, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_A, GL_ONE );
 	}
-	else if( m_opts.format == FMT_L8A8 )
+	else if( opts.format == FMT_L8A8 )
 	{
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_R, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_G, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_B, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_A, GL_GREEN );
 	}
-	else if( m_opts.format == FMT_ALPHA )
+	else if( opts.format == FMT_ALPHA )
 	{
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_R, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_G, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_B, GL_ONE );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_A, GL_RED );
 	}
-	else if( m_opts.format == FMT_INT8 )
+	else if( opts.format == FMT_INT8 )
 	{
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_R, GL_RED );
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_G, GL_RED );
@@ -344,7 +344,7 @@ void idImage::SetImageParameters()
 		qglTexParameteri( target, GL_TEXTURE_SWIZZLE_A, GL_ALPHA );
 	}
 	
-	switch( m_filter )
+	switch( filter )
 	{
 		case TF_DEFAULT:
 			if( r_useTrilinearFiltering.GetBool() )
@@ -366,13 +366,13 @@ void idImage::SetImageParameters()
 			qglTexParameterf( target, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 			break;
 		default:
-			common->FatalError( "%s: bad texture filter %d", GetName(), m_filter );
+			common->FatalError( "%s: bad texture filter %d", GetName(), filter );
 	}
 	
 	if( glcontext.bAnisotropicFilterAvailable )
 	{
 		// only do aniso filtering on mip mapped images
-		if( m_filter == TF_DEFAULT )
+		if( filter == TF_DEFAULT )
 		{
 			int aniso = r_maxAnisotropicFiltering.GetInteger();
 			if( aniso > glcontext.maxTextureAnisotropy )
@@ -390,14 +390,14 @@ void idImage::SetImageParameters()
 			qglTexParameterf( target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 );
 		}
 	}
-	if( glcontext.bTextureLODBiasAvailable && ( m_usage != TD_FONT ) )
+	if( glcontext.bTextureLODBiasAvailable && ( usage != TD_FONT ) )
 	{
 		// use a blurring LOD bias in combination with high anisotropy to fix our aliasing grate textures...
 		qglTexParameterf( target, GL_TEXTURE_LOD_BIAS_EXT, r_lodBias.GetFloat() );
 	}
 	
 	// set the wrap/clamp modes
-	switch( m_repeat )
+	switch( repeat )
 	{
 		case TR_REPEAT:
 			qglTexParameterf( target, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -424,7 +424,7 @@ void idImage::SetImageParameters()
 			qglTexParameterf( target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 			break;
 		default:
-			common->FatalError( "%s: bad texture repeat %d", GetName(), m_repeat );
+			common->FatalError( "%s: bad texture repeat %d", GetName(), repeat );
 	}
 }
 
@@ -435,13 +435,13 @@ idImage::SetSamplerState
 */
 void idImage::SetSamplerState( textureFilter_t filter, textureRepeat_t repeat )
 {
-	if( filter == m_filter && repeat == m_repeat )
+	if( filter == filter && repeat == repeat )
 	{
 		return;
 	}
-	m_filter = filter;
-	m_repeat = repeat;
-	qglBindTexture( ( m_opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, m_texnum );
+	filter = filter;
+	repeat = repeat;
+	qglBindTexture( ( opts.textureType == TT_CUBIC ) ? GL_TEXTURE_CUBE_MAP_EXT : GL_TEXTURE_2D, texnum );
 	SetImageParameters();
 }
 
@@ -452,7 +452,7 @@ idImage::SubImageUpload
 */
 void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int height, const void* pic, int pixelPitch )
 {
-	assert( x >= 0 && y >= 0 && mipLevel >= 0 && width >= 0 && height >= 0 && mipLevel < m_opts.numLevels );
+	assert( x >= 0 && y >= 0 && mipLevel >= 0 && width >= 0 && height >= 0 && mipLevel < opts.numLevels );
 	
 	int compressedSize = 0;
 	
@@ -463,56 +463,56 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 		// compressed size may be larger than the dimensions due to padding to quads
 		int quadW = ( width + 3 ) & ~3;
 		int quadH = ( height + 3 ) & ~3;
-		compressedSize = quadW * quadH * BitsForFormat( m_opts.format ) / 8;
+		compressedSize = quadW * quadH * BitsForFormat( opts.format ) / 8;
 		
-		int padW = ( m_opts.width + 3 ) & ~3;
-		int padH = ( m_opts.height + 3 ) & ~3;
+		int padW = ( opts.width + 3 ) & ~3;
+		int padH = ( opts.height + 3 ) & ~3;
 		( void )padH;
 		( void )padW;
 		assert( x + width <= padW && y + height <= padH );
 		// upload the non-aligned value, OpenGL understands that there
 		// will be padding
-		if( x + width > m_opts.width )
+		if( x + width > opts.width )
 		{
-			width = m_opts.width - x;
+			width = opts.width - x;
 		}
-		if( y + height > m_opts.height )
+		if( y + height > opts.height )
 		{
-			height = m_opts.height - x;
+			height = opts.height - x;
 		}
 		
 	}
 	else
 	{
-		assert( x + width <= m_opts.width && y + height <= m_opts.height );
+		assert( x + width <= opts.width && y + height <= opts.height );
 	}
 	
 	int target;
 	int uploadTarget;
-	if( m_opts.textureType == TT_2D )
+	if( opts.textureType == TT_2D )
 	{
 		target = GL_TEXTURE_2D;
 		uploadTarget = GL_TEXTURE_2D;
 	}
-	else if( m_opts.textureType == TT_CUBIC )
+	else if( opts.textureType == TT_CUBIC )
 	{
 		target = GL_TEXTURE_CUBE_MAP_EXT;
 		uploadTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT + z;
 	}
 	else
 	{
-		assert( !"invalid m_opts.textureType" );
+		assert( !"invalid opts.textureType" );
 		target = GL_TEXTURE_2D;
 		uploadTarget = GL_TEXTURE_2D;
 	}
 	
-	qglBindTexture( target, m_texnum );
+	qglBindTexture( target, texnum );
 	
 	if( pixelPitch != 0 )
 	{
 		qglPixelStorei( GL_UNPACK_ROW_LENGTH, pixelPitch );
 	}
-	if( m_opts.format == FMT_RGB565 )
+	if( opts.format == FMT_RGB565 )
 	{
 		qglPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
 	}
@@ -524,14 +524,14 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 	if( IsCompressed() )
 	{
 		qglCompressedTexSubImage2DARB(
-			uploadTarget, mipLevel, x, y, width, height, m_internalFormat, compressedSize, pic );
+			uploadTarget, mipLevel, x, y, width, height, internalFormat, compressedSize, pic );
 	}
 	else
 	{
 		// make sure the pixel store alignment is correct so that lower mips get created
 		// properly for odd shaped textures - this fixes the mip mapping issues with
 		// fonts
-		int unpackAlignment = width * BitsForFormat( ( textureFormat_t )m_opts.format ) / 8;
+		int unpackAlignment = width * BitsForFormat( ( textureFormat_t )opts.format ) / 8;
 		if( ( unpackAlignment & 3 ) == 0 )
 		{
 			qglPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
@@ -542,14 +542,14 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 		}
 		
 		qglTexSubImage2D(
-			uploadTarget, mipLevel, x, y, width, height, m_dataFormat, m_dataType, pic );
+			uploadTarget, mipLevel, x, y, width, height, dataFormat, dataType, pic );
 	}
 	
 #ifdef _DEBUG
 	GL_CheckErrors();
 #endif
 	
-	if( m_opts.format == FMT_RGB565 )
+	if( opts.format == FMT_RGB565 )
 	{
 		glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_FALSE );
 	}

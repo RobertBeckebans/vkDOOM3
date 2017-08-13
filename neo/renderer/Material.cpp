@@ -236,7 +236,7 @@ idImage* idMaterial::GetEditorImage() const
 		}
 		else
 		{
-			editorImage = globalImages->m_defaultImage;
+			editorImage = globalImages->defaultImage;
 		}
 	}
 	else
@@ -247,7 +247,7 @@ idImage* idMaterial::GetEditorImage() const
 	
 	if( !editorImage )
 	{
-		editorImage = globalImages->m_defaultImage;
+		editorImage = globalImages->defaultImage;
 	}
 	
 	return editorImage;
@@ -1242,7 +1242,7 @@ void idMaterial::ParseFragmentMap( idLexer& src, newShaderStage_t* newStage )
 		globalImages->ImageFromFile( str, tf, trp, td, cubeMap );
 	if( !newStage->fragmentProgramImages[unit] )
 	{
-		newStage->fragmentProgramImages[unit] = globalImages->m_defaultImage;
+		newStage->fragmentProgramImages[unit] = globalImages->defaultImage;
 	}
 }
 
@@ -1887,13 +1887,13 @@ void idMaterial::ParseStage( idLexer& src, const textureRepeat_t trpDefault )
 			coverageTS->image = globalImages->ImageFromFile( imageName, tf, trp, TD_COVERAGE, cubeMap );
 			if( !coverageTS->image )
 			{
-				coverageTS->image = globalImages->m_defaultImage;
+				coverageTS->image = globalImages->defaultImage;
 			}
 		}
 		else if( !coverageTS->cinematic && !coverageTS->dynamic && !ss->newStage )
 		{
 			idLib::Warning( "material '%s' had stage with no image", GetName() );
-			coverageTS->image = globalImages->m_defaultImage;
+			coverageTS->image = globalImages->defaultImage;
 		}
 	}
 	
@@ -1903,13 +1903,13 @@ void idMaterial::ParseStage( idLexer& src, const textureRepeat_t trpDefault )
 		ts->image = globalImages->ImageFromFile( imageName, tf, trp, td, cubeMap );
 		if( !ts->image )
 		{
-			ts->image = globalImages->m_defaultImage;
+			ts->image = globalImages->defaultImage;
 		}
 	}
 	else if( !ts->cinematic && !ts->dynamic && !ss->newStage )
 	{
 		idLib::Warning( "material '%s' had stage with no image", GetName() );
-		ts->image = globalImages->m_defaultImage;
+		ts->image = globalImages->defaultImage;
 	}
 }
 
@@ -2680,7 +2680,7 @@ bool idMaterial::Parse( const char* text, const int textLength, bool allowBinary
 	for( int i = 0 ; i < numStages ; i++ )
 	{
 		shaderStage_t* pStage = &pd->parseStages[ i ];
-		if( pStage->texture.image == globalImages->m_currentRenderImage )
+		if( pStage->texture.image == globalImages->currentRenderImage )
 		{
 			if( sort != SS_PORTAL_SKY )
 			{
@@ -2693,7 +2693,7 @@ bool idMaterial::Parse( const char* text, const int textLength, bool allowBinary
 		{
 			for( int j = 0; j < pStage->newStage->numFragmentProgramImages; j++ )
 			{
-				if( pStage->newStage->fragmentProgramImages[ j ] == globalImages->m_currentRenderImage )
+				if( pStage->newStage->fragmentProgramImages[ j ] == globalImages->currentRenderImage )
 				{
 					if( sort != SS_PORTAL_SKY )
 					{

@@ -1370,7 +1370,7 @@ Handles generating a cinematic frame if needed
 */
 uint64 idRenderBackend::GL_GetCurrentStateMinusStencil() const
 {
-	return m_glStateBits & ~( GLS_STENCIL_OP_BITS | GLS_STENCIL_FUNC_BITS | GLS_STENCIL_FUNC_REF_BITS | GLS_STENCIL_FUNC_MASK_BITS );
+	return glStateBits & ~( GLS_STENCIL_OP_BITS | GLS_STENCIL_FUNC_BITS | GLS_STENCIL_FUNC_REF_BITS | GLS_STENCIL_FUNC_MASK_BITS );
 }
 
 /*
@@ -1416,10 +1416,10 @@ void idRenderBackend::SetColorMappings()
 	for( int i = 0; i < 256; i++, j += b )
 	{
 		int inf = idMath::Ftoi( 0xffff * pow( j / 255.0f, invg ) + 0.5f );
-		m_gammaTable[i] = idMath::ClampInt( 0, 0xFFFF, inf );
+		gammaTable[i] = idMath::ClampInt( 0, 0xFFFF, inf );
 	}
 	
-	SetGamma( m_gammaTable, m_gammaTable, m_gammaTable );
+	SetGamma( gammaTable, gammaTable, gammaTable );
 }
 
 /*
@@ -1481,7 +1481,7 @@ void idRenderBackend::ExecuteBackEndCommands( const renderCommand_t* cmds )
 	GL_EndFrame();
 	
 	// stop rendering on this thread
-	m_pc.totalMicroSec = Sys_Microseconds() - backEndStartTime;
+	pc.totalMicroSec = Sys_Microseconds() - backEndStartTime;
 	
 	renderLog.EndFrame();
 }
@@ -1495,26 +1495,26 @@ void idRenderBackend::DrawView( const void* data )
 {
 	const drawSurfsCommand_t* cmd = ( const drawSurfsCommand_t* )data;
 	
-	m_viewDef = cmd->viewDef;
+	viewDef = cmd->viewDef;
 	
 	// we will need to do a new copyTexSubImage of the screen
 	// when a SS_POST_PROCESS material is used
-	m_currentRenderCopied = false;
+	currentRenderCopied = false;
 	
 	// if there aren't any drawsurfs, do nothing
-	if( !m_viewDef->numDrawSurfs )
+	if( !viewDef->numDrawSurfs )
 	{
 		return;
 	}
 	
 	// skip render bypasses everything that has models, assuming
 	// them to be 3D views, but leaves 2D rendering visible
-	if( r_skipRender.GetBool() && m_viewDef->viewEntitys )
+	if( r_skipRender.GetBool() && viewDef->viewEntitys )
 	{
 		return;
 	}
 	
-	m_pc.c_surfaces += m_viewDef->numDrawSurfs;
+	pc.c_surfaces += viewDef->numDrawSurfs;
 	
 	DBG_ShowOverdraw();
 	
@@ -1527,12 +1527,12 @@ void idRenderBackend::DrawView( const void* data )
 		// this used to be in the gui emit code, but now that it can be running
 		// in a separate thread, it must not try to load images, so do it here.
 		//-------------------------------------------------
-		drawSurf_t** drawSurfs = ( drawSurf_t** )&m_viewDef->drawSurfs[0];
-		const int numDrawSurfs = m_viewDef->numDrawSurfs;
+		drawSurf_t** drawSurfs = ( drawSurf_t** )&viewDef->drawSurfs[0];
+		const int numDrawSurfs = viewDef->numDrawSurfs;
 		
 		for( int i = 0; i < numDrawSurfs; i++ )
 		{
-			const drawSurf_t* ds = m_viewDef->drawSurfs[ i ];
+			const drawSurf_t* ds = viewDef->drawSurfs[ i ];
 			if( ds->material != NULL )
 			{
 				const_cast<idMaterial*>( ds->material )->EnsureNotPurged();
@@ -1549,17 +1549,17 @@ void idRenderBackend::DrawView( const void* data )
 		//-------------------------------------------------
 		
 		// set the window clipping
-		GL_Viewport( m_viewDef->viewport.x1,
-					 m_viewDef->viewport.y1,
-					 m_viewDef->viewport.x2 + 1 - m_viewDef->viewport.x1,
-					 m_viewDef->viewport.y2 + 1 - m_viewDef->viewport.y1 );
+		GL_Viewport( viewDef->viewport.x1,
+					 viewDef->viewport.y1,
+					 viewDef->viewport.x2 + 1 - viewDef->viewport.x1,
+					 viewDef->viewport.y2 + 1 - viewDef->viewport.y1 );
 					 
 		// the scissor may be smaller than the viewport for subviews
-		GL_Scissor( m_viewDef->viewport.x1 + m_viewDef->scissor.x1,
-					m_viewDef->viewport.y1 + m_viewDef->scissor.y1,
-					m_viewDef->scissor.x2 + 1 - m_viewDef->scissor.x1,
-					m_viewDef->scissor.y2 + 1 - m_viewDef->scissor.y1 );
-		m_currentScissor = m_viewDef->scissor;
+		GL_Scissor( viewDef->viewport.x1 + viewDef->scissor.x1,
+					viewDef->viewport.y1 + viewDef->scissor.y1,
+					viewDef->scissor.x2 + 1 - viewDef->scissor.x1,
+					viewDef->scissor.y2 + 1 - viewDef->scissor.y1 );
+		currentScissor = viewDef->scissor;
 		
 		// ensures that depth writes are enabled for the depth clear
 		GL_State( GLS_DEFAULT | GLS_CULL_FRONTSIDED, true );
@@ -1575,9 +1575,9 @@ void idRenderBackend::DrawView( const void* data )
 			// set eye position in global space
 			//
 			float parm[4];
-			parm[0] = m_viewDef->renderView.vieworg[0];
-			parm[1] = m_viewDef->renderView.vieworg[1];
-			parm[2] = m_viewDef->renderView.vieworg[2];
+			parm[0] = viewDef->renderView.vieworg[0];
+			parm[1] = viewDef->renderView.vieworg[1];
+			parm[2] = viewDef->renderView.vieworg[2];
 			parm[3] = 1.0f;
 			
 			renderProgManager.SetRenderParm( RENDERPARM_GLOBALEYEPOS, parm ); // rpGlobalEyePos
@@ -1596,7 +1596,7 @@ void idRenderBackend::DrawView( const void* data )
 			
 			// Set Projection Matrix
 			float projMatrixTranspose[16];
-			R_MatrixTranspose( m_viewDef->projectionMatrix, projMatrixTranspose );
+			R_MatrixTranspose( viewDef->projectionMatrix, projMatrixTranspose );
 			renderProgManager.SetRenderParms( RENDERPARM_PROJMATRIX_X, projMatrixTranspose, 4 );
 		}
 		
@@ -1632,18 +1632,18 @@ void idRenderBackend::DrawView( const void* data )
 		//-------------------------------------------------
 		if( processed < numDrawSurfs && !r_skipPostProcess.GetBool() )
 		{
-			int x = m_viewDef->viewport.x1;
-			int y = m_viewDef->viewport.y1;
-			int	w = m_viewDef->viewport.x2 - m_viewDef->viewport.x1 + 1;
-			int	h = m_viewDef->viewport.y2 - m_viewDef->viewport.y1 + 1;
+			int x = viewDef->viewport.x1;
+			int y = viewDef->viewport.y1;
+			int	w = viewDef->viewport.x2 - viewDef->viewport.x1 + 1;
+			int	h = viewDef->viewport.y2 - viewDef->viewport.y1 + 1;
 			
 			RENDERLOG_PRINTF( "Resolve to %i x %i buffer\n", w, h );
 			
 			GL_SelectTexture( 0 );
 			
 			// resolve the screen
-			GL_CopyFrameBuffer( globalImages->m_currentRenderImage, x, y, w, h );
-			m_currentRenderCopied = true;
+			GL_CopyFrameBuffer( globalImages->currentRenderImage, x, y, w, h );
+			currentRenderCopied = true;
 			
 			// RENDERPARM_SCREENCORRECTIONFACTOR amd RENDERPARM_WINDOWCOORD overlap
 			// diffuseScale and specularScale
@@ -1723,7 +1723,7 @@ void idRenderBackend::BindVariableStageImage( const textureStage_t* texture, con
 		
 		if( r_skipDynamicTextures.GetBool() )
 		{
-			GL_BindTexture( globalImages->m_defaultImage );
+			GL_BindTexture( globalImages->defaultImage );
 			return;
 		}
 		
@@ -1731,7 +1731,7 @@ void idRenderBackend::BindVariableStageImage( const textureStage_t* texture, con
 		// We make no attempt to optimize for multiple identical cinematics being in view, or
 		// for cinematics going at a lower framerate than the renderer.
 		cin = texture->cinematic->ImageForTime(
-				  m_viewDef->renderView.time[0] + idMath::Ftoi( 1000.0f * m_viewDef->renderView.shaderParms[11] ) );
+				  viewDef->renderView.time[0] + idMath::Ftoi( 1000.0f * viewDef->renderView.shaderParms[11] ) );
 				  
 		if( cin.imageY != NULL )
 		{
@@ -1744,7 +1744,7 @@ void idRenderBackend::BindVariableStageImage( const textureStage_t* texture, con
 		}
 		else
 		{
-			GL_BindTexture( globalImages->m_blackImage );
+			GL_BindTexture( globalImages->blackImage );
 			// because the shaders may have already been set - we need to make sure we are not using a bink shader which would
 			// display incorrectly.  We may want to get rid of RB_BindVariableStageImage and inline the code so that the
 			// SWF GUI case is handled better, too
@@ -1829,7 +1829,7 @@ void idRenderBackend::PrepareStageTexturing( const shaderStage_t* pStage,  const
 		{
 			// very ad-hoc "wobble" transform
 			float s, c;
-			idMath::SinCos( wobbleSpeed * m_viewDef->renderView.time[0] * 0.001f, s, c );
+			idMath::SinCos( wobbleSpeed * viewDef->renderView.time[0] * 0.001f, s, c );
 			
 			float ws, wc;
 			idMath::SinCos( wobbleDegrees, ws, wc );
@@ -1852,7 +1852,7 @@ void idRenderBackend::PrepareStageTexturing( const shaderStage_t* pStage,  const
 		
 		// add the rotate
 		float rs, rc;
-		idMath::SinCos( rotateSpeed * m_viewDef->renderView.time[0] * 0.001f, rs, rc );
+		idMath::SinCos( rotateSpeed * viewDef->renderView.time[0] * 0.001f, rs, rc );
 		
 		float transform[12];
 		transform[0 * 4 + 0] = axis[0][0] * rc + axis[1][0] * rs;
@@ -1883,7 +1883,7 @@ void idRenderBackend::PrepareStageTexturing( const shaderStage_t* pStage,  const
 		useTexGenParm[3] = 1.0f;
 		
 		float mat[16];
-		R_MatrixMultiply( surf->space->modelViewMatrix, m_viewDef->projectionMatrix, mat );
+		R_MatrixMultiply( surf->space->modelViewMatrix, viewDef->projectionMatrix, mat );
 		
 		RENDERLOG_PRINTF( "TexGen : %s\n", ( pStage->texture.texgen == TG_SCREEN ) ? "TG_SCREEN" : "TG_SCREEN2" );
 		renderLog.Indent();
@@ -2003,11 +2003,11 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 		}
 		
 		// change the matrix if needed
-		if( drawSurf->space != m_currentSpace )
+		if( drawSurf->space != currentSpace )
 		{
 			RB_SetMVP( drawSurf->space->mvp );
 			
-			m_currentSpace = drawSurf->space;
+			currentSpace = drawSurf->space;
 		}
 		
 		uint64 surfGLState = 0;
@@ -2119,7 +2119,7 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 				PrepareStageTexturing( pStage, drawSurf );
 				
 				// must render with less-equal for Z-Cull to work properly
-				assert( ( m_glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
+				assert( ( glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
 				
 				// draw it
 				DrawElementsWithCounters( drawSurf );
@@ -2163,7 +2163,7 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 			}
 			
 			// must render with less-equal for Z-Cull to work properly
-			assert( ( m_glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
+			assert( ( glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
 			
 			// draw it
 			DrawElementsWithCounters( drawSurf );
@@ -2203,7 +2203,7 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 	}
 	
 	// if we are just doing 2D rendering, no need to fill the depth buffer
-	if( m_viewDef->viewEntitys == NULL )
+	if( viewDef->viewEntitys == NULL )
 	{
 		return;
 	}
@@ -2212,7 +2212,7 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 	renderLog.OpenBlock( "RB_FillDepthBufferFast" );
 	
 	// force MVP change on first surface
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
 	// draw all the subview surfaces, which will already be at the start of the sorted list,
 	// with the general purpose path
@@ -2257,10 +2257,10 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 		// set polygon offset?
 		
 		// set mvp matrix
-		if( surf->space != m_currentSpace )
+		if( surf->space != currentSpace )
 		{
 			RB_SetMVP( surf->space->mvp );
-			m_currentSpace = surf->space;
+			currentSpace = surf->space;
 		}
 		
 		renderLog.OpenBlock( shader->GetName() );
@@ -2275,7 +2275,7 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 		}
 		
 		// must render with less-equal for Z-Cull to work properly
-		assert( ( m_glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
+		assert( ( glStateBits & GLS_DEPTHFUNC_BITS ) == GLS_DEPTHFUNC_LESS );
 		
 		// draw it solid
 		DrawElementsWithCounters( surf );
@@ -2324,21 +2324,21 @@ void idRenderBackend::DrawSingleInteraction( drawInteraction_t* din )
 	{
 		// this isn't a YCoCg black, but it doesn't matter, because
 		// the diffuseColor will also be 0
-		din->diffuseImage = globalImages->m_blackImage;
+		din->diffuseImage = globalImages->blackImage;
 	}
 	if( din->specularImage == NULL || r_skipSpecular.GetBool() || din->ambientLight )
 	{
-		din->specularImage = globalImages->m_blackImage;
+		din->specularImage = globalImages->blackImage;
 	}
 	if( r_skipBump.GetBool() )
 	{
-		din->bumpImage = globalImages->m_flatNormalMap;
+		din->bumpImage = globalImages->flatNormalMap;
 	}
 	
 	// if we wouldn't draw anything, don't call the Draw function
-	const bool diffuseIsBlack = ( din->diffuseImage == globalImages->m_blackImage )
+	const bool diffuseIsBlack = ( din->diffuseImage == globalImages->blackImage )
 								|| ( ( din->diffuseColor[0] <= 0 ) && ( din->diffuseColor[1] <= 0 ) && ( din->diffuseColor[2] <= 0 ) );
-	const bool specularIsBlack = ( din->specularImage == globalImages->m_blackImage )
+	const bool specularIsBlack = ( din->specularImage == globalImages->blackImage )
 								 || ( ( din->specularColor[0] <= 0 ) && ( din->specularColor[1] <= 0 ) && ( din->specularColor[2] <= 0 ) );
 	if( diffuseIsBlack && specularIsBlack )
 	{
@@ -2422,13 +2422,13 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 	}
 	
 	// change the scissor if needed, it will be constant across all the surfaces lit by the light
-	if( !m_currentScissor.Equals( vLight->scissorRect ) && r_useScissor.GetBool() )
+	if( !currentScissor.Equals( vLight->scissorRect ) && r_useScissor.GetBool() )
 	{
-		GL_Scissor( m_viewDef->viewport.x1 + vLight->scissorRect.x1,
-					m_viewDef->viewport.y1 + vLight->scissorRect.y1,
+		GL_Scissor( viewDef->viewport.x1 + vLight->scissorRect.x1,
+					viewDef->viewport.y1 + vLight->scissorRect.y1,
 					vLight->scissorRect.x2 + 1 - vLight->scissorRect.x1,
 					vLight->scissorRect.y2 + 1 - vLight->scissorRect.y1 );
-		m_currentScissor = vLight->scissorRect;
+		currentScissor = vLight->scissorRect;
 	}
 	
 	// perform setup here that will be constant for all interactions
@@ -2485,7 +2485,7 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 			}
 			uint64 end = Sys_Microseconds();
 			
-			m_pc.shadowMicroSec += end - start;
+			pc.shadowMicroSec += end - start;
 		}
 		
 		allSurfaces.Append( walk );
@@ -2539,7 +2539,7 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 		RB_SetupForFastPathInteractions( diffuseColor, specularColor );
 		
 		// even if the space does not change between light stages, each light stage may need a different lightTextureMatrix baked in
-		m_currentSpace = NULL;
+		currentSpace = NULL;
 		
 		for( int sortedSurfNum = 0; sortedSurfNum < allSurfaces.Num(); sortedSurfNum++ )
 		{
@@ -2575,9 +2575,9 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 			inter.surf = surf;
 			
 			// change the MVP matrix, view/light origin and light projection vectors if needed
-			if( surf->space != m_currentSpace )
+			if( surf->space != currentSpace )
 			{
-				m_currentSpace = surf->space;
+				currentSpace = surf->space;
 				
 				// turn off the light depth bounds test if this model is rendered with a depth hack
 				if( useLightDepthBounds )
@@ -2607,7 +2607,7 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 				idVec4 localLightOrigin( 0.0f );
 				idVec4 localViewOrigin( 1.0f );
 				R_GlobalPointToLocal( surf->space->modelMatrix, vLight->globalLightOrigin, localLightOrigin.ToVec3() );
-				R_GlobalPointToLocal( surf->space->modelMatrix, m_viewDef->renderView.vieworg, localViewOrigin.ToVec3() );
+				R_GlobalPointToLocal( surf->space->modelMatrix, viewDef->renderView.vieworg, localViewOrigin.ToVec3() );
 				
 				// set the local light/view origin
 				renderProgManager.SetRenderParm( RENDERPARM_LOCALLIGHTORIGIN, localLightOrigin.ToFloatPtr() );
@@ -2767,7 +2767,7 @@ void idRenderBackend::DrawInteractions()
 	//
 	// for each light, perform shadowing and adding
 	//
-	for( const viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+	for( const viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 	{
 		// do fogging later
 		if( vLight->lightShader->IsFogLight() )
@@ -2798,7 +2798,7 @@ void idRenderBackend::DrawInteractions()
 		
 		// mirror flips the sense of the stencil select, and I don't want to risk accidentally breaking it
 		// in the normal case, so simply disable the stencil select in the mirror case
-		const bool useLightStencilSelect = ( r_useLightStencilSelect.GetBool() && m_viewDef->isMirror == false );
+		const bool useLightStencilSelect = ( r_useLightStencilSelect.GetBool() && viewDef->isMirror == false );
 		
 		if( performStencilTest )
 		{
@@ -2816,13 +2816,13 @@ void idRenderBackend::DrawInteractions()
 				rect.x2 = ( vLight->scissorRect.x2 + 15 ) & ~15;
 				rect.y2 = ( vLight->scissorRect.y2 + 15 ) & ~15;
 				
-				if( !m_currentScissor.Equals( rect ) && r_useScissor.GetBool() )
+				if( !currentScissor.Equals( rect ) && r_useScissor.GetBool() )
 				{
-					GL_Scissor( m_viewDef->viewport.x1 + rect.x1,
-								m_viewDef->viewport.y1 + rect.y1,
+					GL_Scissor( viewDef->viewport.x1 + rect.x1,
+								viewDef->viewport.y1 + rect.y1,
 								rect.x2 + 1 - rect.x1,
 								rect.y2 + 1 - rect.y1 );
-					m_currentScissor = rect;
+					currentScissor = rect;
 				}
 				GL_State( GLS_DEFAULT );	// make sure stencil mask passes for the clear
 				GL_Clear( false, false, true, STENCIL_SHADOW_TEST_VALUE, 0.0f, 0.0f, 0.0f, 0.0f );
@@ -2920,7 +2920,7 @@ be multiplied by guiEye for polarity and screenSeparation for scale.
 int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs, const int numDrawSurfs )
 {
 	// only obey skipAmbient if we are rendering a view
-	if( m_viewDef->viewEntitys && r_skipAmbient.GetBool() )
+	if( viewDef->viewEntitys && r_skipAmbient.GetBool() )
 	{
 		return numDrawSurfs;
 	}
@@ -2929,7 +2929,7 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 	
 	GL_SelectTexture( 0 );
 	
-	m_currentSpace = ( const viewEntity_t* )1;	// using NULL makes /analyze think surf->space needs to be checked...
+	currentSpace = ( const viewEntity_t* )1;	// using NULL makes /analyze think surf->space needs to be checked...
 	
 	int i = 0;
 	for( ; i < numDrawSurfs; i++ )
@@ -2958,7 +2958,7 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 			continue;
 		}
 		
-		if( m_viewDef->isXraySubview && surf->space->entityDef )
+		if( viewDef->isXraySubview && surf->space->entityDef )
 		{
 			if( surf->space->entityDef->parms.xrayIndex != 2 )
 			{
@@ -2967,7 +2967,7 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 		}
 		
 		// we need to draw the post process shaders after we have drawn the fog lights
-		if( shader->GetSort() >= SS_POST_PROCESS && !m_currentRenderCopied )
+		if( shader->GetSort() >= SS_POST_PROCESS && !currentRenderCopied )
 		{
 			break;
 		}
@@ -2975,17 +2975,17 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 		renderLog.OpenBlock( shader->GetName() );
 		
 		// change the matrix and other space related vars if needed
-		if( surf->space != m_currentSpace )
+		if( surf->space != currentSpace )
 		{
-			m_currentSpace = surf->space;
+			currentSpace = surf->space;
 			
-			const viewEntity_t* space = m_currentSpace;
+			const viewEntity_t* space = currentSpace;
 			
 			RB_SetMVP( space->mvp );
 			
 			// set eye position in local space
 			idVec4 localViewOrigin( 1.0f );
-			R_GlobalPointToLocal( space->modelMatrix, m_viewDef->renderView.vieworg, localViewOrigin.ToVec3() );
+			R_GlobalPointToLocal( space->modelMatrix, viewDef->renderView.vieworg, localViewOrigin.ToVec3() );
 			renderProgManager.SetRenderParm( RENDERPARM_LOCALVIEWORIGIN, localViewOrigin.ToFloatPtr() );
 			
 			// set model Matrix
@@ -3000,13 +3000,13 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 		}
 		
 		// change the scissor if needed
-		if( !m_currentScissor.Equals( surf->scissorRect ) && r_useScissor.GetBool() )
+		if( !currentScissor.Equals( surf->scissorRect ) && r_useScissor.GetBool() )
 		{
-			GL_Scissor( m_viewDef->viewport.x1 + surf->scissorRect.x1,
-						m_viewDef->viewport.y1 + surf->scissorRect.y1,
+			GL_Scissor( viewDef->viewport.x1 + surf->scissorRect.x1,
+						viewDef->viewport.y1 + surf->scissorRect.y1,
 						surf->scissorRect.x2 + 1 - surf->scissorRect.x1,
 						surf->scissorRect.y2 + 1 - surf->scissorRect.y1 );
-			m_currentScissor = surf->scissorRect;
+			currentScissor = surf->scissorRect;
 		}
 		
 		// get the expressions for conditionals / color / texcoords
@@ -3263,7 +3263,7 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 		renderLog.CloseBlock();
 	}
 	
-	GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
+	GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
 	GL_Color( 1.0f, 1.0f, 1.0f );
 	
 	renderLog.CloseBlock();
@@ -3285,7 +3285,7 @@ idRenderBackend::T_BlendLight
 */
 void idRenderBackend::T_BlendLight( const drawSurf_t* drawSurfs, const viewLight_t* vLight )
 {
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
 	for( const drawSurf_t* drawSurf = drawSurfs; drawSurf != NULL; drawSurf = drawSurf->nextOnLight )
 	{
@@ -3295,17 +3295,17 @@ void idRenderBackend::T_BlendLight( const drawSurf_t* drawSurfs, const viewLight
 			// temporarily jump over the scissor and draw so the gl error callback doesn't get hit
 		}
 		
-		if( !m_currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
+		if( !currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
 		{
 			// change the scissor
-			GL_Scissor( m_viewDef->viewport.x1 + drawSurf->scissorRect.x1,
-						m_viewDef->viewport.y1 + drawSurf->scissorRect.y1,
+			GL_Scissor( viewDef->viewport.x1 + drawSurf->scissorRect.x1,
+						viewDef->viewport.y1 + drawSurf->scissorRect.y1,
 						drawSurf->scissorRect.x2 + 1 - drawSurf->scissorRect.x1,
 						drawSurf->scissorRect.y2 + 1 - drawSurf->scissorRect.y1 );
-			m_currentScissor = drawSurf->scissorRect;
+			currentScissor = drawSurf->scissorRect;
 		}
 		
-		if( drawSurf->space != m_currentSpace )
+		if( drawSurf->space != currentSpace )
 		{
 			// change the matrix
 			RB_SetMVP( drawSurf->space->mvp );
@@ -3322,7 +3322,7 @@ void idRenderBackend::T_BlendLight( const drawSurf_t* drawSurfs, const viewLight
 			renderProgManager.SetRenderParm( RENDERPARM_TEXGEN_0_Q, lightProjectInCurrentSpace[2].ToFloatPtr() );
 			renderProgManager.SetRenderParm( RENDERPARM_TEXGEN_1_S, lightProjectInCurrentSpace[3].ToFloatPtr() );	// falloff
 			
-			m_currentSpace = drawSurf->space;
+			currentSpace = drawSurf->space;
 		}
 		
 		DrawElementsWithCounters( drawSurf );
@@ -3413,7 +3413,7 @@ idRenderBackend::T_BasicFog
 */
 void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fogPlanes[ 4 ], const idRenderMatrix* inverseBaseLightProject )
 {
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
 	for( const drawSurf_t* drawSurf = drawSurfs; drawSurf != NULL; drawSurf = drawSurf->nextOnLight )
 	{
@@ -3423,17 +3423,17 @@ void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fog
 			// temporarily jump over the scissor and draw so the gl error callback doesn't get hit
 		}
 		
-		if( !m_currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
+		if( !currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
 		{
 			// change the scissor
-			GL_Scissor( m_viewDef->viewport.x1 + drawSurf->scissorRect.x1,
-						m_viewDef->viewport.y1 + drawSurf->scissorRect.y1,
+			GL_Scissor( viewDef->viewport.x1 + drawSurf->scissorRect.x1,
+						viewDef->viewport.y1 + drawSurf->scissorRect.y1,
 						drawSurf->scissorRect.x2 + 1 - drawSurf->scissorRect.x1,
 						drawSurf->scissorRect.y2 + 1 - drawSurf->scissorRect.y1 );
-			m_currentScissor = drawSurf->scissorRect;
+			currentScissor = drawSurf->scissorRect;
 		}
 		
-		if( drawSurf->space != m_currentSpace )
+		if( drawSurf->space != currentSpace )
 		{
 			idPlane localFogPlanes[4];
 			if( inverseBaseLightProject == NULL )
@@ -3447,7 +3447,7 @@ void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fog
 			else
 			{
 				idRenderMatrix invProjectMVPMatrix;
-				idRenderMatrix::Multiply( m_viewDef->worldSpace.mvp, *inverseBaseLightProject, invProjectMVPMatrix );
+				idRenderMatrix::Multiply( viewDef->worldSpace.mvp, *inverseBaseLightProject, invProjectMVPMatrix );
 				RB_SetMVP( invProjectMVPMatrix );
 				for( int i = 0; i < 4; i++ )
 				{
@@ -3460,7 +3460,7 @@ void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fog
 			renderProgManager.SetRenderParm( RENDERPARM_TEXGEN_1_T, localFogPlanes[2].ToFloatPtr() );
 			renderProgManager.SetRenderParm( RENDERPARM_TEXGEN_1_S, localFogPlanes[3].ToFloatPtr() );
 			
-			m_currentSpace = ( inverseBaseLightProject == NULL ) ? drawSurf->space : NULL;
+			currentSpace = ( inverseBaseLightProject == NULL ) ? drawSurf->space : NULL;
 		}
 		
 		if( drawSurf->jointCache )
@@ -3515,30 +3515,30 @@ void idRenderBackend::FogPass( const drawSurf_t* drawSurfs,  const drawSurf_t* d
 	
 	// texture 0 is the falloff image
 	GL_SelectTexture( 0 );
-	GL_BindTexture( globalImages->m_fogImage );
+	GL_BindTexture( globalImages->fogImage );
 	
 	// texture 1 is the entering plane fade correction
 	GL_SelectTexture( 1 );
-	GL_BindTexture( globalImages->m_fogEnterImage );
+	GL_BindTexture( globalImages->fogEnterImage );
 	
 	// S is based on the view origin
-	const float s = vLight->fogPlane.Distance( m_viewDef->renderView.vieworg );
+	const float s = vLight->fogPlane.Distance( viewDef->renderView.vieworg );
 	
 	const float FOG_SCALE = 0.001f;
 	
 	idPlane fogPlanes[4];
 	
 	// S-0
-	fogPlanes[0][0] = a * m_viewDef->worldSpace.modelViewMatrix[0 * 4 + 2];
-	fogPlanes[0][1] = a * m_viewDef->worldSpace.modelViewMatrix[1 * 4 + 2];
-	fogPlanes[0][2] = a * m_viewDef->worldSpace.modelViewMatrix[2 * 4 + 2];
-	fogPlanes[0][3] = a * m_viewDef->worldSpace.modelViewMatrix[3 * 4 + 2] + 0.5f;
+	fogPlanes[0][0] = a * viewDef->worldSpace.modelViewMatrix[0 * 4 + 2];
+	fogPlanes[0][1] = a * viewDef->worldSpace.modelViewMatrix[1 * 4 + 2];
+	fogPlanes[0][2] = a * viewDef->worldSpace.modelViewMatrix[2 * 4 + 2];
+	fogPlanes[0][3] = a * viewDef->worldSpace.modelViewMatrix[3 * 4 + 2] + 0.5f;
 	
 	// T-0
-	fogPlanes[1][0] = 0.0f;//a * m_viewDef->worldSpace.modelViewMatrix[0*4+0];
-	fogPlanes[1][1] = 0.0f;//a * m_viewDef->worldSpace.modelViewMatrix[1*4+0];
-	fogPlanes[1][2] = 0.0f;//a * m_viewDef->worldSpace.modelViewMatrix[2*4+0];
-	fogPlanes[1][3] = 0.5f;//a * m_viewDef->worldSpace.modelViewMatrix[3*4+0] + 0.5f;
+	fogPlanes[1][0] = 0.0f;//a * viewDef->worldSpace.modelViewMatrix[0*4+0];
+	fogPlanes[1][1] = 0.0f;//a * viewDef->worldSpace.modelViewMatrix[1*4+0];
+	fogPlanes[1][2] = 0.0f;//a * viewDef->worldSpace.modelViewMatrix[2*4+0];
+	fogPlanes[1][3] = 0.5f;//a * viewDef->worldSpace.modelViewMatrix[3*4+0] + 0.5f;
 	
 	// T-1 will get a texgen for the fade plane, which is always the "top" plane on unrotated lights
 	fogPlanes[2][0] = FOG_SCALE * vLight->fogPlane[0];
@@ -3561,11 +3561,11 @@ void idRenderBackend::FogPass( const drawSurf_t* drawSurfs,  const drawSurf_t* d
 	// of depthfunc_equal
 	GL_State( GLS_DEPTHMASK | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_LESS | GLS_CULL_BACKSIDED );
 	
-	m_zeroOneCubeSurface.space = &m_viewDef->worldSpace;
-	m_zeroOneCubeSurface.scissorRect = m_viewDef->scissor;
-	T_BasicFog( &m_zeroOneCubeSurface, fogPlanes, &vLight->inverseBaseLightProject );
+	zeroOneCubeSurface.space = &viewDef->worldSpace;
+	zeroOneCubeSurface.scissorRect = viewDef->scissor;
+	T_BasicFog( &zeroOneCubeSurface, fogPlanes, &vLight->inverseBaseLightProject );
 	
-	GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
+	GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
 	
 	GL_SelectTexture( 0 );
 	
@@ -3582,7 +3582,7 @@ idRenderBackend::FogAllLights
 void idRenderBackend::FogAllLights()
 {
 	if( r_skipFogLights.GetBool() || r_showOverDraw.GetInteger() != 0
-			|| m_viewDef->isXraySubview /* don't fog in xray mode*/ )
+			|| viewDef->isXraySubview /* don't fog in xray mode*/ )
 	{
 		return;
 	}
@@ -3590,9 +3590,9 @@ void idRenderBackend::FogAllLights()
 	renderLog.OpenBlock( "RB_FogAllLights" );
 	
 	// force fog plane to recalculate
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
-	for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+	for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 	{
 		if( vLight->lightShader->IsFogLight() )
 		{
@@ -3683,7 +3683,7 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 		GLS_CULL_TWOSIDED );
 		
 	// process the chain of shadows with the current rendering state
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
 	for( const drawSurf_t* drawSurf = drawSurfs; drawSurf != NULL; drawSurf = drawSurf->nextOnLight )
 	{
@@ -3705,7 +3705,7 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 			}
 			uint64 end = Sys_Microseconds();
 			
-			m_pc.shadowMicroSec += end - start;
+			pc.shadowMicroSec += end - start;
 		}
 		
 		if( drawSurf->numIndexes == 0 )
@@ -3713,17 +3713,17 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 			continue;	// a job may have created an empty shadow volume
 		}
 		
-		if( !m_currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
+		if( !currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
 		{
 			// change the scissor
-			GL_Scissor( m_viewDef->viewport.x1 + drawSurf->scissorRect.x1,
-						m_viewDef->viewport.y1 + drawSurf->scissorRect.y1,
+			GL_Scissor( viewDef->viewport.x1 + drawSurf->scissorRect.x1,
+						viewDef->viewport.y1 + drawSurf->scissorRect.y1,
 						drawSurf->scissorRect.x2 + 1 - drawSurf->scissorRect.x1,
 						drawSurf->scissorRect.y2 + 1 - drawSurf->scissorRect.y1 );
-			m_currentScissor = drawSurf->scissorRect;
+			currentScissor = drawSurf->scissorRect;
 		}
 		
-		if( drawSurf->space != m_currentSpace )
+		if( drawSurf->space != currentSpace )
 		{
 			// change the matrix
 			RB_SetMVP( drawSurf->space->mvp );
@@ -3733,7 +3733,7 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 			R_GlobalPointToLocal( drawSurf->space->modelMatrix, vLight->globalLightOrigin, localLight.ToVec3() );
 			renderProgManager.SetRenderParm( RENDERPARM_LOCALLIGHTORIGIN, localLight.ToFloatPtr() );
 			
-			m_currentSpace = drawSurf->space;
+			currentSpace = drawSurf->space;
 		}
 		
 		if( r_showShadows.GetInteger() == 0 )
@@ -3785,7 +3785,7 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 	
 	// cleanup the shadow specific rendering state
 	
-	GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
+	GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
 	
 	// reset depth bounds
 	if( r_useShadowDepthBounds.GetBool() )
@@ -3815,13 +3815,13 @@ void idRenderBackend::StencilSelectLight( const viewLight_t* vLight )
 	renderLog.OpenBlock( "Stencil Select" );
 	
 	// enable the light scissor
-	if( !m_currentScissor.Equals( vLight->scissorRect ) && r_useScissor.GetBool() )
+	if( !currentScissor.Equals( vLight->scissorRect ) && r_useScissor.GetBool() )
 	{
-		GL_Scissor( m_viewDef->viewport.x1 + vLight->scissorRect.x1,
-					m_viewDef->viewport.y1 + vLight->scissorRect.y1,
+		GL_Scissor( viewDef->viewport.x1 + vLight->scissorRect.x1,
+					viewDef->viewport.y1 + vLight->scissorRect.y1,
 					vLight->scissorRect.x2 + 1 - vLight->scissorRect.x1,
 					vLight->scissorRect.y2 + 1 - vLight->scissorRect.y1 );
-		m_currentScissor = vLight->scissorRect;
+		currentScissor = vLight->scissorRect;
 	}
 	
 	// clear stencil buffer to 0 (not drawable)
@@ -3851,18 +3851,18 @@ void idRenderBackend::StencilSelectLight( const viewLight_t* vLight )
 	
 	// set the matrix for deforming the 'zeroOneCubeModel' into the frustum to exactly cover the light volume
 	idRenderMatrix invProjectMVPMatrix;
-	idRenderMatrix::Multiply( m_viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
+	idRenderMatrix::Multiply( viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
 	RB_SetMVP( invProjectMVPMatrix );
 	
 	// two-sided stencil test
 	GL_SeparateStencil( STENCIL_FACE_FRONT, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_REPLACE | GLS_STENCIL_OP_PASS_ZERO );
 	GL_SeparateStencil( STENCIL_FACE_BACK, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_ZERO | GLS_STENCIL_OP_PASS_REPLACE );
 	
-	DrawElementsWithCounters( &m_zeroOneCubeSurface );
+	DrawElementsWithCounters( &zeroOneCubeSurface );
 	
 	// reset stencil state
 	
-	GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
+	GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
 	
 	renderProgManager.Unbind();
 	

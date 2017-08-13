@@ -143,20 +143,20 @@ idRenderBackend::DBG_SimpleSurfaceSetup
 void idRenderBackend::DBG_SimpleSurfaceSetup( const drawSurf_t* drawSurf )
 {
 	// change the matrix if needed
-	if( drawSurf->space != m_currentSpace )
+	if( drawSurf->space != currentSpace )
 	{
 		qglLoadMatrixf( drawSurf->space->modelViewMatrix );
-		m_currentSpace = drawSurf->space;
+		currentSpace = drawSurf->space;
 	}
 	
 	// change the scissor if needed
-	if( !m_currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
+	if( !currentScissor.Equals( drawSurf->scissorRect ) && r_useScissor.GetBool() )
 	{
-		GL_Scissor( m_viewDef->viewport.x1 + drawSurf->scissorRect.x1,
-					m_viewDef->viewport.y1 + drawSurf->scissorRect.y1,
+		GL_Scissor( viewDef->viewport.x1 + drawSurf->scissorRect.x1,
+					viewDef->viewport.y1 + drawSurf->scissorRect.y1,
 					drawSurf->scissorRect.x2 + 1 - drawSurf->scissorRect.x1,
 					drawSurf->scissorRect.y2 + 1 - drawSurf->scissorRect.y1 );
-		m_currentScissor = drawSurf->scissorRect;
+		currentScissor = drawSurf->scissorRect;
 	}
 }
 
@@ -167,15 +167,15 @@ idRenderBackend::DBG_SimpleWorldSetup
 */
 void idRenderBackend::DBG_SimpleWorldSetup()
 {
-	m_currentSpace = &m_viewDef->worldSpace;
+	currentSpace = &viewDef->worldSpace;
 	
-	qglLoadMatrixf( m_viewDef->worldSpace.modelViewMatrix );
+	qglLoadMatrixf( viewDef->worldSpace.modelViewMatrix );
 	
-	GL_Scissor( m_viewDef->viewport.x1 + m_viewDef->scissor.x1,
-				m_viewDef->viewport.y1 + m_viewDef->scissor.y1,
-				m_viewDef->scissor.x2 + 1 - m_viewDef->scissor.x1,
-				m_viewDef->scissor.y2 + 1 - m_viewDef->scissor.y1 );
-	m_currentScissor = m_viewDef->scissor;
+	GL_Scissor( viewDef->viewport.x1 + viewDef->scissor.x1,
+				viewDef->viewport.y1 + viewDef->scissor.y1,
+				viewDef->scissor.x2 + 1 - viewDef->scissor.x1,
+				viewDef->scissor.y2 + 1 - viewDef->scissor.y1 );
+	currentScissor = viewDef->scissor;
 }
 
 /*
@@ -313,11 +313,11 @@ void idRenderBackend::DBG_ShowOverdraw()
 		return;
 	}
 	
-	drawSurfs = m_viewDef->drawSurfs;
-	numDrawSurfs = m_viewDef->numDrawSurfs;
+	drawSurfs = viewDef->drawSurfs;
+	numDrawSurfs = viewDef->numDrawSurfs;
 	
 	int interactions = 0;
-	for( vLight = m_viewDef->viewLights; vLight; vLight = vLight->next )
+	for( vLight = viewDef->viewLights; vLight; vLight = vLight->next )
 	{
 		for( surf = vLight->localInteractions; surf; surf = surf->nextOnLight )
 		{
@@ -342,7 +342,7 @@ void idRenderBackend::DBG_ShowOverdraw()
 		newDrawSurfs[i] = const_cast<drawSurf_t*>( surf );
 	}
 	
-	for( vLight = m_viewDef->viewLights; vLight; vLight = vLight->next )
+	for( vLight = viewDef->viewLights; vLight; vLight = vLight->next )
 	{
 		for( surf = vLight->localInteractions; surf; surf = surf->nextOnLight )
 		{
@@ -361,16 +361,16 @@ void idRenderBackend::DBG_ShowOverdraw()
 	switch( r_showOverDraw.GetInteger() )
 	{
 		case 1: // geometry overdraw
-			const_cast<viewDef_t*>( m_viewDef )->drawSurfs = newDrawSurfs;
-			const_cast<viewDef_t*>( m_viewDef )->numDrawSurfs = numDrawSurfs;
+			const_cast<viewDef_t*>( viewDef )->drawSurfs = newDrawSurfs;
+			const_cast<viewDef_t*>( viewDef )->numDrawSurfs = numDrawSurfs;
 			break;
 		case 2: // light interaction overdraw
-			const_cast<viewDef_t*>( m_viewDef )->drawSurfs = &newDrawSurfs[numDrawSurfs];
-			const_cast<viewDef_t*>( m_viewDef )->numDrawSurfs = interactions;
+			const_cast<viewDef_t*>( viewDef )->drawSurfs = &newDrawSurfs[numDrawSurfs];
+			const_cast<viewDef_t*>( viewDef )->numDrawSurfs = interactions;
 			break;
 		case 3: // geometry + light interaction overdraw
-			const_cast<viewDef_t*>( m_viewDef )->drawSurfs = newDrawSurfs;
-			const_cast<viewDef_t*>( m_viewDef )->numDrawSurfs += interactions;
+			const_cast<viewDef_t*>( viewDef )->drawSurfs = newDrawSurfs;
+			const_cast<viewDef_t*>( viewDef )->numDrawSurfs += interactions;
 			break;
 	}
 }
@@ -523,9 +523,9 @@ void idRenderBackend::DBG_ShowLightCount()
 		GL_State( GLS_DEPTHFUNC_EQUAL | GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR );
 	}
 	
-	GL_BindTexture( globalImages->m_defaultImage );
+	GL_BindTexture( globalImages->defaultImage );
 	
-	for( vLight = m_viewDef->viewLights; vLight; vLight = vLight->next )
+	for( vLight = viewDef->viewLights; vLight; vLight = vLight->next )
 	{
 		for( i = 0; i < 2; i++ )
 		{
@@ -555,7 +555,7 @@ void idRenderBackend::DBG_EnterWeaponDepthHack()
 {
 	float	matrix[16];
 	
-	memcpy( matrix, m_viewDef->projectionMatrix, sizeof( matrix ) );
+	memcpy( matrix, viewDef->projectionMatrix, sizeof( matrix ) );
 	
 	const float modelDepthHack = 0.25f;
 	matrix[2] *= modelDepthHack;
@@ -577,7 +577,7 @@ void idRenderBackend::DBG_EnterModelDepthHack( float depth )
 {
 	float matrix[16];
 	
-	memcpy( matrix, m_viewDef->projectionMatrix, sizeof( matrix ) );
+	memcpy( matrix, viewDef->projectionMatrix, sizeof( matrix ) );
 	
 	matrix[14] -= depth;
 	
@@ -594,7 +594,7 @@ idRenderBackend::DBG_LeaveDepthHack
 void idRenderBackend::DBG_LeaveDepthHack()
 {
 	qglMatrixMode( GL_PROJECTION );
-	qglLoadMatrixf( m_viewDef->projectionMatrix );
+	qglLoadMatrixf( viewDef->projectionMatrix );
 	qglMatrixMode( GL_MODELVIEW );
 }
 
@@ -610,7 +610,7 @@ be updated after the triangle function completes.
 */
 void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs, int numDrawSurfs )
 {
-	m_currentSpace = NULL;
+	currentSpace = NULL;
 	
 	for( int i = 0 ; i < numDrawSurfs ; i++ )
 	{
@@ -625,7 +625,7 @@ void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs
 			// Set these values ahead of time so we don't have to reconstruct the matrices on the consoles
 			
 			// change the matrix if needed
-			if( drawSurf->space != m_currentSpace )
+			if( drawSurf->space != currentSpace )
 			{
 				glLoadMatrixf( drawSurf->space->modelViewMatrix );
 			}
@@ -642,13 +642,13 @@ void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs
 		}
 		
 		// change the scissor if needed
-		if( r_useScissor.GetBool() && !m_currentScissor.Equals( drawSurf->scissorRect ) )
+		if( r_useScissor.GetBool() && !currentScissor.Equals( drawSurf->scissorRect ) )
 		{
-			m_currentScissor = drawSurf->scissorRect;
-			GL_Scissor( m_viewDef->viewport.x1 + m_currentScissor.x1,
-						m_viewDef->viewport.y1 + m_currentScissor.y1,
-						m_currentScissor.x2 + 1 - m_currentScissor.x1,
-						m_currentScissor.y2 + 1 - m_currentScissor.y1 );
+			currentScissor = drawSurf->scissorRect;
+			GL_Scissor( viewDef->viewport.x1 + currentScissor.x1,
+						viewDef->viewport.y1 + currentScissor.y1,
+						currentScissor.x2 + 1 - currentScissor.x1,
+						currentScissor.y2 + 1 - currentScissor.y1 );
 		}
 		
 		// render it
@@ -659,7 +659,7 @@ void idRenderBackend::DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs
 			DBG_LeaveDepthHack();
 		}
 		
-		m_currentSpace = drawSurf->space;
+		currentSpace = drawSurf->space;
 	}
 }
 
@@ -693,7 +693,7 @@ void idRenderBackend::DBG_ShowSilhouette()
 	
 	GL_State( GLS_DEPTHFUNC_ALWAYS | GLS_POLYMODE_LINE | GLS_CULL_TWOSIDED );
 	
-	DBG_RenderDrawSurfListWithFunction( m_viewDef->drawSurfs, m_viewDef->numDrawSurfs );
+	DBG_RenderDrawSurfListWithFunction( viewDef->drawSurfs, viewDef->numDrawSurfs );
 	
 	//
 	// now blend in edges that cast silhouettes
@@ -702,7 +702,7 @@ void idRenderBackend::DBG_ShowSilhouette()
 	GL_Color( 0.5, 0, 0 );
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 	
-	for( vLight = m_viewDef->viewLights; vLight; vLight = vLight->next )
+	for( vLight = viewDef->viewLights; vLight; vLight = vLight->next )
 	{
 		for( i = 0; i < 2; i++ )
 		{
@@ -794,7 +794,7 @@ void idRenderBackend::DBG_ShowTris( drawSurf_t** drawSurfs, int numDrawSurfs )
 	
 	if( r_showTris.GetInteger() == 3 )
 	{
-		GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_TWOSIDED );
+		GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_TWOSIDED );
 	}
 	
 	GL_Color( color );
@@ -804,7 +804,7 @@ void idRenderBackend::DBG_ShowTris( drawSurf_t** drawSurfs, int numDrawSurfs )
 	
 	if( r_showTris.GetInteger() == 3 )
 	{
-		GL_State( m_glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
+		GL_State( glStateBits & ~( GLS_CULL_MASK ) | GLS_CULL_FRONTSIDED );
 	}
 }
 
@@ -1291,7 +1291,7 @@ void idRenderBackend::DBG_ShowNormals( drawSurf_t** drawSurfs, int numDrawSurfs 
 				const idVec3 normal = tri->verts[j].GetNormal();
 				const idVec3 tangent = tri->verts[j].GetTangent();
 				R_LocalPointToGlobal( drawSurf->space->modelMatrix, tri->verts[j].xyz + tangent + normal * 0.2f, pos );
-				RB_DrawText( va( "%d", j ), pos, 0.01f, colorWhite, m_viewDef->renderView.viewaxis, 1 );
+				RB_DrawText( va( "%d", j ), pos, 0.01f, colorWhite, viewDef->renderView.viewaxis, 1 );
 			}
 			
 			for( j = 0; j < tri->numIndexes; j += 3 )
@@ -1302,7 +1302,7 @@ void idRenderBackend::DBG_ShowNormals( drawSurf_t** drawSurfs, int numDrawSurfs 
 					( tri->verts[ tri->indexes[ j + 0 ] ].xyz
 					  + tri->verts[ tri->indexes[ j + 1 ] ].xyz
 					  + tri->verts[ tri->indexes[ j + 2 ] ].xyz ) * ( 1.0f / 3.0f ) + normal * 0.2f, pos );
-				RB_DrawText( va( "%d", j / 3 ), pos, 0.01f, colorCyan, m_viewDef->renderView.viewaxis, 1 );
+				RB_DrawText( va( "%d", j / 3 ), pos, 0.01f, colorCyan, viewDef->renderView.viewaxis, 1 );
 			}
 		}
 	}
@@ -1607,7 +1607,7 @@ void idRenderBackend::DBG_ShowLights()
 	idLib::Printf( "volumes: " );	// FIXME: not in back end!
 	
 	int count = 0;
-	for( viewLight_t* vLight = m_viewDef->viewLights; vLight != NULL; vLight = vLight->next )
+	for( viewLight_t* vLight = viewDef->viewLights; vLight != NULL; vLight = vLight->next )
 	{
 		count++;
 		
@@ -1617,9 +1617,9 @@ void idRenderBackend::DBG_ShowLights()
 			GL_State( GLS_DEPTHFUNC_ALWAYS | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHMASK | GLS_CULL_TWOSIDED );
 			GL_Color( 0.0f, 0.0f, 1.0f, 0.25f );
 			idRenderMatrix invProjectMVPMatrix;
-			idRenderMatrix::Multiply( m_viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
+			idRenderMatrix::Multiply( viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
 			RB_SetMVP( invProjectMVPMatrix );
-			DrawElementsWithCounters( &m_zeroOneCubeSurface );
+			DrawElementsWithCounters( &zeroOneCubeSurface );
 		}
 		
 		// non-hidden lines
@@ -1628,9 +1628,9 @@ void idRenderBackend::DBG_ShowLights()
 			GL_State( GLS_DEPTHFUNC_ALWAYS | GLS_POLYMODE_LINE | GLS_DEPTHMASK );
 			GL_Color( 1.0f, 1.0f, 1.0f );
 			idRenderMatrix invProjectMVPMatrix;
-			idRenderMatrix::Multiply( m_viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
+			idRenderMatrix::Multiply( viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
 			RB_SetMVP( invProjectMVPMatrix );
-			DrawElementsWithCounters( &m_zeroOneCubeSurface );
+			DrawElementsWithCounters( &zeroOneCubeSurface );
 		}
 		
 		idLib::Printf( "%i ", vLight->lightDef->index );
@@ -1640,7 +1640,7 @@ void idRenderBackend::DBG_ShowLights()
 	
 	// set back the default projection matrix
 	qglMatrixMode( GL_PROJECTION );
-	qglLoadMatrixf( m_viewDef->projectionMatrix );
+	qglLoadMatrixf( viewDef->projectionMatrix );
 	qglMatrixMode( GL_MODELVIEW );
 	qglLoadIdentity();
 }
@@ -1665,12 +1665,12 @@ void idRenderBackend::DBG_ShowPortals()
 	renderProgManager.BindProgram( BUILTIN_COLOR );
 	GL_State( GLS_DEPTHFUNC_ALWAYS );
 	
-	idRenderWorld& world = *m_viewDef->renderWorld;
+	idRenderWorld& world = *viewDef->renderWorld;
 	
 	// flood out through portals, setting area viewCount
-	for( int i = 0; i < world.m_numPortalAreas; i++ )
+	for( int i = 0; i < world.numPortalAreas; i++ )
 	{
-		portalArea_t* area = &world.m_portalAreas[ i ];
+		portalArea_t* area = &world.portalAreas[ i ];
 		if( area->viewCount != tr.viewCount )
 		{
 			continue;
@@ -1683,7 +1683,7 @@ void idRenderBackend::DBG_ShowPortals()
 				continue;
 			}
 			
-			if( world.m_portalAreas[ p->intoArea ].viewCount != tr.viewCount )
+			if( world.portalAreas[ p->intoArea ].viewCount != tr.viewCount )
 			{
 				// red = can't see
 				GL_Color( 1, 0, 0 );
@@ -2071,8 +2071,8 @@ void idRenderBackend::DBG_ShowCenterOfProjection()
 		return;
 	}
 	
-	const int w = m_viewDef->scissor.GetWidth();
-	const int h = m_viewDef->scissor.GetHeight();
+	const int w = viewDef->scissor.GetWidth();
+	const int h = viewDef->scissor.GetHeight();
 	qglClearColor( 1, 0, 0, 1 );
 	for( float f = 0.0f ; f <= 1.0f ; f += 0.125f )
 	{
@@ -2324,7 +2324,7 @@ void idRenderBackend::DBG_TestImage()
 	{
 		cinData_t	cin;
 		
-		cin = testVideo->ImageForTime( m_viewDef->renderView.time[1] - testVideoStartTime );
+		cin = testVideo->ImageForTime( viewDef->renderView.time[1] - testVideoStartTime );
 		if( cin.imageY != NULL )
 		{
 			image = cin.imageY;
@@ -2418,7 +2418,7 @@ void idRenderBackend::DBG_TestImage()
 	}
 	
 	// Draw!
-	DrawElementsWithCounters( &m_testImageSurface );
+	DrawElementsWithCounters( &testImageSurface );
 }
 
 /*
@@ -2525,11 +2525,11 @@ void idRenderBackend::DBG_ShowTrace( drawSurf_t** drawSurfs, int numDrawSurfs )
 	}
 	
 	// determine the points of the trace
-	start = m_viewDef->renderView.vieworg;
-	end = start + 4000 * m_viewDef->renderView.viewaxis[0];
+	start = viewDef->renderView.vieworg;
+	end = start + 4000 * viewDef->renderView.viewaxis[0];
 	
 	// check and draw the surfaces
-	GL_BindTexture( globalImages->m_whiteImage );
+	GL_BindTexture( globalImages->whiteImage );
 	
 	// find how many are ambient
 	for( i = 0; i < numDrawSurfs; i++ )
@@ -2591,7 +2591,7 @@ idRenderBackend::DBG_RenderDebugTools
 void idRenderBackend::DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawSurfs )
 {
 	// don't do much if this was a 2D rendering
-	if( !m_viewDef->viewEntitys )
+	if( !viewDef->viewEntitys )
 	{
 		DBG_TestImage();
 		DBG_ShowLines();
@@ -2603,11 +2603,11 @@ void idRenderBackend::DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawS
 	
 	GL_State( GLS_DEFAULT );
 	
-	GL_Scissor( m_viewDef->viewport.x1 + m_viewDef->scissor.x1,
-				m_viewDef->viewport.y1 + m_viewDef->scissor.y1,
-				m_viewDef->scissor.x2 + 1 - m_viewDef->scissor.x1,
-				m_viewDef->scissor.y2 + 1 - m_viewDef->scissor.y1 );
-	m_currentScissor = m_viewDef->scissor;
+	GL_Scissor( viewDef->viewport.x1 + viewDef->scissor.x1,
+				viewDef->viewport.y1 + viewDef->scissor.y1,
+				viewDef->scissor.x2 + 1 - viewDef->scissor.x1,
+				viewDef->scissor.y2 + 1 - viewDef->scissor.y1 );
+	currentScissor = viewDef->scissor;
 	
 	DBG_ShowLightCount();
 	DBG_ShowTexturePolarity( drawSurfs, numDrawSurfs );
@@ -2618,7 +2618,7 @@ void idRenderBackend::DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawS
 	DBG_ShowSurfaceInfo( drawSurfs, numDrawSurfs );
 	DBG_ShowEdges( drawSurfs, numDrawSurfs );
 	DBG_ShowNormals( drawSurfs, numDrawSurfs );
-	DBG_ShowViewEntitys( m_viewDef->viewEntitys );
+	DBG_ShowViewEntitys( viewDef->viewEntitys );
 	DBG_ShowLights();
 	DBG_ShowTextureVectors( drawSurfs, numDrawSurfs );
 	DBG_ShowDominantTris( drawSurfs, numDrawSurfs );

@@ -61,9 +61,9 @@ idVertexBuffer::idVertexBuffer
 */
 idVertexBuffer::idVertexBuffer()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 	SetUnmapped();
 }
 
@@ -72,9 +72,9 @@ idVertexBuffer::idVertexBuffer()
 idVertexBuffer::AllocBufferObject
 ========================
 */
-bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
-	assert( m_apiObject == 0xFFFF );
+	assert( apiObject == 0xFFFF );
 	assert_16_byte_aligned( data );
 	
 	if( allocSize <= 0 )
@@ -82,8 +82,8 @@ bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferU
 		idLib::Error( "idVertexBuffer::AllocBufferObject: allocSize = %i", allocSize );
 	}
 	
-	m_size = allocSize;
-	m_usage = usage;
+	size = allocSize;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	
@@ -92,12 +92,12 @@ bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferU
 	// clear out any previous error
 	GL_CheckErrors();
 	
-	qglGenBuffersARB( 1, &m_apiObject );
-	if( m_apiObject == 0xFFFF )
+	qglGenBuffersARB( 1, &apiObject );
+	if( apiObject == 0xFFFF )
 	{
 		idLib::FatalError( "idVertexBuffer::AllocBufferObject: failed" );
 	}
-	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 	
 	// these are rewritten every frame
 	qglBufferDataARB( GL_ARRAY_BUFFER_ARB, numBytes, NULL, bufferUsage );
@@ -142,7 +142,7 @@ void idVertexBuffer::FreeBufferObject()
 		return;
 	}
 	
-	if( m_apiObject == 0xFFFF )
+	if( apiObject == 0xFFFF )
 	{
 		return;
 	}
@@ -152,7 +152,7 @@ void idVertexBuffer::FreeBufferObject()
 		idLib::Printf( "vertex buffer free %p, (%i bytes)\n", this, GetSize() );
 	}
 	
-	qglDeleteBuffersARB( 1, &m_apiObject );
+	qglDeleteBuffersARB( 1, &apiObject );
 	
 	ClearWithoutFreeing();
 }
@@ -164,7 +164,7 @@ idVertexBuffer::Update
 */
 void idVertexBuffer::Update( const void* data, int updateSize, int offset ) const
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert_16_byte_aligned( data );
 	assert( ( GetOffset() & 15 ) == 0 );
 	
@@ -175,13 +175,13 @@ void idVertexBuffer::Update( const void* data, int updateSize, int offset ) cons
 	
 	int numBytes = ( updateSize + 15 ) & ~15;
 	
-	if( m_usage == BU_DYNAMIC )
+	if( usage == BU_DYNAMIC )
 	{
-		CopyBuffer( ( byte* )m_buffer + offset, ( const byte* )data, numBytes );
+		CopyBuffer( ( byte* )buffer + offset, ( const byte* )data, numBytes );
 	}
 	else
 	{
-		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 		qglBufferSubDataARB( GL_ARRAY_BUFFER_ARB, GetOffset() + offset, ( GLsizeiptrARB )numBytes, data );
 	}
 }
@@ -193,28 +193,28 @@ idVertexBuffer::MapBuffer
 */
 void* idVertexBuffer::MapBuffer( bufferMapType_t mapType )
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert( IsMapped() == false );
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
-	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 	if( mapType == BM_READ )
 	{
-		m_buffer = qglMapBufferRange( GL_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_READ_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
-		if( m_buffer != NULL )
+		buffer = qglMapBufferRange( GL_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_READ_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+		if( buffer != NULL )
 		{
-			m_buffer = ( byte* )m_buffer + GetOffset();
+			buffer = ( byte* )buffer + GetOffset();
 		}
 	}
 	else if( mapType == BM_WRITE )
 	{
-		m_buffer = qglMapBufferRange( GL_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
-		if( m_buffer != NULL )
+		buffer = qglMapBufferRange( GL_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+		if( buffer != NULL )
 		{
-			m_buffer = ( byte* )m_buffer + GetOffset();
+			buffer = ( byte* )buffer + GetOffset();
 		}
-		assert( IsWriteCombined( m_buffer ) );
+		assert( IsWriteCombined( buffer ) );
 	}
 	else
 	{
@@ -223,11 +223,11 @@ void* idVertexBuffer::MapBuffer( bufferMapType_t mapType )
 	
 	SetMapped();
 	
-	if( m_buffer == NULL )
+	if( buffer == NULL )
 	{
 		idLib::FatalError( "idVertexBuffer::MapBuffer: failed" );
 	}
-	return m_buffer;
+	return buffer;
 }
 
 /*
@@ -237,16 +237,16 @@ idVertexBuffer::UnmapBuffer
 */
 void idVertexBuffer::UnmapBuffer()
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert( IsMapped() );
 	
-	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 	if( !qglUnmapBufferARB( GL_ARRAY_BUFFER_ARB ) )
 	{
 		idLib::Printf( "idVertexBuffer::UnmapBuffer failed\n" );
 	}
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
 	SetUnmapped();
 }
@@ -258,9 +258,9 @@ idVertexBuffer::ClearWithoutFreeing
 */
 void idVertexBuffer::ClearWithoutFreeing()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 }
 
 /*
@@ -278,9 +278,9 @@ idIndexBuffer::idIndexBuffer
 */
 idIndexBuffer::idIndexBuffer()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 	SetUnmapped();
 }
 
@@ -289,9 +289,9 @@ idIndexBuffer::idIndexBuffer()
 idIndexBuffer::AllocBufferObject
 ========================
 */
-bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
-	assert( m_apiObject == 0xFFFF );
+	assert( apiObject == 0xFFFF );
 	assert_16_byte_aligned( data );
 	
 	if( allocSize <= 0 )
@@ -299,8 +299,8 @@ bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUs
 		idLib::Error( "idIndexBuffer::AllocBufferObject: allocSize = %i", allocSize );
 	}
 	
-	m_size = allocSize;
-	m_usage = usage;
+	size = allocSize;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	
@@ -310,13 +310,13 @@ bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUs
 	// clear out any previous error
 	GL_CheckErrors();
 	
-	qglGenBuffersARB( 1, &m_apiObject );
-	if( m_apiObject == 0xFFFF )
+	qglGenBuffersARB( 1, &apiObject );
+	if( apiObject == 0xFFFF )
 	{
 		GLenum error = qglGetError();
 		idLib::FatalError( "idIndexBuffer::AllocBufferObject: failed - GL_Error %d", error );
 	}
-	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, apiObject );
 	
 	// these are rewritten every frame
 	qglBufferDataARB( GL_ELEMENT_ARRAY_BUFFER_ARB, numBytes, NULL, bufferUsage );
@@ -361,7 +361,7 @@ void idIndexBuffer::FreeBufferObject()
 		return;
 	}
 	
-	if( m_apiObject == 0xFFFF )
+	if( apiObject == 0xFFFF )
 	{
 		return;
 	}
@@ -371,7 +371,7 @@ void idIndexBuffer::FreeBufferObject()
 		idLib::Printf( "index buffer free %p, (%i bytes)\n", this, GetSize() );
 	}
 	
-	qglDeleteBuffersARB( 1, &m_apiObject );
+	qglDeleteBuffersARB( 1, &apiObject );
 	
 	ClearWithoutFreeing();
 }
@@ -383,7 +383,7 @@ idIndexBuffer::Update
 */
 void idIndexBuffer::Update( const void* data, int updateSize, int offset ) const
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert_16_byte_aligned( data );
 	assert( ( GetOffset() & 15 ) == 0 );
 	
@@ -394,13 +394,13 @@ void idIndexBuffer::Update( const void* data, int updateSize, int offset ) const
 	
 	int numBytes = ( updateSize + 15 ) & ~15;
 	
-	if( m_usage == BU_DYNAMIC )
+	if( usage == BU_DYNAMIC )
 	{
-		CopyBuffer( ( byte* )m_buffer + offset, ( const byte* )data, numBytes );
+		CopyBuffer( ( byte* )buffer + offset, ( const byte* )data, numBytes );
 	}
 	else
 	{
-		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 		qglBufferSubDataARB( GL_ARRAY_BUFFER_ARB, GetOffset() + offset, ( GLsizeiptrARB )numBytes, data );
 	}
 }
@@ -412,28 +412,28 @@ idIndexBuffer::MapBuffer
 */
 void* idIndexBuffer::MapBuffer( bufferMapType_t mapType )
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert( IsMapped() == false );
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
-	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, apiObject );
 	if( mapType == BM_READ )
 	{
-		m_buffer = qglMapBufferRange( GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_READ_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
-		if( m_buffer != NULL )
+		buffer = qglMapBufferRange( GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_READ_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+		if( buffer != NULL )
 		{
-			m_buffer = ( byte* )m_buffer + GetOffset();
+			buffer = ( byte* )buffer + GetOffset();
 		}
 	}
 	else if( mapType == BM_WRITE )
 	{
-		m_buffer = qglMapBufferRange( GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
-		if( m_buffer != NULL )
+		buffer = qglMapBufferRange( GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+		if( buffer != NULL )
 		{
-			m_buffer = ( byte* )m_buffer + GetOffset();
+			buffer = ( byte* )buffer + GetOffset();
 		}
-		assert( IsWriteCombined( m_buffer ) );
+		assert( IsWriteCombined( buffer ) );
 	}
 	else
 	{
@@ -442,11 +442,11 @@ void* idIndexBuffer::MapBuffer( bufferMapType_t mapType )
 	
 	SetMapped();
 	
-	if( m_buffer == NULL )
+	if( buffer == NULL )
 	{
 		idLib::FatalError( "idIndexBuffer::MapBuffer: failed" );
 	}
-	return m_buffer;
+	return buffer;
 }
 
 /*
@@ -456,16 +456,16 @@ idIndexBuffer::UnmapBuffer
 */
 void idIndexBuffer::UnmapBuffer()
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert( IsMapped() );
 	
-	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, m_apiObject );
+	qglBindBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB, apiObject );
 	if( !qglUnmapBufferARB( GL_ELEMENT_ARRAY_BUFFER_ARB ) )
 	{
 		idLib::Printf( "idIndexBuffer::UnmapBuffer failed\n" );
 	}
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
 	SetUnmapped();
 }
@@ -477,9 +477,9 @@ idIndexBuffer::ClearWithoutFreeing
 */
 void idIndexBuffer::ClearWithoutFreeing()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 }
 
 /*
@@ -497,9 +497,9 @@ idUniformBuffer::idUniformBuffer
 */
 idUniformBuffer::idUniformBuffer()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 	SetUnmapped();
 }
 
@@ -508,9 +508,9 @@ idUniformBuffer::idUniformBuffer()
 idUniformBuffer::AllocBufferObject
 ========================
 */
-bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
-	assert( m_apiObject == 0xFFFF );
+	assert( apiObject == 0xFFFF );
 	assert_16_byte_aligned( data );
 	
 	if( allocSize <= 0 )
@@ -518,15 +518,15 @@ bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, buffer
 		idLib::Error( "idUniformBuffer::AllocBufferObject: allocSize = %i", allocSize );
 	}
 	
-	m_size = allocSize;
-	m_usage = usage;
+	size = allocSize;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	
 	const int numBytes = GetAllocedSize();
 	
-	qglGenBuffersARB( 1, &m_apiObject );
-	qglBindBufferARB( GL_UNIFORM_BUFFER, m_apiObject );
+	qglGenBuffersARB( 1, &apiObject );
+	qglBindBufferARB( GL_UNIFORM_BUFFER, apiObject );
 	qglBufferDataARB( GL_UNIFORM_BUFFER, numBytes, NULL, GL_STREAM_DRAW_ARB );
 	qglBindBufferARB( GL_UNIFORM_BUFFER, 0 );
 	
@@ -563,7 +563,7 @@ void idUniformBuffer::FreeBufferObject()
 		return;
 	}
 	
-	if( m_apiObject == 0xFFFF )
+	if( apiObject == 0xFFFF )
 	{
 		return;
 	}
@@ -574,7 +574,7 @@ void idUniformBuffer::FreeBufferObject()
 	}
 	
 	qglBindBufferARB( GL_UNIFORM_BUFFER, 0 );
-	qglDeleteBuffersARB( 1, &m_apiObject );
+	qglDeleteBuffersARB( 1, &apiObject );
 	
 	ClearWithoutFreeing();
 }
@@ -586,7 +586,7 @@ idUniformBuffer::Update
 */
 void idUniformBuffer::Update( const void* data, int updateSize, int offset ) const
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert_16_byte_aligned( data );
 	assert( ( GetOffset() & 15 ) == 0 );
 	
@@ -597,13 +597,13 @@ void idUniformBuffer::Update( const void* data, int updateSize, int offset ) con
 	
 	const int numBytes = ( updateSize + 15 ) & ~15;
 	
-	if( m_usage == BU_DYNAMIC )
+	if( usage == BU_DYNAMIC )
 	{
-		CopyBuffer( ( byte* )m_buffer + offset, ( const byte* )data, numBytes );
+		CopyBuffer( ( byte* )buffer + offset, ( const byte* )data, numBytes );
 	}
 	else
 	{
-		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, m_apiObject );
+		qglBindBufferARB( GL_ARRAY_BUFFER_ARB, apiObject );
 		qglBufferSubDataARB( GL_ARRAY_BUFFER_ARB, GetOffset() + offset, ( GLsizeiptrARB )numBytes, data );
 	}
 }
@@ -617,28 +617,28 @@ void* idUniformBuffer::MapBuffer( bufferMapType_t mapType )
 {
 	assert( IsMapped() == false );
 	assert( mapType == BM_WRITE );
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	
 	int numBytes = GetAllocedSize();
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
-	qglBindBufferARB( GL_UNIFORM_BUFFER, m_apiObject );
+	qglBindBufferARB( GL_UNIFORM_BUFFER, apiObject );
 	numBytes = numBytes;
 	assert( GetOffset() == 0 );
-	m_buffer = qglMapBufferRange( GL_UNIFORM_BUFFER, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
-	if( m_buffer != NULL )
+	buffer = qglMapBufferRange( GL_UNIFORM_BUFFER, 0, GetAllocedSize(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT );
+	if( buffer != NULL )
 	{
-		m_buffer = ( byte* )m_buffer + GetOffset();
+		buffer = ( byte* )buffer + GetOffset();
 	}
 	
 	SetMapped();
 	
-	if( m_buffer == NULL )
+	if( buffer == NULL )
 	{
 		idLib::FatalError( "idUniformBuffer::MapBuffer: failed" );
 	}
-	return ( float* ) m_buffer;
+	return ( float* ) buffer;
 }
 
 /*
@@ -648,16 +648,16 @@ idUniformBuffer::UnmapBuffer
 */
 void idUniformBuffer::UnmapBuffer()
 {
-	assert( m_apiObject != 0xFFFF );
+	assert( apiObject != 0xFFFF );
 	assert( IsMapped() );
 	
-	qglBindBufferARB( GL_UNIFORM_BUFFER, m_apiObject );
+	qglBindBufferARB( GL_UNIFORM_BUFFER, apiObject );
 	if( !qglUnmapBufferARB( GL_UNIFORM_BUFFER ) )
 	{
 		idLib::Printf( "idUniformBuffer::UnmapBuffer failed\n" );
 	}
 	
-	m_buffer = NULL;
+	buffer = NULL;
 	
 	SetUnmapped();
 }
@@ -669,7 +669,7 @@ idUniformBuffer::ClearWithoutFreeing
 */
 void idUniformBuffer::ClearWithoutFreeing()
 {
-	m_size = 0;
-	m_offsetInOtherBuffer = OWNS_BUFFER_FLAG;
-	m_apiObject = 0xFFFF;
+	size = 0;
+	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
+	apiObject = 0xFFFF;
 }

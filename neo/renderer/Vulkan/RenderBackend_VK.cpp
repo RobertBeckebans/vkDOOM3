@@ -1286,7 +1286,7 @@ idRenderBackend::idRenderBackend()
 {
 	ClearContext();
 	
-	memset( m_gammaTable, 0, sizeof( m_gammaTable ) );
+	memset( gammaTable, 0, sizeof( gammaTable ) );
 }
 
 /*
@@ -1597,17 +1597,17 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	idVertexBuffer* vertexBuffer;
 	if( vertexCache.CacheIsStatic( vbHandle ) )
 	{
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
 	int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -1616,17 +1616,17 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	idIndexBuffer* indexBuffer;
 	if( vertexCache.CacheIsStatic( ibHandle ) )
 	{
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
+		indexBuffer = &vertexCache.staticData.indexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
 	int indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -1653,8 +1653,8 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	
 	vkcontext.jointCacheHandle = surf->jointCache;
 	
-	PrintState( m_glStateBits, vkcontext.stencilOperations );
-	renderProgManager.CommitCurrent( m_glStateBits );
+	PrintState( glStateBits, vkcontext.stencilOperations );
+	renderProgManager.CommitCurrent( glStateBits );
 	
 	{
 		const VkBuffer buffer = indexBuffer->GetAPIObject();
@@ -1777,7 +1777,7 @@ void idRenderBackend::GL_SetDefaultState()
 {
 	RENDERLOG_PRINTF( "--- GL_SetDefaultState ---\n" );
 	
-	m_glStateBits = 0;
+	glStateBits = 0;
 	
 	GL_State( 0, true );
 	
@@ -1793,10 +1793,10 @@ This routine is responsible for setting the most commonly changed state
 */
 void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 {
-	m_glStateBits = stateBits | ( m_glStateBits & GLS_KEEP );
-	if( m_viewDef != NULL && m_viewDef->isMirror )
+	glStateBits = stateBits | ( glStateBits & GLS_KEEP );
+	if( viewDef != NULL && viewDef->isMirror )
 	{
-		m_glStateBits |= GLS_MIRROR_VIEW;
+		glStateBits |= GLS_MIRROR_VIEW;
 	}
 }
 
@@ -1846,7 +1846,8 @@ idRenderBackend::GL_CopyFrameBuffer
 */
 void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight )
 {
-
+	// RB: FIXME this broke with the removing of m_ prefixes
+#if 0
 	idImage* colorSrc = vkcontext.swapchainImages[ vkcontext.currentSwapIndex ];
 	VkCommandBuffer cmdBuffer = vkcontext.commandBuffer[ vkcontext.currentFrameData ];
 	
@@ -1920,6 +1921,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 	renderPassBeginInfo.renderArea.extent = vkcontext.swapchainExtent;
 	
 	vkCmdBeginRenderPass( cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
+#endif
 }
 
 /*
@@ -1995,11 +1997,11 @@ void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax )
 	
 	if( zmin == 0.0f && zmax == 0.0f )
 	{
-		m_glStateBits = m_glStateBits & ~GLS_DEPTH_TEST_MASK;
+		glStateBits = glStateBits & ~GLS_DEPTH_TEST_MASK;
 	}
 	else
 	{
-		m_glStateBits |= GLS_DEPTH_TEST_MASK;
+		glStateBits |= GLS_DEPTH_TEST_MASK;
 		vkCmdSetDepthBounds( vkcontext.commandBuffer[ vkcontext.currentFrameData ], zmin, zmax );
 	}
 	
@@ -2087,17 +2089,17 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	idVertexBuffer* vertexBuffer;
 	if( vertexCache.CacheIsStatic( vbHandle ) )
 	{
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "RB_DrawElementsWithCounters, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
 	const int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -2106,17 +2108,17 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	idIndexBuffer* indexBuffer;
 	if( vertexCache.CacheIsStatic( ibHandle ) )
 	{
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
+		indexBuffer = &vertexCache.staticData.indexBuffer;
 	}
 	else
 	{
 		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
 		{
 			idLib::Warning( "RB_DrawElementsWithCounters, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
 	int indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
 	
@@ -2124,8 +2126,8 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	
 	vkcontext.jointCacheHandle = drawSurf->jointCache;
 	
-	PrintState( m_glStateBits, vkcontext.stencilOperations );
-	renderProgManager.CommitCurrent( m_glStateBits );
+	PrintState( glStateBits, vkcontext.stencilOperations );
+	renderProgManager.CommitCurrent( glStateBits );
 	
 	{
 		const VkBuffer buffer = indexBuffer->GetAPIObject();
@@ -2150,8 +2152,8 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 		GL_SeparateStencil( STENCIL_FACE_FRONT, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR );
 		GL_SeparateStencil( STENCIL_FACE_BACK, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_DECR );
 		
-		PrintState( m_glStateBits, vkcontext.stencilOperations );
-		renderProgManager.CommitCurrent( m_glStateBits );
+		PrintState( glStateBits, vkcontext.stencilOperations );
+		renderProgManager.CommitCurrent( glStateBits );
 		
 		vkCmdDrawIndexed(
 			vkcontext.commandBuffer[ vkcontext.currentFrameData ],
