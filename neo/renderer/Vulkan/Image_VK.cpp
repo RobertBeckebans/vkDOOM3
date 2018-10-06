@@ -36,7 +36,7 @@ If you have questions concerning this license or the applicable additional terms
 
 int						idImage::garbageIndex = 0;
 #if defined( ID_USE_AMD_ALLOCATOR )
-idList< VmaAllocation > idImage::m_allocationGarbage[ NUM_FRAME_DATA ];
+idList< VmaAllocation > idImage::allocationGarbage[ NUM_FRAME_DATA ];
 #else
 idList< vulkanAllocation_t > idImage::allocationGarbage[ NUM_FRAME_DATA ];
 #endif

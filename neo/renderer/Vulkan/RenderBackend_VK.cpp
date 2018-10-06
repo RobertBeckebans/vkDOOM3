@@ -1592,6 +1592,7 @@ idRenderBackend::DrawElementsWithCounters
 */
 void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 {
+#if 1
 	// get vertex buffer
 	const vertCacheHandle_t vbHandle = surf->ambientCache;
 	idVertexBuffer* vertexBuffer;
@@ -1670,6 +1671,7 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 	vkCmdDrawIndexed(
 		vkcontext.commandBuffer[ vkcontext.currentFrameData ],
 		surf->numIndexes, 1, ( indexOffset >> 1 ), vertOffset / sizeof( idDrawVert ), 0 );
+#endif
 }
 
 /*

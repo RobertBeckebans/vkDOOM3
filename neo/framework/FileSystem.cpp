@@ -1836,18 +1836,6 @@ int idFileSystemLocal::ReadFile( const char* relativePath, void** buffer, ID_TIM
 		*buffer = NULL;
 	}
 	
-	if( buffer == NULL && timestamp != NULL && resourceFiles.Num() > 0 )
-	{
-		static idResourceCacheEntry rc;
-		int size = 0;
-		if( GetResourceCacheEntry( relativePath, rc ) )
-		{
-			*timestamp = 0;
-			size = rc.length;
-		}
-		return size;
-	}
-	
 	buf = NULL;	// quiet compiler warning
 	
 	// if this is a .cfg file and we are playing back a journal, read
@@ -1893,10 +1881,25 @@ int idFileSystemLocal::ReadFile( const char* relativePath, void** buffer, ID_TIM
 	f = OpenFileRead( relativePath, ( buffer != NULL ) );
 	if( f == NULL )
 	{
+		// RB: moved here
+		if( buffer == NULL && timestamp != NULL && resourceFiles.Num() > 0 )
+		{
+			static idResourceCacheEntry rc;
+			int size = 0;
+			if( GetResourceCacheEntry( relativePath, rc ) )
+			{
+				*timestamp = 0;
+				size = rc.length;
+			}
+			return size;
+		}
+		// RB end
+		
 		if( buffer )
 		{
 			*buffer = NULL;
 		}
+		
 		return -1;
 	}
 	len = f->Length();

@@ -34,8 +34,8 @@ If you have questions concerning this license or the applicable additional terms
 #undef StrCmpN
 #undef StrCmpNI
 #undef StrCmpI
-#include <atlbase.h>
-#include <Wbemidl.h>
+//#include <atlbase.h>
+//#include <Wbemidl.h>
 
 #pragma comment (lib, "wbemuuid.lib")
 
@@ -138,6 +138,11 @@ returns in megabytes
 */
 int Sys_GetVideoRam()
 {
+#if 1
+	// RB: TODO some cool Vulkan related stuff
+	return 0;
+	
+#else
 	unsigned int retSize = 64;
 	
 	CComPtr<IWbemLocator> spLoc = NULL;
@@ -191,6 +196,7 @@ int Sys_GetVideoRam()
 		}
 	}
 	return retSize;
+#endif
 }
 
 /*

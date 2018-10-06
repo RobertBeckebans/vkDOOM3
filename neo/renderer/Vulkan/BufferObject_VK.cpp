@@ -209,7 +209,7 @@ void idVertexBuffer::Update( const void* data, int size, int offset ) const
 	{
 		CopyBuffer(
 #if defined( ID_USE_AMD_ALLOCATOR )
-			( byte* )m_allocation.pMappedData + GetOffset() + offset,
+			( byte* )allocation.pMappedData + GetOffset() + offset,
 #else
 			allocation.data + GetOffset() + offset,
 #endif
@@ -248,7 +248,7 @@ void* idVertexBuffer::MapBuffer( bufferMapType_t mapType )
 	}
 	
 #if defined( ID_USE_AMD_ALLOCATOR )
-	void* buffer = ( byte* )m_allocation.pMappedData + GetOffset();
+	void* buffer = ( byte* )allocation.pMappedData + GetOffset();
 #else
 	void* buffer = allocation.data + GetOffset();
 #endif
@@ -461,7 +461,7 @@ void idIndexBuffer::Update( const void* data, int size, int offset ) const
 	{
 		CopyBuffer(
 #if defined( ID_USE_AMD_ALLOCATOR )
-			( byte* )m_allocation.pMappedData + GetOffset() + offset,
+			( byte* )allocation.pMappedData + GetOffset() + offset,
 #else
 			allocation.data + GetOffset() + offset,
 #endif
@@ -500,7 +500,7 @@ void* idIndexBuffer::MapBuffer( bufferMapType_t mapType )
 	}
 	
 #if defined( ID_USE_AMD_ALLOCATOR )
-	void* buffer = ( byte* )m_allocation.pMappedData + GetOffset();
+	void* buffer = ( byte* )allocation.pMappedData + GetOffset();
 #else
 	void* buffer = allocation.data + GetOffset();
 #endif
@@ -714,7 +714,7 @@ void idUniformBuffer::Update( const void* data, int size, int offset ) const
 	{
 		CopyBuffer(
 #if defined( ID_USE_AMD_ALLOCATOR )
-			( byte* )m_allocation.pMappedData + GetOffset() + offset,
+			( byte* )allocation.pMappedData + GetOffset() + offset,
 #else
 			allocation.data + GetOffset() + offset,
 #endif
@@ -754,7 +754,7 @@ void* idUniformBuffer::MapBuffer( bufferMapType_t mapType )
 	}
 	
 #if defined( ID_USE_AMD_ALLOCATOR )
-	void* buffer = ( byte* )m_allocation.pMappedData + GetOffset();
+	void* buffer = ( byte* )allocation.pMappedData + GetOffset();
 #else
 	void* buffer = allocation.data + GetOffset();
 #endif
