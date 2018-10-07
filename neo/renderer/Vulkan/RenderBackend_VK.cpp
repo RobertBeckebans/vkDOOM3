@@ -919,18 +919,18 @@ static void CreateSwapChain()
 	vkcontext.fullscreen = win32.isFullscreen;
 	
 	uint32 numImages = 0;
-	idArray< VkImage, NUM_FRAME_DATA > swapchainImages;
+	//idArray< VkImage, NUM_FRAME_DATA > swapchainImages;
 	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, vkcontext.swapchain, &numImages, NULL ) );
 	ID_VK_VALIDATE( numImages > 0, "vkGetSwapchainImagesKHR returned a zero image count." );
 	
-	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, vkcontext.swapchain, &numImages, swapchainImages.Ptr() ) );
+	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, vkcontext.swapchain, &numImages, vkcontext.swapchainImages.Ptr() ) );
 	ID_VK_VALIDATE( numImages > 0, "vkGetSwapchainImagesKHR returned a zero image count." );
 	
 	for( uint32 i = 0; i < NUM_FRAME_DATA; ++i )
 	{
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.image = swapchainImages[ i ];
+		imageViewCreateInfo.image = vkcontext.swapchainImages[ i ];
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		imageViewCreateInfo.format = vkcontext.swapchainFormat;
 		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
@@ -944,16 +944,19 @@ static void CreateSwapChain()
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 		imageViewCreateInfo.flags = 0;
 		
-		VkImageView imageView;
-		ID_VK_CHECK( vkCreateImageView( vkcontext.device, &imageViewCreateInfo, NULL, &imageView ) );
+		//VkImageView imageView;
+		ID_VK_CHECK( vkCreateImageView( vkcontext.device, &imageViewCreateInfo, NULL, &vkcontext.swapchainViews[ i ] ) );
 		
+		/*
 		idImage* image = new idImage( va( "_swapchain%d", i ) );
 		image->CreateFromSwapImage(
 			swapchainImages[ i ],
 			imageView,
 			vkcontext.swapchainFormat,
 			vkcontext.swapchainExtent );
+		
 		vkcontext.swapchainImages[ i ] = image;
+		*/
 	}
 }
 
@@ -966,8 +969,7 @@ static void DestroySwapChain()
 {
 	for( uint32 i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		vkDestroyImageView( vkcontext.device, vkcontext.swapchainImages[ i ]->GetView(), NULL );
-		delete vkcontext.swapchainImages[ i ];
+		vkDestroyImageView( vkcontext.device, vkcontext.swapchainViews[ i ], NULL );
 	}
 	vkcontext.swapchainImages.Zero();
 	
@@ -1277,7 +1279,7 @@ static void CreateFrameBuffers()
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		attachments[ 0 ] = vkcontext.swapchainImages[ i ]->GetView();
+		attachments[ 0 ] = vkcontext.swapchainViews[ i ];
 		ID_VK_CHECK( vkCreateFramebuffer( vkcontext.device, &frameBufferCreateInfo, NULL, &vkcontext.frameBuffers[ i ] ) );
 	}
 }
@@ -1338,6 +1340,7 @@ static void ClearContext()
 	vkcontext.msaaImage = VK_NULL_HANDLE;
 	vkcontext.msaaImageView = VK_NULL_HANDLE;
 	vkcontext.swapchainImages.Zero();
+	vkcontext.swapchainViews.Zero();
 	vkcontext.frameBuffers.Zero();
 	vkcontext.acquireSemaphores.Zero();
 	vkcontext.renderCompleteSemaphores.Zero();
@@ -1796,7 +1799,7 @@ void idRenderBackend::GL_EndFrame()
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.image = vkcontext.swapchainImages[ vkcontext.currentSwapIndex ]->GetImage();
+	barrier.image = vkcontext.swapchainImages[ vkcontext.currentSwapIndex ];
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
