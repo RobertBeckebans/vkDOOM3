@@ -144,16 +144,38 @@ idRenderBackend
 DebugCallback
 =============
 */
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-	VkDebugReportFlagsEXT flags,
-	VkDebugReportObjectTypeEXT objType,
-	uint64 obj, size_t location, int32 code,
-	const char* layerPrefix, const char* msg, void* userData )
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback( VkDebugReportFlagsEXT msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
+		size_t location, int32_t msgCode, const char* layerPrefix, const char* msg,
+		void* userData )
 {
-
-	idLib::Printf( "VK_DEBUG::%s: %s flags=%d, objType=%d, obj=%llu, location=%lld, code=%d\n",
-				   layerPrefix, msg, flags, objType, obj, location, code );
-				   
+	if( msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] ERROR: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] PERFORMANCE WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] INFO: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] DEBUG: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	
+	/*
+	 * false indicates that layer should not bail-out of an
+	 * API call that had validation failures. This may mean that the
+	 * app dies inside the driver due to invalid parameter(s).
+	 * That's what would happen without validation layers, so we'll
+	 * keep that behavior here.
+	 */
 	return VK_FALSE;
 }
 
@@ -215,6 +237,12 @@ static void ValidateValidationLayers()
 		{
 			idLib::FatalError( "Cannot find validation layer: %s.\n", g_validationLayers[ i ] );
 		}
+	}
+	
+	// RB
+	for( uint32 j = 0; j < instanceLayerCount; ++j )
+	{
+		idLib::Printf( "Found instance validation layer: '%s' specVersion='%i' implVersion='%i'\n", instanceLayers[j].layerName, instanceLayers[j].specVersion, instanceLayers[j].implementationVersion );
 	}
 }
 
@@ -534,6 +562,24 @@ static void EnumeratePhysicalDevices()
 		
 		vkGetPhysicalDeviceMemoryProperties( gpu.device, &gpu.memProps );
 		vkGetPhysicalDeviceProperties( gpu.device, &gpu.props );
+		
+		switch( gpu.props.vendorID )
+		{
+			case 0x8086:
+				idLib::Printf( "Found device[%i] Vendor: Intel\n", i );
+				break;
+				
+			case 0x10DE:
+				idLib::Printf( "Found device[%i] Vendor: NVIDIA\n", i );
+				break;
+				
+			case 0x1002:
+				idLib::Printf( "Found device[%i] Vendor: AMD\n", i );
+				break;
+				
+			default:
+				idLib::Printf( "Found device[%i] Vendor: Unknown (0x%x)\n", i, gpu.props.vendorID );
+		}
 	}
 }
 
@@ -652,6 +698,28 @@ static void SelectPhysicalDevice()
 			
 			vkGetPhysicalDeviceFeatures( vkcontext.physicalDevice, &vkcontext.physicalDeviceFeatures );
 			
+			idLib::Printf( "Selected device '%s'\n", gpu.props.deviceName );
+			
+			// RB: found vendor IDs in nvQuake
+			switch( gpu.props.vendorID )
+			{
+				case 0x8086:
+					idLib::Printf( "Vendor: Intel\n", i );
+					break;
+					
+				case 0x10DE:
+					idLib::Printf( "Vendor: NVIDIA\n", i );
+					break;
+					
+				case 0x1002:
+					idLib::Printf( "Vendor: AMD\n", i );
+					break;
+					
+				default:
+					idLib::Printf( "Vendor: Unknown (0x%x)\n", i, gpu.props.vendorID );
+					break;
+			}
+			
 			return;
 		}
 	}
@@ -722,7 +790,7 @@ static void CreateLogicalDeviceAndQueues()
 ChooseSurfaceFormat
 =============
 */
-VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR >& formats )
+static VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR >& formats )
 {
 	VkSurfaceFormatKHR result;
 	
@@ -750,7 +818,7 @@ VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR >& formats )
 ChoosePresentMode
 =============
 */
-VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR >& modes )
+static VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR >& modes )
 {
 	VkPresentModeKHR desiredMode = VK_PRESENT_MODE_FIFO_KHR;
 	
@@ -785,7 +853,7 @@ VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR >& modes )
 ChooseSurfaceExtent
 =============
 */
-VkExtent2D ChooseSurfaceExtent( VkSurfaceCapabilitiesKHR& caps )
+static VkExtent2D ChooseSurfaceExtent( VkSurfaceCapabilitiesKHR& caps )
 {
 	VkExtent2D extent;
 	
