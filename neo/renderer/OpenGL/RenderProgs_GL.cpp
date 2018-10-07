@@ -77,7 +77,7 @@ struct attribInfo_t
 attribInfo_t attribsPC[] =
 {
 	// vertex attributes
-	{ "float4",		"position",		"POSITION",		"in_Position",			PC_ATTRIB_INDEX_VERTEX,			AT_VS_IN,		VERTEX_MASK_XYZ },
+	{ "float3",		"position",		"POSITION",		"in_Position",			PC_ATTRIB_INDEX_VERTEX,			AT_VS_IN,		VERTEX_MASK_XYZ },
 	{ "float2",		"texcoord",		"TEXCOORD0",	"in_TexCoord",			PC_ATTRIB_INDEX_ST,				AT_VS_IN,		VERTEX_MASK_ST },
 	{ "float4",		"normal",		"NORMAL",		"in_Normal",			PC_ATTRIB_INDEX_NORMAL,			AT_VS_IN,		VERTEX_MASK_NORMAL },
 	{ "float4",		"tangent",		"TANGENT",		"in_Tangent",			PC_ATTRIB_INDEX_TANGENT,		AT_VS_IN,		VERTEX_MASK_TANGENT },
@@ -634,7 +634,12 @@ void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idLis
 				//break;
 			}
 		}
-		// RB end
+		
+		// RB: HACK change vec4 in_Position to vec3
+		if( var.nameGLSL == "in_Position" && var.type == "vec4" )
+		{
+			var.type = "vec3";
+		}
 		
 		inOutVars.Append( var );
 	}
@@ -647,7 +652,7 @@ void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idLis
 ConvertCG2GLSL
 ========================
 */
-idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, idStr& uniforms, bool vkGLSL )
+idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, idStr& layout, bool vkGLSL )
 {
 	idStr program;
 	program.ReAllocate( in.Length() * 2, false );
@@ -655,18 +660,20 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 	idList< inOutVariable_t, TAG_RENDERPROG > varsIn;
 	idList< inOutVariable_t, TAG_RENDERPROG > varsOut;
 	idList< idStr > uniformList;
+	idList< idStr > samplerList;
 	
 	idLexer src( LEXFL_NOFATALERRORS );
 	src.LoadMemory( in.c_str(), in.Length(), name );
 	
 	bool inMain = false;
+	bool justEnteredMain = false;
 	const char* uniformArrayName = isVertexProgram ? VERTEX_UNIFORM_ARRAY_NAME : FRAGMENT_UNIFORM_ARRAY_NAME;
 	char newline[128] = { "\n" };
 	
 	idToken token;
 	while( src.ReadToken( &token ) )
 	{
-		// check for uniforms
+		// check for float4 uniforms
 		while( token == "uniform" && src.CheckTokenString( "float4" ) )
 		{
 			src.ReadToken( &token );
@@ -681,7 +688,47 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 				}
 			}
 			
-			src.ReadToken( & token );
+			src.ReadToken( &token );
+		}
+		
+		// RB: check for sampler uniforms
+		if( vkGLSL )
+		{
+			while( token == "uniform" && ( src.PeekTokenString( "sampler2D" ) || src.PeekTokenString( "samplerCUBE" ) || src.PeekTokenString( "sampler3D" ) ) )
+			{
+				idStr sampler;
+				
+				// sampler2D or whatever
+				src.ReadToken( &token );
+				
+				//  HACK
+				if( token == "samplerCUBE" )
+				{
+					sampler += "samplerCube";
+				}
+				else
+				{
+					sampler += token;
+				}
+				sampler += " ";
+				
+				// the actual variable name
+				src.ReadToken( &token );
+				sampler += token;
+				
+				samplerList.Append( sampler );
+				
+				// strip ': register()' from uniforms
+				if( src.CheckTokenString( ":" ) )
+				{
+					if( src.CheckTokenString( "register" ) )
+					{
+						src.SkipUntilString( ";" );
+					}
+				}
+				
+				src.ReadToken( &token );
+			}
 		}
 		
 		// convert the in/out structs
@@ -690,6 +737,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			if( src.CheckTokenString( "VS_IN" ) )
 			{
 				ParseInOutStruct( src, AT_VS_IN, 0, varsIn );
+				
 				program += "\n\n";
 				for( int i = 0; i < varsIn.Num(); i++ )
 				{
@@ -710,9 +758,8 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			}
 			else if( src.CheckTokenString( "VS_OUT" ) )
 			{
-				// RB begin
+				// RB
 				ParseInOutStruct( src, AT_VS_OUT, AT_VS_OUT_RESERVED, varsOut );
-				// RB end
 				
 				program += "\n";
 				for( int i = 0; i < varsOut.Num(); i++ )
@@ -837,6 +884,14 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			int len = Min( idStr::Length( newline ) + 1, ( int )sizeof( newline ) - 1 );
 			newline[len - 1] = '\t';
 			newline[len - 0] = '\0';
+			
+			// RB: add this to every vertex shader
+			if( inMain && !justEnteredMain && isVertexProgram )
+			{
+				program += "\nvec4 position4 = vec4( in_Position, 1.0 );\n\n";
+				justEnteredMain = true;
+			}
+			
 			continue;
 		}
 		if( token == "}" )
@@ -896,7 +951,6 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 		// check for input/output parameters
 		if( src.CheckTokenString( "." ) )
 		{
-		
 			if( token == "vertex" || token == "fragment" )
 			{
 				idToken member;
@@ -908,7 +962,19 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 					if( member.Cmp( varsIn[i].nameCg ) == 0 )
 					{
 						program += ( token.linesCrossed > 0 ) ? newline : ( token.WhiteSpaceBeforeToken() > 0 ? " " : "" );
-						program += varsIn[i].nameGLSL;
+						
+						/*
+						RB: HACK use position4 instead of in_Position directly
+						because I can't figure out how to do strides with Vulkan
+						*/
+						if( varsIn[i].nameGLSL == "in_Position" )
+						{
+							program += "position4";
+						}
+						else
+						{
+							program += varsIn[i].nameGLSL;
+						}
 						foundInOut = true;
 						break;
 					}
@@ -1004,6 +1070,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			{
 				out += "layout( binding = 1 ) uniform UBOF {\n";
 			}
+			
 			for( int i = 0; i < uniformList.Num(); i++ )
 			{
 				out += "\tvec4 ";
@@ -1018,14 +1085,38 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 		}
 	}
 	
+	// RB: add samplers with layout bindings
+	if( vkGLSL )
+	{
+		int bindingOffset = uniformList.Num() > 0 ? 2 : 0;
+		
+		for( int i = 0; i < samplerList.Num(); i++ )
+		{
+			out += va( "layout( binding = %i ) uniform %s;\n", i + bindingOffset , samplerList[i].c_str() );
+		}
+	}
+	
 	out += program;
 	
+	layout += "uniforms [\n";
 	for( int i = 0; i < uniformList.Num(); i++ )
 	{
-		uniforms += uniformList[i];
-		uniforms += "\n";
+		layout += "\t";
+		layout += uniformList[i];
+		layout += "\n";
 	}
-	uniforms += "\n";
+	layout += "]\n";
+	
+	layout += "bindings [\n";
+	if( uniformList.Num() > 0 )
+	{
+		layout += "\tubo\n";
+	}
+	for( int i = 0; i < samplerList.Num(); i++ )
+	{
+		layout += "\t sampler\n";
+	}
+	layout += "]\n";
 	
 	return out;
 }
@@ -1381,6 +1472,7 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 		}
 		idStr hlslCode( ( const char* ) hlslFileBuffer );
 		idStr programHLSL = StripDeadCode( hlslCode, inFile );
+		
 		programGLSL = ConvertCG2GLSL( programHLSL, inFile, shader.stage == SHADER_STAGE_VERTEX, programUniforms, false );
 		
 		fileSystem->WriteFile( outFileHLSL, programHLSL.c_str(), programHLSL.Length(), "fs_basepath" );
@@ -1420,23 +1512,30 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 	
 	idLexer src( programUniforms, programUniforms.Length(), "uniforms" );
 	idToken token;
-	while( src.ReadToken( &token ) )
+	if( src.ExpectTokenString( "uniforms" ) )
 	{
-		int index = -1;
-		for( int i = 0; i < RENDERPARM_TOTAL && index == -1; i++ )
+		src.ExpectTokenString( "[" );
+		
+		while( !src.CheckTokenString( "]" ) )
 		{
-			if( token == GLSLParmNames[ i ] )
+			src.ReadToken( &token );
+			
+			int index = -1;
+			for( int i = 0; i < RENDERPARM_TOTAL && index == -1; ++i )
 			{
-				index = i;
+				if( token == GLSLParmNames[ i ] )
+				{
+					index = i;
+				}
 			}
+			
+			if( index == -1 )
+			{
+				idLib::Error( "Invalid uniform %s", token.c_str() );
+			}
+			
+			shader.uniforms.Append( static_cast< renderParm_t >( index ) );
 		}
-		
-		if( index == -1 )
-		{
-			idLib::Error( "Invalid uniform %s", token.c_str() );
-		}
-		
-		shader.uniforms.Append( static_cast< renderParm_t >( index ) );
 	}
 	
 	// create and compile the shader
