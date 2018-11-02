@@ -552,7 +552,7 @@ struct inOutVariable_t
 ParseInOutStruct
 ========================
 */
-void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idList< inOutVariable_t >& inOutVars )
+void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idList< inOutVariable_t >& inOutVars, bool vkGLSL )
 {
 	src.ExpectTokenString( "{" );
 	
@@ -636,7 +636,7 @@ void ParseInOutStruct( idLexer& src, int attribType, int attribIgnoreType, idLis
 		}
 		
 		// RB: HACK change vec4 in_Position to vec3
-		if( var.nameGLSL == "in_Position" && var.type == "vec4" )
+		if( var.nameGLSL == "in_Position" && var.type == "vec4" && vkGLSL )
 		{
 			var.type = "vec3";
 		}
@@ -694,7 +694,12 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 		// RB: check for sampler uniforms
 		if( vkGLSL )
 		{
-			while( token == "uniform" && ( src.PeekTokenString( "sampler2D" ) || src.PeekTokenString( "samplerCUBE" ) || src.PeekTokenString( "sampler3D" ) ) )
+			while( token == "uniform" &&
+					( src.PeekTokenString( "sampler2D" ) ||
+					  src.PeekTokenString( "samplerCUBE" ) ||
+					  src.PeekTokenString( "sampler3D" ) ||
+					  src.PeekTokenString( "sampler2DArrayShadow" ) ||
+					  src.PeekTokenString( "sampler2DArray" ) ) )
 			{
 				idStr sampler;
 				
@@ -736,7 +741,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 		{
 			if( src.CheckTokenString( "VS_IN" ) )
 			{
-				ParseInOutStruct( src, AT_VS_IN, 0, varsIn );
+				ParseInOutStruct( src, AT_VS_IN, 0, varsIn, vkGLSL );
 				
 				program += "\n\n";
 				for( int i = 0; i < varsIn.Num(); i++ )
@@ -759,9 +764,10 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			else if( src.CheckTokenString( "VS_OUT" ) )
 			{
 				// RB
-				ParseInOutStruct( src, AT_VS_OUT, AT_VS_OUT_RESERVED, varsOut );
+				ParseInOutStruct( src, AT_VS_OUT, AT_VS_OUT_RESERVED, varsOut, vkGLSL );
 				
 				program += "\n";
+				int numDeclareOut = 0;
 				for( int i = 0; i < varsOut.Num(); i++ )
 				{
 					if( varsOut[i].declareInOut )
@@ -769,21 +775,24 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 						// RB: add layout locations
 						if( vkGLSL )
 						{
-							program += va( "layout( location = %i ) out %s %s;\n", i, varsOut[i].type.c_str(), varsOut[i].nameGLSL.c_str() );
+							program += va( "layout( location = %i ) out %s %s;\n", numDeclareOut, varsOut[i].type.c_str(), varsOut[i].nameGLSL.c_str() );
 						}
 						else
 						{
 							program += "out " + varsOut[i].type + " " + varsOut[i].nameGLSL + ";\n";
 						}
+						
+						numDeclareOut++;
 					}
 				}
 				continue;
 			}
 			else if( src.CheckTokenString( "PS_IN" ) )
 			{
-				ParseInOutStruct( src, AT_PS_IN, AT_PS_IN_RESERVED, varsIn );
+				ParseInOutStruct( src, AT_PS_IN, AT_PS_IN_RESERVED, varsIn, vkGLSL );
 				
 				program += "\n\n";
+				int numDeclareOut = 0;
 				for( int i = 0; i < varsIn.Num(); i++ )
 				{
 					if( varsIn[i].declareInOut )
@@ -791,12 +800,14 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 						// RB: add layout locations
 						if( vkGLSL )
 						{
-							program += va( "layout( location = %i ) in %s %s;\n", i, varsIn[i].type.c_str(), varsIn[i].nameGLSL.c_str() );
+							program += va( "layout( location = %i ) in %s %s;\n", numDeclareOut, varsIn[i].type.c_str(), varsIn[i].nameGLSL.c_str() );
 						}
 						else
 						{
 							program += "in " + varsIn[i].type + " " + varsIn[i].nameGLSL + ";\n";
 						}
+						
+						numDeclareOut++;
 					}
 				}
 				inOutVariable_t var;
@@ -809,7 +820,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			else if( src.CheckTokenString( "PS_OUT" ) )
 			{
 				// RB begin
-				ParseInOutStruct( src, AT_PS_OUT, AT_PS_OUT_RESERVED, varsOut );
+				ParseInOutStruct( src, AT_PS_OUT, AT_PS_OUT_RESERVED, varsOut, vkGLSL );
 				
 				program += "\n";
 				for( int i = 0; i < varsOut.Num(); i++ )
@@ -886,9 +897,9 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 			newline[len - 0] = '\0';
 			
 			// RB: add this to every vertex shader
-			if( inMain && !justEnteredMain && isVertexProgram )
+			if( inMain && !justEnteredMain && isVertexProgram && vkGLSL )
 			{
-				program += "\nvec4 position4 = vec4( in_Position, 1.0 );\n\n";
+				program += "\nvec4 position4 = vec4( in_Position, 1.0 );\n";
 				justEnteredMain = true;
 			}
 			
@@ -967,7 +978,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 						RB: HACK use position4 instead of in_Position directly
 						because I can't figure out how to do strides with Vulkan
 						*/
-						if( varsIn[i].nameGLSL == "in_Position" )
+						if( vkGLSL && ( varsIn[i].nameGLSL == "in_Position" ) )
 						{
 							program += "position4";
 						}
@@ -1088,7 +1099,7 @@ idStr ConvertCG2GLSL( const idStr& in, const char* name, bool isVertexProgram, i
 	// RB: add samplers with layout bindings
 	if( vkGLSL )
 	{
-		int bindingOffset = uniformList.Num() > 0 ? 2 : 0;
+		int bindingOffset = uniformList.Num() > 0 ? 2 : 1;
 		
 		for( int i = 0; i < samplerList.Num(); i++ )
 		{

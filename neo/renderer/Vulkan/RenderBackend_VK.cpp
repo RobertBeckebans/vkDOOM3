@@ -1807,9 +1807,15 @@ void idRenderBackend::GL_EndFrame()
 	barrier.subresourceRange.layerCount = 1;
 	barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	
+#if 0
 	barrier.srcAccessMask = VK_PIPELINE_STAGE_TRANSFER_BIT |
 							VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	barrier.dstAccessMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+#else
+	barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	barrier.dstAccessMask = 0;
+#endif
 	
 	vkCmdPipelineBarrier(
 		vkcontext.commandBuffer[ vkcontext.currentFrameData ],
@@ -2026,6 +2032,7 @@ void idRenderBackend::GL_Clear( bool color, bool depth, bool stencil, byte stenc
 		VkClearAttachment& attachment = attachments[ numAttachments++ ];
 		attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		attachment.colorAttachment = 0;
+		
 		VkClearColorValue& color = attachment.clearValue.color;
 		color.float32[ 0 ] = r;
 		color.float32[ 1 ] = g;
@@ -2036,14 +2043,17 @@ void idRenderBackend::GL_Clear( bool color, bool depth, bool stencil, byte stenc
 	if( depth || stencil )
 	{
 		VkClearAttachment& attachment = attachments[ numAttachments++ ];
+		
 		if( depth )
 		{
 			attachment.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 		}
+		
 		if( stencil )
 		{
 			attachment.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
+		
 		attachment.clearValue.depthStencil.depth = 1.0f;
 		attachment.clearValue.depthStencil.stencil = stencilValue;
 	}

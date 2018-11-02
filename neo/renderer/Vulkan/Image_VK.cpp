@@ -49,7 +49,7 @@ idList< VkSampler >		idImage::samplerGarbage[ NUM_FRAME_DATA ];
 VK_GetFormatFromTextureFormat
 ====================
 */
-VkFormat VK_GetFormatFromTextureFormat( const textureFormat_t format )
+static VkFormat VK_GetFormatFromTextureFormat( const textureFormat_t format )
 {
 	switch( format )
 	{
@@ -87,7 +87,7 @@ VkFormat VK_GetFormatFromTextureFormat( const textureFormat_t format )
 VK_GetComponentMappingFromTextureFormat
 ====================
 */
-VkComponentMapping VK_GetComponentMappingFromTextureFormat( const textureFormat_t format, textureColor_t color )
+static VkComponentMapping VK_GetComponentMappingFromTextureFormat( const textureFormat_t format, textureColor_t color )
 {
 	VkComponentMapping componentMapping =
 	{
