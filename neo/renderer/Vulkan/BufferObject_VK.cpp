@@ -68,7 +68,7 @@ idVertexBuffer::idVertexBuffer()
 idVertexBuffer::AllocBufferObject
 ========================
 */
-bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
 	assert( apiObject == VK_NULL_HANDLE );
 	assert_16_byte_aligned( data );
@@ -79,7 +79,7 @@ bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferU
 	}
 	
 	size = allocSize;
-	usage = usage;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	
@@ -321,7 +321,7 @@ idIndexBuffer::idIndexBuffer()
 idIndexBuffer::AllocBufferObject
 ========================
 */
-bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
 	assert( apiObject == VK_NULL_HANDLE );
 	assert_16_byte_aligned( data );
@@ -332,7 +332,7 @@ bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUs
 	}
 	
 	size = allocSize;
-	usage = usage;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	
@@ -574,7 +574,7 @@ idUniformBuffer::idUniformBuffer()
 idUniformBuffer::AllocBufferObject
 ========================
 */
-bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t usage )
+bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, bufferUsageType_t _usage )
 {
 	assert( apiObject == VK_NULL_HANDLE );
 	assert_16_byte_aligned( data );
@@ -585,7 +585,7 @@ bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, buffer
 	}
 	
 	size = allocSize;
-	usage = usage;
+	usage = _usage;
 	
 	bool allocationFailed = false;
 	

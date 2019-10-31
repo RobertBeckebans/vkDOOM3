@@ -125,7 +125,7 @@ byte* idSWF::idDecompressJPEG::Load( const byte* input, int inputSize, int& widt
 		src.fill_input_buffer = swf_jpeg_fill_input_buffer;
 		src.skip_input_data = swf_jpeg_skip_input_data;
 		src.resync_to_restart = jpeg_resync_to_restart;
-		src.term_source = swf_jpeg_term_source;
+		src.tersource = swf_jpeg_term_source;
 		cinfo->src = &src;
 		
 		int result = 0;

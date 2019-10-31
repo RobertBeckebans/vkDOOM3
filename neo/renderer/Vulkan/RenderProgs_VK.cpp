@@ -950,7 +950,7 @@ void idRenderProgManager::AllocParmBlockBuffer( const idList< int >& parmIndices
 	
 	for( int i = 0; i < numParms; ++i )
 	{
-		uniforms[ i ] = renderProgManager.GetRenderParm( static_cast< renderPart >( parmIndices[ i ] ) );
+		uniforms[ i ] = renderProgManager.GetRenderParm( static_cast< renderParm_t >( parmIndices[ i ] ) );
 	}
 	
 	ubo.UnmapBuffer();
@@ -1215,7 +1215,7 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 				idLib::Error( "Invalid uniform %s", token.c_str() );
 			}
 			
-			shader.parmIndices.Append( static_cast< renderPart >( index ) );
+			shader.parmIndices.Append( static_cast< renderParm_t >( index ) );
 		}
 	}
 	

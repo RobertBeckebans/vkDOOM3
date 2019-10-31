@@ -183,7 +183,7 @@ void idRenderLog::StartFrame()
 	newtime = localtime( &aclock );
 	const char* str = asctime( newtime );
 	logFile->Printf( "// %s", str );
-	logFile->Printf( "// %s\n\n", coversion.GetString() );
+	logFile->Printf( "// %s\n\n", com_version.GetString() );
 	
 	frameStartTime = Sys_Microseconds();
 	closeBlockTime = frameStartTime;

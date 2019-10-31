@@ -138,12 +138,12 @@ idVulkanAllocator
 idVulkanBlock::idVulkanBlock
 =============
 */
-idVulkanBlock::idVulkanBlock( const uint32 memoryTypeIndex, const VkDeviceSize size, vulkanMemoryUsage_t usage ) :
+idVulkanBlock::idVulkanBlock( const uint32 _memoryTypeIndex, const VkDeviceSize _size, vulkanMemoryUsage_t _usage ) :
 	nextBlockId( 0 ),
-	size( size ),
+	size( _size ),
 	allocated( 0 ),
-	memoryTypeIndex( memoryTypeIndex ),
-	usage( usage ),
+	memoryTypeIndex( _memoryTypeIndex ),
+	usage( _usage ),
 	deviceMemory( VK_NULL_HANDLE )
 {
 
@@ -300,7 +300,7 @@ idVulkanBlock::Allocate
 =============
 */
 bool idVulkanBlock::Allocate(
-	const uint32 size,
+	const uint32 _size,
 	const uint32 align,
 	const VkDeviceSize granularity,
 	const vulkanAllocationType_t allocType,
@@ -308,7 +308,7 @@ bool idVulkanBlock::Allocate(
 {
 
 	const VkDeviceSize freeSize = size - allocated;
-	if( freeSize < size )
+	if( freeSize < _size )
 	{
 		return false;
 	}
@@ -328,7 +328,7 @@ bool idVulkanBlock::Allocate(
 			continue;
 		}
 		
-		if( size > current->size )
+		if( _size > current->size )
 		{
 			continue;
 		}
@@ -348,7 +348,7 @@ bool idVulkanBlock::Allocate(
 		}
 		
 		padding = offset - current->offset;
-		alignedSize = padding + size;
+		alignedSize = padding + _size;
 		
 		if( alignedSize > current->size )
 		{
@@ -363,7 +363,7 @@ bool idVulkanBlock::Allocate(
 		if( granularity > 1 && current->next != NULL )
 		{
 			chunk_t* next = current->next;
-			if( IsOnSamePage( offset, size, next->offset, granularity ) )
+			if( IsOnSamePage( offset, _size, next->offset, granularity ) )
 			{
 				if( HasGranularityConflict( allocType, next->type ) )
 				{
@@ -381,7 +381,7 @@ bool idVulkanBlock::Allocate(
 		return false;
 	}
 	
-	if( bestFit->size > size )
+	if( bestFit->size > _size )
 	{
 		chunk_t* chunk = new chunk_t();
 		chunk_t* next = bestFit->next;
@@ -397,12 +397,12 @@ bool idVulkanBlock::Allocate(
 		}
 		
 		chunk->size = bestFit->size - alignedSize;
-		chunk->offset = offset + size;
+		chunk->offset = offset + _size;
 		chunk->type = VULKAN_ALLOCATION_TYPE_FREE;
 	}
 	
 	bestFit->type = allocType;
-	bestFit->size = size;
+	bestFit->size = _size;
 	
 	allocated += alignedSize;
 	
@@ -564,7 +564,7 @@ void idVulkanAllocator::Shutdown()
 	EmptyGarbage();
 	for( int i = 0; i < VK_MAX_MEMORY_TYPES; ++i )
 	{
-		idList< idVulkanBlock* >& blocks = blocks[ i ];
+		idList< idVulkanBlock* >& blocks = this->blocks[ i ];
 		const int numBlocks = blocks.Num();
 		for( int j = 0; j < numBlocks; ++j )
 		{
@@ -581,7 +581,7 @@ idVulkanAllocator::Allocate
 =============
 */
 vulkanAllocation_t idVulkanAllocator::Allocate(
-	const uint32 size,
+	const uint32 _size,
 	const uint32 align,
 	const uint32 memoryTypeBits,
 	const vulkanMemoryUsage_t usage,
@@ -596,7 +596,7 @@ vulkanAllocation_t idVulkanAllocator::Allocate(
 		idLib::FatalError( "idVulkanAllocator::Allocate: Unable to find a memoryTypeIndex for allocation request." );
 	}
 	
-	idList< idVulkanBlock* >& blocks = blocks[ memoryTypeIndex ];
+	idList< idVulkanBlock* >& blocks = this->blocks[ memoryTypeIndex ];
 	const int numBlocks = blocks.Num();
 	for( int i = 0; i < numBlocks; ++i )
 	{
@@ -607,7 +607,7 @@ vulkanAllocation_t idVulkanAllocator::Allocate(
 			continue;
 		}
 		
-		if( block->Allocate( size, align, bufferImageGranularity, allocType, allocation ) )
+		if( block->Allocate( _size, align, bufferImageGranularity, allocType, allocation ) )
 		{
 			return allocation;
 		}
@@ -625,7 +625,7 @@ vulkanAllocation_t idVulkanAllocator::Allocate(
 		idLib::FatalError( "idVulkanAllocator::Allocate: Could not allocate new memory block." );
 	}
 	
-	block->Allocate( size, align, bufferImageGranularity, allocType, allocation );
+	block->Allocate( _size, align, bufferImageGranularity, allocType, allocation );
 	
 	return allocation;
 }
@@ -649,7 +649,7 @@ void idVulkanAllocator::EmptyGarbage()
 {
 	garbageIndex = ( garbageIndex + 1 ) % NUM_FRAME_DATA;
 	
-	idList< vulkanAllocation_t >& garbage = garbage[ garbageIndex ];
+	idList< vulkanAllocation_t >& garbage = this->garbage[ garbageIndex ];
 	
 	const int numAllocations = garbage.Num();
 	for( int i = 0; i < numAllocations; ++i )

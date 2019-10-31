@@ -31,7 +31,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../framework/precompiled.h"
 #include "../framework/Common_local.h"
 #include "../sys/win32/win_local.h"
-#include "../sys/win32/rc/dooresource.h"
+#include "../sys/win32/rc/doom_resource.h"
 #include "RenderSystem_local.h"
 #include "RenderBackend.h"
 #include "RenderLog.h"
@@ -1350,7 +1350,7 @@ void idRenderBackend::Execute( const int numCmds, const idArray< renderCommand_t
 {
 	CheckCVars();
 	
-	resolutionScale.SetCurrentGPUFrameTime( commonLocal.mainFrameTiming.gpuTime );
+	resolutionScale.SetCurrentGPUFrameTime( commonLocal.m_mainFrameTiming.gpuTime );
 	
 	if( numCmds == 0 )
 	{
