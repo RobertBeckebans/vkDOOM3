@@ -2092,13 +2092,9 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 				
 				GL_Color( color );
 				
-#ifdef USE_CORE_PROFILE
 				GL_State( stageGLState );
 				idVec4 alphaTestValue( regs[ pStage->alphaTestRegister ] );
 				renderProgManager.SetRenderParm( RENDERPARM_ALPHA_TEST, alphaTestValue.ToFloatPtr() );
-#else
-				GL_State( stageGLState | GLS_ALPHATEST_FUNC_GREATER | GLS_ALPHATEST_MAKE_REF( idMath::Ftob( 255.0f * regs[ pStage->alphaTestRegister ] ) ) );
-#endif
 				
 				if( drawSurf->jointCache )
 				{
@@ -2172,9 +2168,7 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 		renderLog.CloseBlock();
 	}
 	
-#ifdef USE_CORE_PROFILE
 	renderProgManager.SetRenderParm( RENDERPARM_ALPHA_TEST, vec4_zero.ToFloatPtr() );
-#endif
 }
 
 /*

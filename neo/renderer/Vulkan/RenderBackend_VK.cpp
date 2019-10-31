@@ -1926,11 +1926,10 @@ idRenderBackend::GL_CopyFrameBuffer
 void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight )
 {
 	// RB: FIXME this broke with the removing of m_ prefixes
-#if 0
-	idImage* colorSrc = vkcontext.swapchainImages[ vkcontext.currentSwapIndex ];
-	VkCommandBuffer cmdBuffer = vkcontext.commandBuffer[ vkcontext.currentFrameData ];
+#if 1
+	VkCommandBuffer commandBuffer = vkcontext.commandBuffer[ vkcontext.currentFrameData ];
 	
-	vkCmdEndRenderPass( cmdBuffer );
+	vkCmdEndRenderPass( commandBuffer );
 	
 	VkImageMemoryBarrier dstBarrier = {};
 	dstBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1951,8 +1950,8 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 		dstBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dstBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		vkCmdPipelineBarrier(
-			cmdBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			commandBuffer,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 			VK_PIPELINE_STAGE_TRANSFER_BIT,
 			0, 0, NULL, 0, NULL, 1, &dstBarrier );
 	}
@@ -1973,8 +1972,8 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 		region.dstOffsets[ 1 ] = { imageWidth, imageHeight, 1 };
 		
 		vkCmdBlitImage(
-			vkcontext.commandBuffer[ vkcontext.currentFrameData ],
-			colorSrc->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			commandBuffer,
+			vkcontext.swapchainImages[ vkcontext.currentSwapIndex ], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 			image->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &region, VK_FILTER_NEAREST );
 	}
@@ -1987,9 +1986,9 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 		dstBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		dstBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		vkCmdPipelineBarrier(
-			cmdBuffer,
+			commandBuffer,
 			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 			0, 0, NULL, 0, NULL, 1, &dstBarrier );
 	}
 	
@@ -1999,7 +1998,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imag
 	renderPassBeginInfo.framebuffer = vkcontext.frameBuffers[ vkcontext.currentSwapIndex ];
 	renderPassBeginInfo.renderArea.extent = vkcontext.swapchainExtent;
 	
-	vkCmdBeginRenderPass( cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
+	vkCmdBeginRenderPass( commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 #endif
 }
 
