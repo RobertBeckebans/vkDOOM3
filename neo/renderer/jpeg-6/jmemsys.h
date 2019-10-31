@@ -25,10 +25,10 @@
 #define jpeg_free_small		jFreeSmall
 #define jpeg_get_large		jGetLarge
 #define jpeg_free_large		jFreeLarge
-#define jpeg_mem_available	jMemAvail
+#define jpeg_meavailable	jMemAvail
 #define jpeg_open_backing_store	jOpenBackStore
-#define jpeg_mem_init		jMemInit
-#define jpeg_mem_term		jMemTerm
+#define jpeg_meinit		jMemInit
+#define jpeg_meterm		jMemTerm
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 
@@ -43,22 +43,22 @@
  * On an 80x86 machine using small-data memory model, these manage near heap.
  */
 
-EXTERN void * jpeg_get_small JPP((j_common_ptr cinfo, size_t sizeofobject));
-EXTERN void jpeg_free_small JPP((j_common_ptr cinfo, void * object,
-				 size_t sizeofobject));
+EXTERN void* jpeg_get_small JPP( ( j_common_ptr cinfo, size_t sizeofobject ) );
+EXTERN void jpeg_free_small JPP( ( j_common_ptr cinfo, void* object,
+								   size_t sizeofobject ) );
 
 /*
  * These two functions are used to allocate and release large chunks of
- * memory (up to the total free space designated by jpeg_mem_available).
+ * memory (up to the total free space designated by jpeg_meavailable).
  * The interface is the same as above, except that on an 80x86 machine,
  * far pointers are used.  On most other machines these are identical to
  * the jpeg_get/free_small routines; but we keep them separate anyway,
  * in case a different allocation strategy is desirable for large chunks.
  */
 
-EXTERN void FAR * jpeg_get_large JPP((j_common_ptr cinfo,size_t sizeofobject));
-EXTERN void jpeg_free_large JPP((j_common_ptr cinfo, void FAR * object,
-				 size_t sizeofobject));
+EXTERN void FAR* jpeg_get_large JPP( ( j_common_ptr cinfo, size_t sizeofobject ) );
+EXTERN void jpeg_free_large JPP( ( j_common_ptr cinfo, void FAR* object,
+								   size_t sizeofobject ) );
 
 /*
  * The macro MAX_ALLOC_CHUNK designates the maximum number of bytes that may
@@ -83,13 +83,13 @@ EXTERN void jpeg_free_large JPP((j_common_ptr cinfo, void FAR * object,
  *
  * There is a minimum space requirement, corresponding to the minimum
  * feasible buffer sizes; jmemmgr.c will request that much space even if
- * jpeg_mem_available returns zero.  The maximum space needed, enough to hold
+ * jpeg_meavailable returns zero.  The maximum space needed, enough to hold
  * all working storage in memory, is also passed in case it is useful.
  * Finally, the total space already allocated is passed.  If no better
  * method is available, cinfo->mem->max_memory_to_use - already_allocated
  * is often a suitable calculation.
  *
- * It is OK for jpeg_mem_available to underestimate the space available
+ * It is OK for jpeg_meavailable to underestimate the space available
  * (that'll just lead to more backing-store access than is really necessary).
  * However, an overestimate will lead to failure.  Hence it's wise to subtract
  * a slop factor from the true available space.  5% should be enough.
@@ -98,10 +98,10 @@ EXTERN void jpeg_free_large JPP((j_common_ptr cinfo, void FAR * object,
  * Conversely, zero may be returned to always use the minimum amount of memory.
  */
 
-EXTERN long jpeg_mem_available JPP((j_common_ptr cinfo,
-				    long min_bytes_needed,
-				    long max_bytes_needed,
-				    long already_allocated));
+EXTERN long jpeg_meavailable JPP( ( j_common_ptr cinfo,
+									  long min_bytes_needed,
+									  long max_bytes_needed,
+									  long already_allocated ) );
 
 
 /*
@@ -118,38 +118,40 @@ EXTERN long jpeg_mem_available JPP((j_common_ptr cinfo,
 typedef unsigned short XMSH;	/* type of extended-memory handles */
 typedef unsigned short EMSH;	/* type of expanded-memory handles */
 
-typedef union {
-  short file_handle;		/* DOS file handle if it's a temp file */
-  XMSH xms_handle;		/* handle if it's a chunk of XMS */
-  EMSH ems_handle;		/* handle if it's a chunk of EMS */
+typedef union
+{
+	short file_handle;		/* DOS file handle if it's a temp file */
+	XMSH xms_handle;		/* handle if it's a chunk of XMS */
+	EMSH ems_handle;		/* handle if it's a chunk of EMS */
 } handle_union;
 
 #endif /* USE_MSDOS_MEMMGR */
 
-typedef struct backing_store_struct * backing_store_ptr;
+typedef struct backing_store_struct* backing_store_ptr;
 
-typedef struct backing_store_struct {
-  /* Methods for reading/writing/closing this backing-store object */
-  JMETHOD(void, read_backing_store, (j_common_ptr cinfo,
-				     backing_store_ptr info,
-				     void FAR * buffer_address,
-				     long file_offset, long byte_count));
-  JMETHOD(void, write_backing_store, (j_common_ptr cinfo,
-				      backing_store_ptr info,
-				      void FAR * buffer_address,
-				      long file_offset, long byte_count));
-  JMETHOD(void, close_backing_store, (j_common_ptr cinfo,
-				      backing_store_ptr info));
-
-  /* Private fields for system-dependent backing-store management */
+typedef struct backing_store_struct
+{
+	/* Methods for reading/writing/closing this backing-store object */
+	JMETHOD( void, read_backing_store, ( j_common_ptr cinfo,
+										 backing_store_ptr info,
+										 void FAR* buffer_address,
+										 long file_offset, long byte_count ) );
+	JMETHOD( void, write_backing_store, ( j_common_ptr cinfo,
+										  backing_store_ptr info,
+										  void FAR* buffer_address,
+										  long file_offset, long byte_count ) );
+	JMETHOD( void, close_backing_store, ( j_common_ptr cinfo,
+										  backing_store_ptr info ) );
+										  
+	/* Private fields for system-dependent backing-store management */
 #ifdef USE_MSDOS_MEMMGR
-  /* For the MS-DOS manager (jmemdos.c), we need: */
-  handle_union handle;		/* reference to backing-store storage object */
-  char temp_name[TEMP_NAME_LENGTH]; /* name if it's a file */
+	/* For the MS-DOS manager (jmemdos.c), we need: */
+	handle_union handle;		/* reference to backing-store storage object */
+	char temp_name[TEMP_NAME_LENGTH]; /* name if it's a file */
 #else
-  /* For a typical implementation with temp files, we need: */
-  FILE * temp_file;		/* stdio reference to temp file */
-  char temp_name[TEMP_NAME_LENGTH]; /* name of temp file */
+	/* For a typical implementation with temp files, we need: */
+	FILE* temp_file;		/* stdio reference to temp file */
+	char temp_name[TEMP_NAME_LENGTH]; /* name of temp file */
 #endif
 } backing_store_info;
 
@@ -157,26 +159,26 @@ typedef struct backing_store_struct {
  * Initial opening of a backing-store object.  This must fill in the
  * read/write/close pointers in the object.  The read/write routines
  * may take an error exit if the specified maximum file size is exceeded.
- * (If jpeg_mem_available always returns a large value, this routine can
+ * (If jpeg_meavailable always returns a large value, this routine can
  * just take an error exit.)
  */
 
-EXTERN void jpeg_open_backing_store JPP((j_common_ptr cinfo,
-					 backing_store_ptr info,
-					 long total_bytes_needed));
+EXTERN void jpeg_open_backing_store JPP( ( j_common_ptr cinfo,
+		backing_store_ptr info,
+		long total_bytes_needed ) );
 
 
 /*
  * These routines take care of any system-dependent initialization and
- * cleanup required.  jpeg_mem_init will be called before anything is
+ * cleanup required.  jpeg_meinit will be called before anything is
  * allocated (and, therefore, nothing in cinfo is of use except the error
  * manager pointer).  It should return a suitable default value for
  * max_memory_to_use; this may subsequently be overridden by the surrounding
  * application.  (Note that max_memory_to_use is only important if
- * jpeg_mem_available chooses to consult it ... no one else will.)
- * jpeg_mem_term may assume that all requested memory has been freed and that
+ * jpeg_meavailable chooses to consult it ... no one else will.)
+ * jpeg_meterm may assume that all requested memory has been freed and that
  * all opened backing-store objects have been closed.
  */
 
-EXTERN long jpeg_mem_init JPP((j_common_ptr cinfo));
-EXTERN void jpeg_mem_term JPP((j_common_ptr cinfo));
+EXTERN long jpeg_meinit JPP( ( j_common_ptr cinfo ) );
+EXTERN void jpeg_meterm JPP( ( j_common_ptr cinfo ) );

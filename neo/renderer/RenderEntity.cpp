@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,17 +29,18 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystem_local.h"
+#include "RenderSystelocal.h"
 
 /*
 ============================
 idRenderEntity::idRenderEntity
 ============================
 */
-idRenderEntity::idRenderEntity() {
+idRenderEntity::idRenderEntity()
+{
 	memset( &parms, 0, sizeof( parms ) );
 	memset( modelMatrix, 0, sizeof( modelMatrix ) );
-
+	
 	world					= NULL;
 	index					= 0;
 	lastModifiedFrameNum	= 0;
@@ -64,7 +65,8 @@ idRenderEntity::idRenderEntity() {
 idRenderEntity::FreeRenderEntity
 ============================
 */
-void idRenderEntity::FreeRenderEntity() {
+void idRenderEntity::FreeRenderEntity()
+{
 
 }
 
@@ -73,7 +75,8 @@ void idRenderEntity::FreeRenderEntity() {
 idRenderEntity::UpdateRenderEntity
 ============================
 */
-void idRenderEntity::UpdateRenderEntity( const renderEntity_t *re, bool forceUpdate ) {
+void idRenderEntity::UpdateRenderEntity( const renderEntity_t* re, bool forceUpdate )
+{
 
 }
 
@@ -82,7 +85,8 @@ void idRenderEntity::UpdateRenderEntity( const renderEntity_t *re, bool forceUpd
 idRenderEntity::GetRenderEntity
 ============================
 */
-void idRenderEntity::GetRenderEntity( renderEntity_t *re ) {
+void idRenderEntity::GetRenderEntity( renderEntity_t* re )
+{
 
 }
 
@@ -91,7 +95,8 @@ void idRenderEntity::GetRenderEntity( renderEntity_t *re ) {
 idRenderEntity::ForceUpdate
 ============================
 */
-void idRenderEntity::ForceUpdate() {
+void idRenderEntity::ForceUpdate()
+{
 
 }
 
@@ -100,7 +105,8 @@ void idRenderEntity::ForceUpdate() {
 idRenderEntity::ProjectOverlay
 ============================
 */
-void idRenderEntity::ProjectOverlay( const idPlane localTextureAxis[2], const idMaterial *material ) {
+void idRenderEntity::ProjectOverlay( const idPlane localTextureAxis[2], const idMaterial* material )
+{
 
 }
 
@@ -109,7 +115,8 @@ void idRenderEntity::ProjectOverlay( const idPlane localTextureAxis[2], const id
 idRenderEntity::RemoveDecals
 ============================
 */
-void idRenderEntity::RemoveDecals() {
+void idRenderEntity::RemoveDecals()
+{
 
 }
 
@@ -118,11 +125,14 @@ void idRenderEntity::RemoveDecals() {
 idRenderEntity::IsDirectlyVisible
 ============================
 */
-bool idRenderEntity::IsDirectlyVisible() const {
-	if ( viewCount != tr.viewCount ) {
+bool idRenderEntity::IsDirectlyVisible() const
+{
+	if( viewCount != tr.viewCount )
+	{
 		return false;
 	}
-	if ( viewEntity->scissorRect.IsEmpty() ) {
+	if( viewEntity->scissorRect.IsEmpty() )
+	{
 		// a viewEntity was created for shadow generation, but the
 		// model global reference bounds isn't directly visible
 		return false;
@@ -137,10 +147,11 @@ bool idRenderEntity::IsDirectlyVisible() const {
 idRenderLight::idRenderLight
 ============================
 */
-idRenderLight::idRenderLight() {
+idRenderLight::idRenderLight()
+{
 	memset( &parms, 0, sizeof( parms ) );
 	memset( lightProject, 0, sizeof( lightProject ) );
-
+	
 	lightHasMoved			= false;
 	world					= NULL;
 	index					= 0;
@@ -156,7 +167,7 @@ idRenderLight::idRenderLight() {
 	foggedPortals			= NULL;
 	firstInteraction		= NULL;
 	lastInteraction			= NULL;
-
+	
 	baseLightProject.Zero();
 	inverseBaseLightProject.Zero();
 }
@@ -166,7 +177,8 @@ idRenderLight::idRenderLight() {
 idRenderLight::FreeRenderLight
 ============================
 */
-void idRenderLight::FreeRenderLight() {
+void idRenderLight::FreeRenderLight()
+{
 
 }
 
@@ -175,7 +187,8 @@ void idRenderLight::FreeRenderLight() {
 idRenderLight::UpdateRenderLight
 ============================
 */
-void idRenderLight::UpdateRenderLight( const renderLight_t *re, bool forceUpdate ) {
+void idRenderLight::UpdateRenderLight( const renderLight_t* re, bool forceUpdate )
+{
 
 }
 
@@ -184,7 +197,8 @@ void idRenderLight::UpdateRenderLight( const renderLight_t *re, bool forceUpdate
 idRenderLight::GetRenderLight
 ============================
 */
-void idRenderLight::GetRenderLight( renderLight_t *re ) {
+void idRenderLight::GetRenderLight( renderLight_t* re )
+{
 
 }
 
@@ -193,6 +207,7 @@ void idRenderLight::GetRenderLight( renderLight_t *re ) {
 idRenderLight::ForceUpdate
 ============================
 */
-void idRenderLight::ForceUpdate() {
+void idRenderLight::ForceUpdate()
+{
 
 }

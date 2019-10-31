@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 #include "../framework/precompiled.h"
 #include "../framework/Common_local.h"
-#include "RenderSystem_local.h"
+#include "RenderSystelocal.h"
 #include "RenderBackend.h"
 #include "ResolutionScale.h"
 #include "Font.h"
@@ -40,10 +40,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "../sys/win32/win_local.h"
 
 idRenderSystemLocal	tr;
-idRenderSystem * renderSystem = &tr;
+idRenderSystem* renderSystem = &tr;
 
 // DeviceContext bypasses RenderSystem to work directly with this
-idGuiModel * tr_guiModel;
+idGuiModel* tr_guiModel;
 
 idCVar r_debugContext( "r_debugContext", "0", CVAR_RENDERER, "Enable various levels of context debug." );
 idCVar r_multiSamples( "r_multiSamples", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "number of antialiasing samples" );
@@ -100,14 +100,14 @@ idCVar r_skipSpecular( "r_skipSpecular", "0", CVAR_RENDERER | CVAR_BOOL | CVAR_C
 idCVar r_skipBump( "r_skipBump", "0", CVAR_RENDERER | CVAR_BOOL | CVAR_ARCHIVE, "uses a flat surface instead of the bump map" );
 idCVar r_skipDiffuse( "r_skipDiffuse", "0", CVAR_RENDERER | CVAR_BOOL, "use black for diffuse" );
 idCVar r_skipSubviews( "r_skipSubviews", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = don't render any gui elements on surfaces" );
-idCVar r_skipGuiShaders( "r_skipGuiShaders", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all gui elements on surfaces, 2 = skip drawing but still handle events, 3 = draw but skip events", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_skipParticles( "r_skipParticles", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all particle systems", 0, 1, idCmdSystem::ArgCompletion_Integer<0,1> );
+idCVar r_skipGuiShaders( "r_skipGuiShaders", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all gui elements on surfaces, 2 = skip drawing but still handle events, 3 = draw but skip events", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
+idCVar r_skipParticles( "r_skipParticles", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all particle systems", 0, 1, idCmdSystem::ArgCompletion_Integer<0, 1> );
 idCVar r_skipShadows( "r_skipShadows", "0", CVAR_RENDERER | CVAR_BOOL  | CVAR_ARCHIVE, "disable shadows" );
 
-idCVar r_useLightPortalCulling( "r_useLightPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+idCVar r_useLightPortalCulling( "r_useLightPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0, 2> );
 idCVar r_useLightAreaCulling( "r_useLightAreaCulling", "1", CVAR_RENDERER | CVAR_BOOL, "0 = off, 1 = on" );
-idCVar r_useLightScissors( "r_useLightScissors", "3", CVAR_RENDERER | CVAR_INTEGER, "0 = no scissor, 1 = non-clipped scissor, 2 = near-clipped scissor, 3 = fully-clipped scissor", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_useEntityPortalCulling( "r_useEntityPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+idCVar r_useLightScissors( "r_useLightScissors", "3", CVAR_RENDERER | CVAR_INTEGER, "0 = no scissor, 1 = non-clipped scissor, 2 = near-clipped scissor, 3 = fully-clipped scissor", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
+idCVar r_useEntityPortalCulling( "r_useEntityPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0, 2> );
 idCVar r_logFile( "r_logFile", "0", CVAR_RENDERER | CVAR_INTEGER, "number of frames to emit GL logs" );
 idCVar r_clear( "r_clear", "2", CVAR_RENDERER, "force screen clear every frame, 1 = purple, 2 = black, 'r g b' = custom" );
 
@@ -120,7 +120,7 @@ idCVar r_subviewOnly( "r_subviewOnly", "0", CVAR_RENDERER | CVAR_BOOL, "1 = don'
 idCVar r_testGamma( "r_testGamma", "0", CVAR_RENDERER | CVAR_FLOAT, "if > 0 draw a grid pattern to test gamma levels", 0, 195 );
 idCVar r_testGammaBias( "r_testGammaBias", "0", CVAR_RENDERER | CVAR_FLOAT, "if > 0 draw a grid pattern to test gamma levels" );
 idCVar r_lightScale( "r_lightScale", "3", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_FLOAT, "all light intensities are multiplied by this" );
-idCVar r_flareSize( "r_flareSize", "1", CVAR_RENDERER | CVAR_FLOAT, "scale the flare deforms from the material def" ); 
+idCVar r_flareSize( "r_flareSize", "1", CVAR_RENDERER | CVAR_FLOAT, "scale the flare deforms from the material def" );
 
 idCVar r_skipPrelightShadows( "r_skipPrelightShadows", "0", CVAR_RENDERER | CVAR_BOOL, "skip the dmap generated static shadow volumes" );
 idCVar r_useScissor( "r_useScissor", "1", CVAR_RENDERER | CVAR_BOOL, "scissor clip as portals and lights are processed" );
@@ -144,14 +144,14 @@ idCVar r_showVertexColor( "r_showVertexColor", "0", CVAR_RENDERER | CVAR_BOOL, "
 idCVar r_showUpdates( "r_showUpdates", "0", CVAR_RENDERER | CVAR_BOOL, "report entity and light updates and ref counts" );
 idCVar r_showDemo( "r_showDemo", "0", CVAR_RENDERER | CVAR_BOOL, "report reads and writes to the demo file" );
 idCVar r_showDynamic( "r_showDynamic", "0", CVAR_RENDERER | CVAR_BOOL, "report stats on dynamic surface generation" );
-idCVar r_showTrace( "r_showTrace", "0", CVAR_RENDERER | CVAR_INTEGER, "show the intersection of an eye trace with the world", idCmdSystem::ArgCompletion_Integer<0,2> );
+idCVar r_showTrace( "r_showTrace", "0", CVAR_RENDERER | CVAR_INTEGER, "show the intersection of an eye trace with the world", idCmdSystem::ArgCompletion_Integer<0, 2> );
 idCVar r_showIntensity( "r_showIntensity", "0", CVAR_RENDERER | CVAR_BOOL, "draw the screen colors based on intensity, red = 0, green = 128, blue = 255" );
-idCVar r_showLights( "r_showLights", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = just print volumes numbers, highlighting ones covering the view, 2 = also draw planes of each volume, 3 = also draw edges of each volume", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_showShadows( "r_showShadows", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = visualize the stencil shadow volumes, 2 = draw filled in", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
+idCVar r_showLights( "r_showLights", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = just print volumes numbers, highlighting ones covering the view, 2 = also draw planes of each volume, 3 = also draw edges of each volume", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
+idCVar r_showShadows( "r_showShadows", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = visualize the stencil shadow volumes, 2 = draw filled in", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
 idCVar r_showLightScissors( "r_showLightScissors", "0", CVAR_RENDERER | CVAR_BOOL, "show light scissor rectangles" );
-idCVar r_showLightCount( "r_showLightCount", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = colors surfaces based on light count, 2 = also count everything through walls, 3 = also print overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
+idCVar r_showLightCount( "r_showLightCount", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = colors surfaces based on light count, 2 = also count everything through walls, 3 = also print overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
 idCVar r_showViewEntitys( "r_showViewEntitys", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = displays the bounding boxes of all view models, 2 = print index numbers" );
-idCVar r_showTris( "r_showTris", "0", CVAR_RENDERER | CVAR_INTEGER, "enables wireframe rendering of the world, 1 = only draw visible ones, 2 = draw all front facing, 3 = draw all, 4 = draw with alpha", 0, 4, idCmdSystem::ArgCompletion_Integer<0,4> );
+idCVar r_showTris( "r_showTris", "0", CVAR_RENDERER | CVAR_INTEGER, "enables wireframe rendering of the world, 1 = only draw visible ones, 2 = draw all front facing, 3 = draw all, 4 = draw with alpha", 0, 4, idCmdSystem::ArgCompletion_Integer<0, 4> );
 idCVar r_showSurfaceInfo( "r_showSurfaceInfo", "0", CVAR_RENDERER | CVAR_BOOL, "show surface material name under crosshair" );
 idCVar r_showNormals( "r_showNormals", "0", CVAR_RENDERER | CVAR_FLOAT, "draws wireframe normals" );
 idCVar r_showMemory( "r_showMemory", "0", CVAR_RENDERER | CVAR_BOOL, "print frame memory utilization" );
@@ -162,14 +162,14 @@ idCVar r_showSurfaces( "r_showSurfaces", "0", CVAR_RENDERER | CVAR_BOOL, "report
 idCVar r_showPrimitives( "r_showPrimitives", "0", CVAR_RENDERER | CVAR_INTEGER, "report drawsurf/index/vertex counts" );
 idCVar r_showEdges( "r_showEdges", "0", CVAR_RENDERER | CVAR_BOOL, "draw the sil edges" );
 idCVar r_showTexturePolarity( "r_showTexturePolarity", "0", CVAR_RENDERER | CVAR_BOOL, "shade triangles by texture area polarity" );
-idCVar r_showTangentSpace( "r_showTangentSpace", "0", CVAR_RENDERER | CVAR_INTEGER, "shade triangles by tangent space, 1 = use 1st tangent vector, 2 = use 2nd tangent vector, 3 = use normal vector", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
+idCVar r_showTangentSpace( "r_showTangentSpace", "0", CVAR_RENDERER | CVAR_INTEGER, "shade triangles by tangent space, 1 = use 1st tangent vector, 2 = use 2nd tangent vector, 3 = use normal vector", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
 idCVar r_showDominantTri( "r_showDominantTri", "0", CVAR_RENDERER | CVAR_BOOL, "draw lines from vertexes to center of dominant triangles" );
 idCVar r_showTextureVectors( "r_showTextureVectors", "0", CVAR_RENDERER | CVAR_FLOAT, " if > 0 draw each triangles texture (tangent) vectors" );
-idCVar r_showOverDraw( "r_showOverDraw", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = geometry overdraw, 2 = light interaction overdraw, 3 = geometry and light interaction overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
+idCVar r_showOverDraw( "r_showOverDraw", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = geometry overdraw, 2 = light interaction overdraw, 3 = geometry and light interaction overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0, 3> );
 
 idCVar r_useEntityCallbacks( "r_useEntityCallbacks", "1", CVAR_RENDERER | CVAR_BOOL, "if 0, issue the callback immediately at update time, rather than defering" );
 
-idCVar r_showSkel( "r_showSkel", "0", CVAR_RENDERER | CVAR_INTEGER, "draw the skeleton when model animates, 1 = draw model with skeleton, 2 = draw skeleton only", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+idCVar r_showSkel( "r_showSkel", "0", CVAR_RENDERER | CVAR_INTEGER, "draw the skeleton when model animates, 1 = draw model with skeleton, 2 = draw skeleton only", 0, 2, idCmdSystem::ArgCompletion_Integer<0, 2> );
 idCVar r_jointNameScale( "r_jointNameScale", "0.02", CVAR_RENDERER | CVAR_FLOAT, "size of joint names when r_showskel is set to 1" );
 idCVar r_jointNameOffset( "r_jointNameOffset", "0.5", CVAR_RENDERER | CVAR_FLOAT, "offset of joint names when r_showskel is set to 1" );
 
@@ -196,46 +196,48 @@ int frameHighWaterTypeCount[ FRAME_ALLOC_MAX ];
 R_MakeFullScreenTris
 =============
 */
-static srfTriangles_t * R_MakeFullScreenTris() {
+static srfTriangles_t* R_MakeFullScreenTris()
+{
 	// copy verts and indexes
-	srfTriangles_t * tri = (srfTriangles_t *)Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
-
+	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	
 	tri->numIndexes = 6;
 	tri->numVerts = 4;
-
+	
 	int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = (triIndex_t *)Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
-
+	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	
 	int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = (idDrawVert *)Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
-
-	idDrawVert * verts = tri->verts;
-
+	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	
+	idDrawVert* verts = tri->verts;
+	
 	triIndex_t tempIndexes[6] = { 3, 0, 2, 2, 0, 1 };
 	memcpy( tri->indexes, tempIndexes, indexSize );
 	
 	verts[0].xyz[0] = -1.0f;
 	verts[0].xyz[1] = 1.0f;
 	verts[0].SetTexCoord( 0.0f, 1.0f );
-
+	
 	verts[1].xyz[0] = 1.0f;
 	verts[1].xyz[1] = 1.0f;
 	verts[1].SetTexCoord( 1.0f, 1.0f );
-
+	
 	verts[2].xyz[0] = 1.0f;
 	verts[2].xyz[1] = -1.0f;
 	verts[2].SetTexCoord( 1.0f, 0.0f );
-
+	
 	verts[3].xyz[0] = -1.0f;
 	verts[3].xyz[1] = -1.0f;
 	verts[3].SetTexCoord( 0.0f, 0.0f );
-
-	for ( int i = 0 ; i < 4 ; i++ ) {
+	
+	for( int i = 0 ; i < 4 ; i++ )
+	{
 		verts[i].SetColor( 0xffffffff );
 	}
-
+	
 	return tri;
 }
 
@@ -244,33 +246,34 @@ static srfTriangles_t * R_MakeFullScreenTris() {
 R_MakeZeroOneCubeTris
 =============
 */
-static srfTriangles_t * R_MakeZeroOneCubeTris() {
-	srfTriangles_t * tri = (srfTriangles_t *)Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
-
+static srfTriangles_t* R_MakeZeroOneCubeTris()
+{
+	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	
 	tri->numVerts = 8;
 	tri->numIndexes = 36;
-
+	
 	const int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	const int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = (triIndex_t *)Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
-
+	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	
 	const int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	const int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = (idDrawVert *)Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
-
-	idDrawVert * verts = tri->verts;
-
+	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	
+	idDrawVert* verts = tri->verts;
+	
 	const float low = 0.0f;
 	const float high = 1.0f;
-
+	
 	idVec3 center( 0.0f );
-	idVec3 mx(  low, 0.0f, 0.0f );
+	idVec3 mx( low, 0.0f, 0.0f );
 	idVec3 px( high, 0.0f, 0.0f );
 	idVec3 my( 0.0f,  low, 0.0f );
 	idVec3 py( 0.0f, high, 0.0f );
 	idVec3 mz( 0.0f, 0.0f,  low );
 	idVec3 pz( 0.0f, 0.0f, high );
-
+	
 	verts[0].xyz = center + mx + my + mz;
 	verts[1].xyz = center + px + my + mz;
 	verts[2].xyz = center + px + py + mz;
@@ -279,54 +282,55 @@ static srfTriangles_t * R_MakeZeroOneCubeTris() {
 	verts[5].xyz = center + px + my + pz;
 	verts[6].xyz = center + px + py + pz;
 	verts[7].xyz = center + mx + py + pz;
-
+	
 	// bottom
-	tri->indexes[ 0*3+0] = 2;
-	tri->indexes[ 0*3+1] = 3;
-	tri->indexes[ 0*3+2] = 0;
-	tri->indexes[ 1*3+0] = 1;
-	tri->indexes[ 1*3+1] = 2;
-	tri->indexes[ 1*3+2] = 0;
+	tri->indexes[ 0 * 3 + 0] = 2;
+	tri->indexes[ 0 * 3 + 1] = 3;
+	tri->indexes[ 0 * 3 + 2] = 0;
+	tri->indexes[ 1 * 3 + 0] = 1;
+	tri->indexes[ 1 * 3 + 1] = 2;
+	tri->indexes[ 1 * 3 + 2] = 0;
 	// back
-	tri->indexes[ 2*3+0] = 5;
-	tri->indexes[ 2*3+1] = 1;
-	tri->indexes[ 2*3+2] = 0;
-	tri->indexes[ 3*3+0] = 4;
-	tri->indexes[ 3*3+1] = 5;
-	tri->indexes[ 3*3+2] = 0;
+	tri->indexes[ 2 * 3 + 0] = 5;
+	tri->indexes[ 2 * 3 + 1] = 1;
+	tri->indexes[ 2 * 3 + 2] = 0;
+	tri->indexes[ 3 * 3 + 0] = 4;
+	tri->indexes[ 3 * 3 + 1] = 5;
+	tri->indexes[ 3 * 3 + 2] = 0;
 	// left
-	tri->indexes[ 4*3+0] = 7;
-	tri->indexes[ 4*3+1] = 4;
-	tri->indexes[ 4*3+2] = 0;
-	tri->indexes[ 5*3+0] = 3;
-	tri->indexes[ 5*3+1] = 7;
-	tri->indexes[ 5*3+2] = 0;
+	tri->indexes[ 4 * 3 + 0] = 7;
+	tri->indexes[ 4 * 3 + 1] = 4;
+	tri->indexes[ 4 * 3 + 2] = 0;
+	tri->indexes[ 5 * 3 + 0] = 3;
+	tri->indexes[ 5 * 3 + 1] = 7;
+	tri->indexes[ 5 * 3 + 2] = 0;
 	// right
-	tri->indexes[ 6*3+0] = 1;
-	tri->indexes[ 6*3+1] = 5;
-	tri->indexes[ 6*3+2] = 6;
-	tri->indexes[ 7*3+0] = 2;
-	tri->indexes[ 7*3+1] = 1;
-	tri->indexes[ 7*3+2] = 6;
+	tri->indexes[ 6 * 3 + 0] = 1;
+	tri->indexes[ 6 * 3 + 1] = 5;
+	tri->indexes[ 6 * 3 + 2] = 6;
+	tri->indexes[ 7 * 3 + 0] = 2;
+	tri->indexes[ 7 * 3 + 1] = 1;
+	tri->indexes[ 7 * 3 + 2] = 6;
 	// front
-	tri->indexes[ 8*3+0] = 3;
-	tri->indexes[ 8*3+1] = 2;
-	tri->indexes[ 8*3+2] = 6;
-	tri->indexes[ 9*3+0] = 7;
-	tri->indexes[ 9*3+1] = 3;
-	tri->indexes[ 9*3+2] = 6;
+	tri->indexes[ 8 * 3 + 0] = 3;
+	tri->indexes[ 8 * 3 + 1] = 2;
+	tri->indexes[ 8 * 3 + 2] = 6;
+	tri->indexes[ 9 * 3 + 0] = 7;
+	tri->indexes[ 9 * 3 + 1] = 3;
+	tri->indexes[ 9 * 3 + 2] = 6;
 	// top
-	tri->indexes[10*3+0] = 4;
-	tri->indexes[10*3+1] = 7;
-	tri->indexes[10*3+2] = 6;
-	tri->indexes[11*3+0] = 5;
-	tri->indexes[11*3+1] = 4;
-	tri->indexes[11*3+2] = 6;
-
-	for ( int i = 0 ; i < 4 ; i++ ) {
+	tri->indexes[10 * 3 + 0] = 4;
+	tri->indexes[10 * 3 + 1] = 7;
+	tri->indexes[10 * 3 + 2] = 6;
+	tri->indexes[11 * 3 + 0] = 5;
+	tri->indexes[11 * 3 + 1] = 4;
+	tri->indexes[11 * 3 + 2] = 6;
+	
+	for( int i = 0 ; i < 4 ; i++ )
+	{
 		verts[i].SetColor( 0xffffffff );
 	}
-
+	
 	return tri;
 }
 
@@ -337,45 +341,47 @@ R_MakeTestImageTriangles
 Initializes the Test Image Triangles
 ================
 */
-srfTriangles_t* R_MakeTestImageTriangles() {
-	srfTriangles_t * tri = (srfTriangles_t *)Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
-
+srfTriangles_t* R_MakeTestImageTriangles()
+{
+	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	
 	tri->numIndexes = 6;
 	tri->numVerts = 4;
-
+	
 	int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = (triIndex_t *)Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
-
+	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	
 	int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = (idDrawVert *)Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
-
+	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	
 	ALIGNTYPE16 triIndex_t tempIndexes[6] = { 3, 0, 2, 2, 0, 1 };
 	memcpy( tri->indexes, tempIndexes, indexSize );
-
+	
 	idDrawVert* tempVerts = tri->verts;
 	tempVerts[0].xyz[0] = 0.0f;
 	tempVerts[0].xyz[1] = 0.0f;
 	tempVerts[0].xyz[2] = 0;
 	tempVerts[0].SetTexCoord( 0.0, 0.0f );
-
+	
 	tempVerts[1].xyz[0] = 1.0f;
 	tempVerts[1].xyz[1] = 0.0f;
 	tempVerts[1].xyz[2] = 0;
 	tempVerts[1].SetTexCoord( 1.0f, 0.0f );
-
+	
 	tempVerts[2].xyz[0] = 1.0f;
 	tempVerts[2].xyz[1] = 1.0f;
 	tempVerts[2].xyz[2] = 0;
 	tempVerts[2].SetTexCoord( 1.0f, 1.0f );
-
+	
 	tempVerts[3].xyz[0] = 0.0f;
 	tempVerts[3].xyz[1] = 1.0f;
 	tempVerts[3].xyz[2] = 0;
 	tempVerts[3].SetTexCoord( 0.0f, 1.0f );
-
-	for ( int i = 0; i < 4; i++ ) {
+	
+	for( int i = 0; i < 4; i++ )
+	{
 		tempVerts[i].SetColor( 0xFFFFFFFF );
 	}
 	return tri;
@@ -400,15 +406,18 @@ r_displayRefresh 0	don't specify refresh
 r_displayRefresh 70	specify 70 hz, etc
 =============================
 */
-bool R_GetModeListForDisplay( const int requestedDisplayNum, idList<vidMode_t> & modeList );
+bool R_GetModeListForDisplay( const int requestedDisplayNum, idList<vidMode_t>& modeList );
 bool SetScreenParms( gfxImpParms_t parms );
-static void SetNewMode() {
+static void SetNewMode()
+{
 	// try up to three different configurations
-
-	for ( int i = 0 ; i < 3 ; i++ ) {
+	
+	for( int i = 0 ; i < 3 ; i++ )
+	{
 		gfxImpParms_t parms;
-
-		if ( r_fullscreen.GetInteger() <= 0 ) {
+		
+		if( r_fullscreen.GetInteger() <= 0 )
+		{
 			// use explicit position / size for window
 			parms.x = r_windowX.GetInteger();
 			parms.y = r_windowY.GetInteger();
@@ -417,58 +426,69 @@ static void SetNewMode() {
 			// may still be -1 to force a borderless window
 			parms.fullScreen = r_fullscreen.GetInteger();
 			parms.displayHz = 0;		// ignored
-		} else {
+		}
+		else
+		{
 			// get the mode list for this monitor
 			idList<vidMode_t> modeList;
-			if ( !R_GetModeListForDisplay( r_fullscreen.GetInteger() - 1, modeList ) ) {
+			if( !R_GetModeListForDisplay( r_fullscreen.GetInteger() - 1, modeList ) )
+			{
 				idLib::Printf( "r_fullscreen reset from %i to 1 because mode list failed.", r_fullscreen.GetInteger() );
 				r_fullscreen.SetInteger( 1 );
 				R_GetModeListForDisplay( r_fullscreen.GetInteger() - 1, modeList );
 			}
-			if ( modeList.Num() < 1 ) {
+			if( modeList.Num() < 1 )
+			{
 				idLib::Printf( "Going to safe mode because mode list failed." );
 				goto safeMode;
 			}
-
+			
 			parms.x = 0;		// ignored
 			parms.y = 0;		// ignored
 			parms.fullScreen = r_fullscreen.GetInteger();
-
+			
 			// set the parameters we are trying
-			if ( r_vidMode.GetInteger() < 0 ) {
+			if( r_vidMode.GetInteger() < 0 )
+			{
 				// try forcing a specific mode, even if it isn't on the list
 				parms.width = r_customWidth.GetInteger();
 				parms.height = r_customHeight.GetInteger();
 				parms.displayHz = r_displayRefresh.GetInteger();
-			} else {
-				if ( r_vidMode.GetInteger() > modeList.Num() ) {
+			}
+			else
+			{
+				if( r_vidMode.GetInteger() > modeList.Num() )
+				{
 					idLib::Printf( "r_vidMode reset from %i to 0.\n", r_vidMode.GetInteger() );
 					r_vidMode.SetInteger( 0 );
 				}
-
+				
 				parms.width = modeList[ r_vidMode.GetInteger() ].width;
 				parms.height = modeList[ r_vidMode.GetInteger() ].height;
 				parms.displayHz = modeList[ r_vidMode.GetInteger() ].displayHz;
 			}
 		}
-
+		
 		parms.multiSamples = r_multiSamples.GetInteger();
-
+		
 		// rebuild the window
-		if ( SetScreenParms( parms ) ) {
+		if( SetScreenParms( parms ) )
+		{
 			// it worked
 			break;
 		}
-
-		if ( i == 2 ) {
+		
+		if( i == 2 )
+		{
 			idLib::FatalError( "Unable to initialize new mode." );
 		}
-
-		if ( i == 0 ) {
+		
+		if( i == 0 )
+		{
 			// same settings, no stereo
 			continue;
 		}
-
+		
 safeMode:
 		// if we failed, set everything back to "safe mode"
 		// and try again
@@ -485,12 +505,13 @@ idRenderSystemLocal::idRenderSystemLocal
 =============
 */
 idRenderSystemLocal::idRenderSystemLocal() :
-	m_bInitialized( false ),
-	m_unitSquareTriangles( NULL ),
-	m_zeroOneCubeTriangles( NULL ),
-	m_testImageTriangles( NULL ),
-	m_frameData( NULL ),
-	m_smpFrame( 0 ) {
+	bInitialized( false ),
+	unitSquareTriangles( NULL ),
+	zeroOneCubeTriangles( NULL ),
+	testImageTriangles( NULL ),
+	frameData( NULL ),
+	smpFrame( 0 )
+{
 
 	Clear();
 }
@@ -500,7 +521,8 @@ idRenderSystemLocal::idRenderSystemLocal() :
 idRenderSystemLocal::~idRenderSystemLocal
 =============
 */
-idRenderSystemLocal::~idRenderSystemLocal() {
+idRenderSystemLocal::~idRenderSystemLocal()
+{
 
 }
 
@@ -509,56 +531,61 @@ idRenderSystemLocal::~idRenderSystemLocal() {
 idRenderSystemLocal::Init
 ===============
 */
-void idRenderSystemLocal::Init() {	
-	if ( m_bInitialized ) {
+void idRenderSystemLocal::Init()
+{
+	if( bInitialized )
+	{
 		idLib::Warning( "RenderSystem already initialized." );
 		return;
 	}
-
+	
 	idLib::Printf( "------- Initializing renderSystem --------\n" );
-
+	
 	InitFrameData();
-
+	
 	// Start Renderer Backend ( API specific )
-	m_backend.Init();
-
+	backend.Init();
+	
 	// clear all our internal state
 	viewCount = 1;		// so cleared structures never match viewCount
 	// we used to memset tr, but now that it is a class, we can't, so
 	// there may be other state we need to reset
-
-	m_guiModel = new (TAG_RENDER) idGuiModel;
-	m_guiModel->Clear();
-	tr_guiModel = m_guiModel;	// for DeviceContext fast path
-
+	
+	guiModel = new( TAG_RENDER ) idGuiModel;
+	guiModel->Clear();
+	tr_guiModel = guiModel;	// for DeviceContext fast path
+	
 	globalImages->Init();
-
+	
 	idCinematic::InitCinematic();
-
+	
 	InitMaterials();
-
+	
 	renderModelManager->Init();
-
-	// make sure the m_unitSquareTriangles data is current in the vertex / index cache
-	if ( m_unitSquareTriangles == NULL ) {
-		m_unitSquareTriangles = R_MakeFullScreenTris();
+	
+	// make sure the unitSquareTriangles data is current in the vertex / index cache
+	if( unitSquareTriangles == NULL )
+	{
+		unitSquareTriangles = R_MakeFullScreenTris();
 	}
 	// make sure the zeroOneCubeTriangles data is current in the vertex / index cache
-	if ( m_zeroOneCubeTriangles == NULL ) {
-		m_zeroOneCubeTriangles = R_MakeZeroOneCubeTris();
+	if( zeroOneCubeTriangles == NULL )
+	{
+		zeroOneCubeTriangles = R_MakeZeroOneCubeTris();
 	}
-	// make sure the m_testImageTriangles data is current in the vertex / index cache
-	if ( m_testImageTriangles == NULL )  {
-		m_testImageTriangles = R_MakeTestImageTriangles();
+	// make sure the testImageTriangles data is current in the vertex / index cache
+	if( testImageTriangles == NULL )
+	{
+		testImageTriangles = R_MakeTestImageTriangles();
 	}
-
-	m_frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, NULL );
-
-	m_bInitialized = true;
-
+	
+	frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, NULL );
+	
+	bInitialized = true;
+	
 	// make sure the command buffers are ready to accept the first screen update
 	SwapCommandBuffers( NULL );
-
+	
 	idLib::Printf( "renderSystem initialized.\n" );
 	idLib::Printf( "--------------------------------------\n" );
 }
@@ -569,44 +596,46 @@ idRenderSystemLocal::Shutdown
 ===============
 */
 void RB_ShutdownDebugTools();
-void idRenderSystemLocal::Shutdown() {	
+void idRenderSystemLocal::Shutdown()
+{
 	idLib::Printf( "idRenderSystem::Shutdown()\n" );
-
-	m_fonts.DeleteContents();
-
-	if ( m_bInitialized ) {
+	
+	fonts.DeleteContents();
+	
+	if( bInitialized )
+	{
 		globalImages->PurgeAllImages();
 	}
-
+	
 	renderModelManager->Shutdown();
-
+	
 	idCinematic::ShutdownCinematic();
-
+	
 	globalImages->Shutdown();
-
+	
 	// free frame memory
 	ShutdownFrameData();
-
+	
 	UnbindBufferObjects();
-
+	
 	// free the vertex cache, which should have nothing allocated now
 	vertexCache.Shutdown();
-
+	
 	RB_ShutdownDebugTools();
-
-	delete m_guiModel;
-	m_guiModel = NULL;
-
-	parallelJobManager->FreeJobList( m_frontEndJobList );
-
-	m_backend.Shutdown();
-
+	
+	delete guiModel;
+	guiModel = NULL;
+	
+	parallelJobManager->FreeJobList( frontEndJobList );
+	
+	backend.Shutdown();
+	
 	Clear();
-
+	
 	// free the context and close the window
 	ShutdownFrameData();
 	
-	m_bInitialized = false;
+	bInitialized = false;
 }
 
 /*
@@ -614,50 +643,52 @@ void idRenderSystemLocal::Shutdown() {
 idRenderSystemLocal::VidRestart
 =================
 */
-void idRenderSystemLocal::VidRestart() {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::VidRestart()
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-
+	
 	// set the mode without re-initializing the context
 	SetNewMode();
-
-	m_backend.Restart();
-
+	
+	backend.Restart();
+	
 #if 0
 	// this could take a while, so give them the cursor back ASAP
 	Sys_GrabMouseCursor( false );
-
+	
 	// dump ambient caches
 	renderModelManager->FreeModelVertexCaches();
-
+	
 	// free any current world interaction surfaces and vertex caches
 	FreeWorldDerivedData();
-
+	
 	// make sure the defered frees are actually freed
 	ToggleSmpFrame();
 	ToggleSmpFrame();
-
+	
 	// free the vertex caches so they will be regenerated again
 	vertexCache.PurgeAll();
-
+	
 	// sound and input are tied to the window we are about to destroy
-
+	
 	// free all of our texture numbers
 	Sys_ShutdownInput();
 	globalImages->PurgeAllImages();
 	// free the context and close the window
 	Shutdown();
-
+	
 	// create the new context and vertex cache
 	Init();
-
+	
 	// regenerate all images
 	globalImages->ReloadImages( true );
-
+	
 	// make sure the regeneration doesn't use anything no longer valid
 	viewCount++;
-	m_viewDef = NULL;
+	viewDef = NULL;
 #endif
 }
 
@@ -666,9 +697,11 @@ void idRenderSystemLocal::VidRestart() {
 idRenderSystemLocal::InitMaterials
 =================
 */
-void idRenderSystemLocal::InitMaterials() {
+void idRenderSystemLocal::InitMaterials()
+{
 	defaultMaterial = declManager->FindMaterial( "_default", false );
-	if ( !defaultMaterial ) {
+	if( !defaultMaterial )
+	{
 		common->FatalError( "_default material not found" );
 	}
 	defaultPointLight = declManager->FindMaterial( "lights/defaultPointLight" );
@@ -682,41 +715,45 @@ void idRenderSystemLocal::InitMaterials() {
 idRenderSystemLocal::Clear
 ===============
 */
-void idRenderSystemLocal::Clear() {
+void idRenderSystemLocal::Clear()
+{
 	frameCount = 0;
 	viewCount = 0;
-	m_worlds.Clear();
+	worlds.Clear();
 	primaryWorld = NULL;
-	memset( &m_primaryRenderView, 0, sizeof( m_primaryRenderView ) );
+	memset( &primaryRenderView, 0, sizeof( primaryRenderView ) );
 	primaryView = NULL;
 	defaultMaterial = NULL;
-	m_viewDef = NULL;
+	viewDef = NULL;
 	memset( &pc, 0, sizeof( pc ) );
-	memset( m_renderCrops, 0, sizeof( m_renderCrops ) );
-	m_currentRenderCrop = 0;
-	m_currentColorNativeBytesOrder = 0xFFFFFFFF;
-	m_currentGLState = 0;
-	m_guiRecursionLevel = 0;
-	m_guiModel = NULL;
-	m_takingScreenshot = false;
-	memset( &m_smpFrameData, 0, sizeof( m_frameData ) );
-
-	if ( m_unitSquareTriangles != NULL ) {
-		Mem_Free( m_unitSquareTriangles );
-		m_unitSquareTriangles = NULL;
+	memset( renderCrops, 0, sizeof( renderCrops ) );
+	currentRenderCrop = 0;
+	currentColorNativeBytesOrder = 0xFFFFFFFF;
+	currentGLState = 0;
+	guiRecursionLevel = 0;
+	guiModel = NULL;
+	takingScreenshot = false;
+	memset( &smpFrameData, 0, sizeof( frameData ) );
+	
+	if( unitSquareTriangles != NULL )
+	{
+		MeFree( unitSquareTriangles );
+		unitSquareTriangles = NULL;
 	}
-
-	if ( m_zeroOneCubeTriangles != NULL ) {
-		Mem_Free( m_zeroOneCubeTriangles );
-		m_zeroOneCubeTriangles = NULL;
+	
+	if( zeroOneCubeTriangles != NULL )
+	{
+		MeFree( zeroOneCubeTriangles );
+		zeroOneCubeTriangles = NULL;
 	}
-
-	if ( m_testImageTriangles != NULL ) {
-		Mem_Free( m_testImageTriangles );
-		m_testImageTriangles = NULL;
+	
+	if( testImageTriangles != NULL )
+	{
+		MeFree( testImageTriangles );
+		testImageTriangles = NULL;
 	}
-
-	m_frontEndJobList = NULL;
+	
+	frontEndJobList = NULL;
 }
 
 /*
@@ -724,11 +761,12 @@ void idRenderSystemLocal::Clear() {
 idRenderSystemLocal::BeginLevelLoad
 ========================
 */
-void idRenderSystemLocal::BeginLevelLoad() {
+void idRenderSystemLocal::BeginLevelLoad()
+{
 	globalImages->BeginLevelLoad();
 	renderModelManager->BeginLevelLoad();
-
-	// Re-Initialize the Default Materials if needed. 
+	
+	// Re-Initialize the Default Materials if needed.
 	InitMaterials();
 }
 
@@ -737,7 +775,8 @@ void idRenderSystemLocal::BeginLevelLoad() {
 idRenderSystemLocal::LoadLevelImages
 ========================
 */
-void idRenderSystemLocal::LoadLevelImages() {
+void idRenderSystemLocal::LoadLevelImages()
+{
 	globalImages->LoadLevelImages( false );
 }
 
@@ -746,7 +785,8 @@ void idRenderSystemLocal::LoadLevelImages() {
 idRenderSystemLocal::Preload
 ========================
 */
-void idRenderSystemLocal::Preload( const idPreloadManifest &manifest, const char *mapName ) {
+void idRenderSystemLocal::Preload( const idPreloadManifest& manifest, const char* mapName )
+{
 	globalImages->Preload( manifest, true );
 	uiManager->Preload( mapName );
 	renderModelManager->Preload( manifest );
@@ -757,7 +797,8 @@ void idRenderSystemLocal::Preload( const idPreloadManifest &manifest, const char
 idRenderSystemLocal::EndLevelLoad
 ========================
 */
-void idRenderSystemLocal::EndLevelLoad() {
+void idRenderSystemLocal::EndLevelLoad()
+{
 	renderModelManager->EndLevelLoad();
 	globalImages->EndLevelLoad();
 }
@@ -767,18 +808,21 @@ void idRenderSystemLocal::EndLevelLoad() {
 idRenderSystemLocal::RegisterFont
 ============
 */
-idFont * idRenderSystemLocal::RegisterFont( const char * fontName ) {
+idFont* idRenderSystemLocal::RegisterFont( const char* fontName )
+{
 
 	idStrStatic< MAX_OSPATH > baseFontName = fontName;
 	baseFontName.Replace( "fonts/", "" );
-	for ( int i = 0; i < m_fonts.Num(); i++ ) {
-		if ( idStr::Icmp( m_fonts[i]->GetName(), baseFontName ) == 0 ) {
-			m_fonts[i]->Touch();
-			return m_fonts[i];
+	for( int i = 0; i < fonts.Num(); i++ )
+	{
+		if( idStr::Icmp( fonts[i]->GetName(), baseFontName ) == 0 )
+		{
+			fonts[i]->Touch();
+			return fonts[i];
 		}
 	}
-	idFont * newFont = new (TAG_FONT) idFont( baseFontName );
-	m_fonts.Append( newFont );
+	idFont* newFont = new( TAG_FONT ) idFont( baseFontName );
+	fonts.Append( newFont );
 	return newFont;
 }
 
@@ -787,7 +831,8 @@ idFont * idRenderSystemLocal::RegisterFont( const char * fontName ) {
 idRenderSystemLocal::IsFullScreen
 ========================
 */
-bool idRenderSystemLocal::IsFullScreen() const {
+bool idRenderSystemLocal::IsFullScreen() const
+{
 	return win32.isFullscreen != 0;
 }
 
@@ -796,7 +841,8 @@ bool idRenderSystemLocal::IsFullScreen() const {
 idRenderSystemLocal::GetWidth
 ========================
 */
-int idRenderSystemLocal::GetWidth() const {
+int idRenderSystemLocal::GetWidth() const
+{
 	return win32.nativeScreenWidth;
 }
 
@@ -805,7 +851,8 @@ int idRenderSystemLocal::GetWidth() const {
 idRenderSystemLocal::GetHeight
 ========================
 */
-int idRenderSystemLocal::GetHeight() const {
+int idRenderSystemLocal::GetHeight() const
+{
 	return win32.nativeScreenHeight;
 }
 
@@ -814,7 +861,8 @@ int idRenderSystemLocal::GetHeight() const {
 idRenderSystemLocal::GetPixelAspect
 ========================
 */
-float idRenderSystemLocal::GetPixelAspect() const {
+float idRenderSystemLocal::GetPixelAspect() const
+{
 	return win32.pixelAspect;
 }
 
@@ -834,27 +882,30 @@ and local spaces are allocated here.
 All memory is cache-line-cleared for the best performance.
 ========================
 */
-void * idRenderSystemLocal::FrameAlloc( int bytes, frameAllocType_t type ) {
+void* idRenderSystemLocal::FrameAlloc( int bytes, frameAllocType_t type )
+{
 #if defined( TRACK_FRAME_ALLOCS )
-	m_frameData->frameMemoryUsed.Add( bytes );
+	frameData->frameMemoryUsed.Add( bytes );
 	frameAllocTypeCount[ type ].Add( bytes );
 #endif
-
-	bytes = ( bytes + FRAME_ALLOC_ALIGNMENT - 1 ) & ~ ( FRAME_ALLOC_ALIGNMENT - 1 );
-
+	
+	bytes = ( bytes + FRAME_ALLOC_ALIGNMENT - 1 ) & ~( FRAME_ALLOC_ALIGNMENT - 1 );
+	
 	// thread safe add
-	int end = m_frameData->frameMemoryAllocated.Add( bytes );
-	if ( end > MAX_FRAME_MEMORY ) {
-		idLib::Error( "idRenderSystemLocal::FrameAlloc ran out of memory. bytes = %d, end = %d, highWaterAllocated = %d\n", bytes, end, m_frameData->highWaterAllocated );
+	int end = frameData->frameMemoryAllocated.Add( bytes );
+	if( end > MAX_FRAME_MEMORY )
+	{
+		idLib::Error( "idRenderSystemLocal::FrameAlloc ran out of memory. bytes = %d, end = %d, highWaterAllocated = %d\n", bytes, end, frameData->highWaterAllocated );
 	}
-
-	byte * ptr = m_frameData->frameMemory + end - bytes;
-
+	
+	byte* ptr = frameData->frameMemory + end - bytes;
+	
 	// cache line clear the memory
-	for ( int offset = 0; offset < bytes; offset += CACHE_LINE_SIZE ) {
+	for( int offset = 0; offset < bytes; offset += CACHE_LINE_SIZE )
+	{
 		ZeroCacheLine( ptr, offset );
 	}
-
+	
 	return ptr;
 }
 
@@ -863,7 +914,8 @@ void * idRenderSystemLocal::FrameAlloc( int bytes, frameAllocType_t type ) {
 idRenderSystemLocal::ClearedFrameAlloc
 ============
 */
-void * idRenderSystemLocal::ClearedFrameAlloc( int bytes, frameAllocType_t type ) {
+void* idRenderSystemLocal::ClearedFrameAlloc( int bytes, frameAllocType_t type )
+{
 	// NOTE: every allocation is cache line cleared
 	return FrameAlloc( bytes, type );
 }
@@ -873,36 +925,40 @@ void * idRenderSystemLocal::ClearedFrameAlloc( int bytes, frameAllocType_t type 
 idRenderSystemLocal::ToggleSmpFrame
 ============
 */
-void idRenderSystemLocal::ToggleSmpFrame() {
+void idRenderSystemLocal::ToggleSmpFrame()
+{
 	// update the highwater mark
-	if ( m_frameData->frameMemoryAllocated.GetValue() > m_frameData->highWaterAllocated ) {
-		m_frameData->highWaterAllocated = m_frameData->frameMemoryAllocated.GetValue();
+	if( frameData->frameMemoryAllocated.GetValue() > frameData->highWaterAllocated )
+	{
+		frameData->highWaterAllocated = frameData->frameMemoryAllocated.GetValue();
 #if defined( TRACK_FRAME_ALLOCS )
-		m_frameData->highWaterUsed = m_frameData->frameMemoryUsed.GetValue();
-		for ( int i = 0; i < FRAME_ALLOC_MAX; i++ ) {
+		frameData->highWaterUsed = frameData->frameMemoryUsed.GetValue();
+		for( int i = 0; i < FRAME_ALLOC_MAX; i++ )
+		{
 			frameHighWaterTypeCount[i] = frameAllocTypeCount[i].GetValue();
 		}
 #endif
 	}
-
+	
 	// switch to the next frame
-	m_smpFrame++;
-	m_frameData = &m_smpFrameData[ m_smpFrame % NUM_FRAME_DATA ];
-
+	smpFrame++;
+	frameData = &smpFrameData[ smpFrame % NUM_FRAME_DATA ];
+	
 	// reset the memory allocation
-	const uint32 bytesNeededForAlignment = FRAME_ALLOC_ALIGNMENT - ( (uint32)m_frameData->frameMemory & ( FRAME_ALLOC_ALIGNMENT - 1 ) );
-	m_frameData->frameMemoryAllocated.SetValue( bytesNeededForAlignment );
-	m_frameData->frameMemoryUsed.SetValue( 0 );
-
+	const uint32 bytesNeededForAlignment = FRAME_ALLOC_ALIGNMENT - ( ( uint32 )frameData->frameMemory & ( FRAME_ALLOC_ALIGNMENT - 1 ) );
+	frameData->frameMemoryAllocated.SetValue( bytesNeededForAlignment );
+	frameData->frameMemoryUsed.SetValue( 0 );
+	
 #if defined( TRACK_FRAME_ALLOCS )
-	for ( int i = 0; i < FRAME_ALLOC_MAX; i++ ) {
+	for( int i = 0; i < FRAME_ALLOC_MAX; i++ )
+	{
 		frameAllocTypeCount[i].SetValue( 0 );
 	}
 #endif
-
+	
 	// clear the command chain
-	m_frameData->renderCommandIndex = 0;
-	m_frameData->renderCommands.Zero();
+	frameData->renderCommandIndex = 0;
+	frameData->renderCommands.Zero();
 }
 
 /*
@@ -910,16 +966,18 @@ void idRenderSystemLocal::ToggleSmpFrame() {
 idRenderSystemLocal::InitFrameData
 ============
 */
-void idRenderSystemLocal::InitFrameData() {
+void idRenderSystemLocal::InitFrameData()
+{
 	ShutdownFrameData();
-
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		m_smpFrameData[ i ].frameMemory = (byte *) Mem_Alloc16( MAX_FRAME_MEMORY, TAG_RENDER );
+	
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		smpFrameData[ i ].frameMemory = ( byte* ) MeAlloc16( MAX_FRAME_MEMORY, TAG_RENDER );
 	}
-
+	
 	// must be set before ToggleSmpFrame()
-	m_frameData = &m_smpFrameData[ 0 ];
-
+	frameData = &smpFrameData[ 0 ];
+	
 	ToggleSmpFrame();
 }
 
@@ -928,11 +986,13 @@ void idRenderSystemLocal::InitFrameData() {
 idRenderSystemLocal::ShutdownFrameData
 ============
 */
-void idRenderSystemLocal::ShutdownFrameData() {
-	m_frameData = NULL;
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		Mem_Free16( m_smpFrameData[ i ].frameMemory );
-		m_smpFrameData[ i ].frameMemory = NULL;
+void idRenderSystemLocal::ShutdownFrameData()
+{
+	frameData = NULL;
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		MeFree16( smpFrameData[ i ].frameMemory );
+		smpFrameData[ i ].frameMemory = NULL;
 	}
 }
 
@@ -944,15 +1004,17 @@ This is the main 3D rendering command.  A single scene may
 have multiple views if a mirror, portal, or dynamic texture is present.
 =============
 */
-void idRenderSystemLocal::AddDrawViewCmd( viewDef_t *parms, bool guiOnly ) {
-	renderCommand_t & cmd = m_frameData->renderCommands[ m_frameData->renderCommandIndex++ ];
+void idRenderSystemLocal::AddDrawViewCmd( viewDef_t* parms, bool guiOnly )
+{
+	renderCommand_t& cmd = frameData->renderCommands[ frameData->renderCommandIndex++ ];
 	cmd.op = RC_DRAW_VIEW;
 	cmd.viewDef = parms;
-
+	
 	pc.c_numViews++;
-
+	
 	// report statistics about this view
-	if ( r_showSurfaces.GetBool() ) {
+	if( r_showSurfaces.GetBool() )
+	{
 		idLib::Printf( "view:%p surfs:%i\n", parms, parms->numDrawSurfs );
 	}
 }
@@ -962,13 +1024,15 @@ void idRenderSystemLocal::AddDrawViewCmd( viewDef_t *parms, bool guiOnly ) {
 idRenderSystemLocal::EmitFullscreenGuis
 =============
 */
-void idRenderSystemLocal::EmitFullscreenGui() {
-	viewDef_t * guiViewDef = m_guiModel->EmitFullScreen();
-	if ( guiViewDef ) {
+void idRenderSystemLocal::EmitFullscreenGui()
+{
+	viewDef_t* guiViewDef = guiModel->EmitFullScreen();
+	if( guiViewDef )
+	{
 		// add the command to draw this view
 		AddDrawViewCmd( guiViewDef, true );
 	}
-	m_guiModel->Clear();
+	guiModel->Clear();
 }
 
 /*
@@ -976,8 +1040,9 @@ void idRenderSystemLocal::EmitFullscreenGui() {
 idRenderSystemLocal::SetColor
 =============
 */
-void idRenderSystemLocal::SetColor( const idVec4 & rgba ) {
-	m_currentColorNativeBytesOrder = LittleLong( PackColor( rgba ) );
+void idRenderSystemLocal::SetColor( const idVec4& rgba )
+{
+	currentColorNativeBytesOrder = LittleLong( PackColor( rgba ) );
 }
 
 /*
@@ -985,8 +1050,9 @@ void idRenderSystemLocal::SetColor( const idVec4 & rgba ) {
 idRenderSystemLocal::GetColor
 =============
 */
-uint32 idRenderSystemLocal::GetColor() {
-	return LittleLong( m_currentColorNativeBytesOrder );
+uint32 idRenderSystemLocal::GetColor()
+{
+	return LittleLong( currentColorNativeBytesOrder );
 }
 
 /*
@@ -994,8 +1060,9 @@ uint32 idRenderSystemLocal::GetColor() {
 idRenderSystemLocal::SetGLState
 =============
 */
-void idRenderSystemLocal::SetGLState( const uint64 glState ) {
-	m_currentGLState = glState;
+void idRenderSystemLocal::SetGLState( const uint64 glState )
+{
+	currentGLState = glState;
 }
 
 /*
@@ -1003,7 +1070,8 @@ void idRenderSystemLocal::SetGLState( const uint64 glState ) {
 idRenderSystemLocal::DrawFilled
 =============
 */
-void idRenderSystemLocal::DrawFilled( const idVec4 & color, float x, float y, float w, float h ) {
+void idRenderSystemLocal::DrawFilled( const idVec4& color, float x, float y, float w, float h )
+{
 	SetColor( color );
 	DrawStretchPic( x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, whiteMaterial );
 }
@@ -1013,8 +1081,9 @@ void idRenderSystemLocal::DrawFilled( const idVec4 & color, float x, float y, fl
 idRenderSystemLocal::DrawStretchPic
 =============
 */
-void idRenderSystemLocal::DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, const idMaterial *material ) {
-	DrawStretchPic( idVec4( x, y, s1, t1 ), idVec4( x+w, y, s2, t1 ), idVec4( x+w, y+h, s2, t2 ), idVec4( x, y+h, s1, t2 ), material );
+void idRenderSystemLocal::DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, const idMaterial* material )
+{
+	DrawStretchPic( idVec4( x, y, s1, t1 ), idVec4( x + w, y, s2, t1 ), idVec4( x + w, y + h, s2, t2 ), idVec4( x, y + h, s1, t2 ), material );
 }
 
 /*
@@ -1022,18 +1091,19 @@ void idRenderSystemLocal::DrawStretchPic( float x, float y, float w, float h, fl
 idRenderSystemLocal::DrawStretchFX
 =============
 */
-void idRenderSystemLocal::DrawStretchFX( 
-	float x, float y, 
-	float w, float h, 
-	float s1, float t1, 
-	float s2, float t2, 
-	const idMaterial *material ) {
+void idRenderSystemLocal::DrawStretchFX(
+	float x, float y,
+	float w, float h,
+	float s1, float t1,
+	float s2, float t2,
+	const idMaterial* material )
+{
 
-	DrawStretchPic( 
+	DrawStretchPic(
 		idVec4( x, y, s1, t1 ),		// TL
-		idVec4( x+w, y, s2, t1 ),	// TR
-		idVec4( x+w, y+h, s2, t2 ), // BR
-		idVec4( x, y+h, s1, t2 ),	// BL
+		idVec4( x + w, y, s2, t1 ),	// TR
+		idVec4( x + w, y + h, s2, t2 ), // BR
+		idVec4( x, y + h, s1, t2 ),	// BL
 		material );
 }
 
@@ -1043,49 +1113,53 @@ idRenderSystemLocal::DrawStretchPic
 =============
 */
 static triIndex_t quadPicIndexes[6] = { 3, 0, 2, 2, 0, 1 };
-void idRenderSystemLocal::DrawStretchPic( const idVec4 & topLeft, const idVec4 & topRight, const idVec4 & bottomRight, const idVec4 & bottomLeft, const idMaterial * material ) {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::DrawStretchPic( const idVec4& topLeft, const idVec4& topRight, const idVec4& bottomRight, const idVec4& bottomLeft, const idMaterial* material )
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-	if ( material == NULL ) {
+	if( material == NULL )
+	{
 		return;
 	}
-
-	idDrawVert * verts = m_guiModel->AllocTris( 4, quadPicIndexes, 6, material, m_currentGLState );
-	if ( verts == NULL ) {
+	
+	idDrawVert* verts = guiModel->AllocTris( 4, quadPicIndexes, 6, material, currentGLState );
+	if( verts == NULL )
+	{
 		return;
 	}
-
+	
 	ALIGNTYPE16 idDrawVert localVerts[4];
-
+	
 	localVerts[0].Clear();
 	localVerts[0].xyz[0] = topLeft.x;
 	localVerts[0].xyz[1] = topLeft.y;
 	localVerts[0].SetTexCoord( topLeft.z, topLeft.w );
-	localVerts[0].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[0].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[0].ClearColor2();
-
+	
 	localVerts[1].Clear();
 	localVerts[1].xyz[0] = topRight.x;
 	localVerts[1].xyz[1] = topRight.y;
 	localVerts[1].SetTexCoord( topRight.z, topRight.w );
-	localVerts[1].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[1].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[1].ClearColor2();
-
+	
 	localVerts[2].Clear();
 	localVerts[2].xyz[0] = bottomRight.x;
 	localVerts[2].xyz[1] = bottomRight.y;
 	localVerts[2].SetTexCoord( bottomRight.z, bottomRight.w );
-	localVerts[2].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[2].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[2].ClearColor2();
-
+	
 	localVerts[3].Clear();
 	localVerts[3].xyz[0] = bottomLeft.x;
 	localVerts[3].xyz[1] = bottomLeft.y;
 	localVerts[3].SetTexCoord( bottomLeft.z, bottomLeft.w );
-	localVerts[3].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[3].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[3].ClearColor2();
-
+	
 	WriteDrawVerts16( verts, localVerts, 4 );
 }
 
@@ -1094,44 +1168,48 @@ void idRenderSystemLocal::DrawStretchPic( const idVec4 & topLeft, const idVec4 &
 idRenderSystemLocal::DrawStretchTri
 =============
 */
-void idRenderSystemLocal::DrawStretchTri( const idVec2 & p1, const idVec2 & p2, const idVec2 & p3, const idVec2 & t1, const idVec2 & t2, const idVec2 & t3, const idMaterial *material ) {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::DrawStretchTri( const idVec2& p1, const idVec2& p2, const idVec2& p3, const idVec2& t1, const idVec2& t2, const idVec2& t3, const idMaterial* material )
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-	if ( material == NULL ) {
+	if( material == NULL )
+	{
 		return;
 	}
-
+	
 	triIndex_t tempIndexes[3] = { 1, 0, 2 };
-
-	idDrawVert * verts = m_guiModel->AllocTris( 3, tempIndexes, 3, material, m_currentGLState );
-	if ( verts == NULL ) {
+	
+	idDrawVert* verts = guiModel->AllocTris( 3, tempIndexes, 3, material, currentGLState );
+	if( verts == NULL )
+	{
 		return;
 	}
-
+	
 	ALIGNTYPE16 idDrawVert localVerts[3];
-
+	
 	localVerts[0].Clear();
 	localVerts[0].xyz[0] = p1.x;
 	localVerts[0].xyz[1] = p1.y;
 	localVerts[0].SetTexCoord( t1 );
-	localVerts[0].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[0].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[0].ClearColor2();
-
+	
 	localVerts[1].Clear();
 	localVerts[1].xyz[0] = p2.x;
 	localVerts[1].xyz[1] = p2.y;
 	localVerts[1].SetTexCoord( t2 );
-	localVerts[1].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[1].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[1].ClearColor2();
-
+	
 	localVerts[2].Clear();
 	localVerts[2].xyz[0] = p3.x;
 	localVerts[2].xyz[1] = p3.y;
 	localVerts[2].SetTexCoord( t3 );
-	localVerts[2].SetNativeOrderColor( m_currentColorNativeBytesOrder );
+	localVerts[2].SetNativeOrderColor( currentColorNativeBytesOrder );
 	localVerts[2].ClearColor2();
-
+	
 	WriteDrawVerts16( verts, localVerts, 3 );
 }
 
@@ -1140,8 +1218,9 @@ void idRenderSystemLocal::DrawStretchTri( const idVec2 & p1, const idVec2 & p2, 
 idRenderSystemLocal::AllocTris
 =============
 */
-idDrawVert * idRenderSystemLocal::AllocTris( int numVerts, const triIndex_t * indexes, int numIndexes, const idMaterial * material ) {
-	return m_guiModel->AllocTris( numVerts, indexes, numIndexes, material, m_currentGLState );
+idDrawVert* idRenderSystemLocal::AllocTris( int numVerts, const triIndex_t* indexes, int numIndexes, const idMaterial* material )
+{
+	return guiModel->AllocTris( numVerts, indexes, numIndexes, material, currentGLState );
 }
 
 /*
@@ -1151,32 +1230,35 @@ idRenderSystemLocal::DrawSmallChar
 small chars are drawn at native screen resolution
 =====================
 */
-void idRenderSystemLocal::DrawSmallChar( int x, int y, int ch ) {
+void idRenderSystemLocal::DrawSmallChar( int x, int y, int ch )
+{
 	int row, col;
 	float frow, fcol;
 	float size;
-
+	
 	ch &= 255;
-
-	if ( ch == ' ' ) {
+	
+	if( ch == ' ' )
+	{
 		return;
 	}
-
-	if ( y < -SMALLCHAR_HEIGHT ) {
+	
+	if( y < -SMALLCHAR_HEIGHT )
+	{
 		return;
 	}
-
+	
 	row = ch >> 4;
 	col = ch & 15;
-
+	
 	frow = row * 0.0625f;
 	fcol = col * 0.0625f;
 	size = 0.0625f;
-
+	
 	DrawStretchPic( x, y, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT,
-					   fcol, frow, 
-					   fcol + size, frow + size, 
-					   charSetMaterial );
+					fcol, frow,
+					fcol + size, frow + size,
+					charSetMaterial );
 }
 
 /*
@@ -1189,22 +1271,29 @@ to a fixed color.
 Coordinates are at 640 by 480 virtual resolution
 ==================
 */
-void idRenderSystemLocal::DrawSmallStringExt( int x, int y, const char *string, const idVec4 &setColor, bool forceColor ) {
+void idRenderSystemLocal::DrawSmallStringExt( int x, int y, const char* string, const idVec4& setColor, bool forceColor )
+{
 	idVec4		color;
-	const unsigned char	*s;
+	const unsigned char*	s;
 	int			xx;
-
+	
 	// draw the colored text
-	s = (const unsigned char*)string;
+	s = ( const unsigned char* )string;
 	xx = x;
 	SetColor( setColor );
-	while ( *s ) {
-		if ( idStr::IsColor( (const char*)s ) ) {
-			if ( !forceColor ) {
-				if ( *(s+1) == C_COLOR_DEFAULT ) {
+	while( *s )
+	{
+		if( idStr::IsColor( ( const char* )s ) )
+		{
+			if( !forceColor )
+			{
+				if( *( s + 1 ) == C_COLOR_DEFAULT )
+				{
 					SetColor( setColor );
-				} else {
-					color = idStr::ColorForIndex( *(s+1) );
+				}
+				else
+				{
+					color = idStr::ColorForIndex( *( s + 1 ) );
 					color[3] = setColor[3];
 					SetColor( color );
 				}
@@ -1224,32 +1313,35 @@ void idRenderSystemLocal::DrawSmallStringExt( int x, int y, const char *string, 
 idRenderSystemLocal::DrawBigChar
 =====================
 */
-void idRenderSystemLocal::DrawBigChar( int x, int y, int ch ) {
+void idRenderSystemLocal::DrawBigChar( int x, int y, int ch )
+{
 	int row, col;
 	float frow, fcol;
 	float size;
-
+	
 	ch &= 255;
-
-	if ( ch == ' ' ) {
+	
+	if( ch == ' ' )
+	{
 		return;
 	}
-
-	if ( y < -BIGCHAR_HEIGHT ) {
+	
+	if( y < -BIGCHAR_HEIGHT )
+	{
 		return;
 	}
-
+	
 	row = ch >> 4;
 	col = ch & 15;
-
+	
 	frow = row * 0.0625f;
 	fcol = col * 0.0625f;
 	size = 0.0625f;
-
+	
 	DrawStretchPic( x, y, BIGCHAR_WIDTH, BIGCHAR_HEIGHT,
-					   fcol, frow, 
-					   fcol + size, frow + size, 
-					   charSetMaterial );
+					fcol, frow,
+					fcol + size, frow + size,
+					charSetMaterial );
 }
 
 /*
@@ -1262,22 +1354,29 @@ to a fixed color.
 Coordinates are at 640 by 480 virtual resolution
 ==================
 */
-void idRenderSystemLocal::DrawBigStringExt( int x, int y, const char *string, const idVec4 &setColor, bool forceColor ) {
+void idRenderSystemLocal::DrawBigStringExt( int x, int y, const char* string, const idVec4& setColor, bool forceColor )
+{
 	idVec4		color;
-	const char	*s;
+	const char*	s;
 	int			xx;
-
+	
 	// draw the colored text
 	s = string;
 	xx = x;
 	SetColor( setColor );
-	while ( *s ) {
-		if ( idStr::IsColor( s ) ) {
-			if ( !forceColor ) {
-				if ( *(s+1) == C_COLOR_DEFAULT ) {
+	while( *s )
+	{
+		if( idStr::IsColor( s ) )
+		{
+			if( !forceColor )
+			{
+				if( *( s + 1 ) == C_COLOR_DEFAULT )
+				{
 					SetColor( setColor );
-				} else {
-					color = idStr::ColorForIndex( *(s+1) );
+				}
+				else
+				{
+					color = idStr::ColorForIndex( *( s + 1 ) );
 					color[3] = setColor[3];
 					SetColor( color );
 				}
@@ -1308,7 +1407,8 @@ After this is called, new command buffers can be built up in parallel
 with the rendering of the closed off command buffers by RenderCommandBuffers()
 ====================
 */
-void idRenderSystemLocal::SwapCommandBuffers( frameTiming_t * frameTiming )  {
+void idRenderSystemLocal::SwapCommandBuffers( frameTiming_t* frameTiming )
+{
 	SwapCommandBuffers_FinishRendering( frameTiming );
 	SwapCommandBuffers_FinishCommandBuffers();
 }
@@ -1318,7 +1418,8 @@ void idRenderSystemLocal::SwapCommandBuffers( frameTiming_t * frameTiming )  {
 idRenderSystemLocal::SwapAndRenderCommandBuffers
 =====================
 */
-void idRenderSystemLocal::SwapAndRenderCommandBuffers( frameTiming_t * frameTiming ) {
+void idRenderSystemLocal::SwapAndRenderCommandBuffers( frameTiming_t* frameTiming )
+{
 	SwapCommandBuffers( frameTiming );
 	RenderCommandBuffers();
 }
@@ -1328,30 +1429,33 @@ void idRenderSystemLocal::SwapAndRenderCommandBuffers( frameTiming_t * frameTimi
 idRenderSystemLocal::SwapCommandBuffers_FinishRendering
 =====================
 */
-void idRenderSystemLocal::SwapCommandBuffers_FinishRendering( frameTiming_t * frameTiming )  {
+void idRenderSystemLocal::SwapCommandBuffers_FinishRendering( frameTiming_t* frameTiming )
+{
 	SCOPED_PROFILE_EVENT( "SwapCommandBuffers_FinishRendering" );
-
-	if ( !m_bInitialized ) {
+	
+	if( !bInitialized )
+	{
 		return;
 	}
-
+	
 	// wait for our fence to hit, which means the swap has actually happened
 	// We must do this before clearing any resources the GPU may be using
-	m_backend.BlockingSwapBuffers();
-
+	backend.BlockingSwapBuffers();
+	
 	//------------------------------
-
+	
 	// save out timing information
-	if ( frameTiming != NULL ) {
-		frameTiming->frontendTime= pc.frontEndMicroSec;
-		frameTiming->backendTime = m_backend.m_pc.totalMicroSec;
-		frameTiming->shadowTime = m_backend.m_pc.shadowMicroSec;
-		frameTiming->depthTime = m_backend.m_pc.depthMicroSec;
-		frameTiming->interactionTime = m_backend.m_pc.interactionMicroSec;
-		frameTiming->shaderTime = m_backend.m_pc.shaderPassMicroSec;
-		frameTiming->gpuTime = m_backend.m_pc.gpuMicroSec;
+	if( frameTiming != NULL )
+	{
+		frameTiming->frontendTime = pc.frontEndMicroSec;
+		frameTiming->backendTime = backend.pc.totalMicroSec;
+		frameTiming->shadowTime = backend.pc.shadowMicroSec;
+		frameTiming->depthTime = backend.pc.depthMicroSec;
+		frameTiming->interactionTime = backend.pc.interactionMicroSec;
+		frameTiming->shaderTime = backend.pc.shaderPassMicroSec;
+		frameTiming->gpuTime = backend.pc.gpuMicroSec;
 	}
-
+	
 	// print any other statistics and clear all of them
 	PrintPerformanceCounters();
 }
@@ -1361,31 +1465,33 @@ void idRenderSystemLocal::SwapCommandBuffers_FinishRendering( frameTiming_t * fr
 idRenderSystemLocal::SwapCommandBuffers_FinishCommandBuffers
 =====================
 */
-void R_InitDrawSurfFromTri( drawSurf_t & ds, srfTriangles_t & tri );
-void idRenderSystemLocal::SwapCommandBuffers_FinishCommandBuffers() {
-	if ( !m_bInitialized ) {
+void R_InitDrawSurfFromTri( drawSurf_t& ds, srfTriangles_t& tri );
+void idRenderSystemLocal::SwapCommandBuffers_FinishCommandBuffers()
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-
+	
 	// close any gui drawing
 	EmitFullscreenGui();
-
+	
 	// unmap the buffer objects so they can be used by the GPU
 	vertexCache.BeginBackEnd();
-
+	
 	// copy the code-used drawsurfs that were
-	// allocated at the start of the buffer memory to the m_backend referenced locations
-	m_backend.m_unitSquareSurface = m_unitSquareSurface;
-	m_backend.m_zeroOneCubeSurface = m_zeroOneCubeSurface;
-	m_backend.m_testImageSurface = m_testImageSurface;
-
+	// allocated at the start of the buffer memory to the backend referenced locations
+	backend.unitSquareSurface = unitSquareSurface;
+	backend.zeroOneCubeSurface = zeroOneCubeSurface;
+	backend.testImageSurface = testImageSurface;
+	
 	// use the other buffers next frame, because another CPU
 	// may still be rendering into the current buffers
 	ToggleSmpFrame();
-
+	
 	// prepare the new command buffer
-	m_guiModel->BeginFrame();
-
+	guiModel->BeginFrame();
+	
 	//------------------------------
 	// Make sure that geometry used by code is present in the buffer cache.
 	// These use frame buffer cache (not static) because they may be used during
@@ -1395,24 +1501,24 @@ void idRenderSystemLocal::SwapCommandBuffers_FinishCommandBuffers() {
 	// scene generation, the basic surfaces needed for drawing the buffers will
 	// always be present.
 	//------------------------------
-	R_InitDrawSurfFromTri( m_unitSquareSurface, *m_unitSquareTriangles );
-	R_InitDrawSurfFromTri( m_zeroOneCubeSurface, *m_zeroOneCubeTriangles );
-	R_InitDrawSurfFromTri( m_testImageSurface, *m_testImageTriangles );
-
+	R_InitDrawSurfFromTri( unitSquareSurface, *unitSquareTriangles );
+	R_InitDrawSurfFromTri( zeroOneCubeSurface, *zeroOneCubeTriangles );
+	R_InitDrawSurfFromTri( testImageSurface, *testImageTriangles );
+	
 	// Reset render crop to be the full screen
-	m_renderCrops[0].x1 = 0;
-	m_renderCrops[0].y1 = 0;
-	m_renderCrops[0].x2 = GetWidth() - 1;
-	m_renderCrops[0].y2 = GetHeight() - 1;
-	m_currentRenderCrop = 0;
-
+	renderCrops[0].x1 = 0;
+	renderCrops[0].y1 = 0;
+	renderCrops[0].x2 = GetWidth() - 1;
+	renderCrops[0].y2 = GetHeight() - 1;
+	currentRenderCrop = 0;
+	
 	// this is the ONLY place this is modified
 	frameCount++;
-
+	
 	// just in case we did a idLib::Error while this
 	// was set
-	m_guiRecursionLevel = 0;
-
+	guiRecursionLevel = 0;
+	
 	// the old command buffer can now be rendered, while the new one can
 	// be built in parallel
 }
@@ -1422,20 +1528,23 @@ void idRenderSystemLocal::SwapCommandBuffers_FinishCommandBuffers() {
 idRenderSystemLocal::RenderCommandBuffers
 ====================
 */
-void idRenderSystemLocal::RenderCommandBuffers() {
+void idRenderSystemLocal::RenderCommandBuffers()
+{
 	// Use the previous smp frame data as the current is being written to.
-	idFrameData & frameData = m_smpFrameData[ ( m_smpFrame - 1 ) % NUM_FRAME_DATA ];
-
+	idFrameData& frameData = smpFrameData[( smpFrame - 1 ) % NUM_FRAME_DATA ];
+	
 	// if there isn't a draw view command, do nothing to avoid swapping a bad frame
-	if ( frameData.renderCommandIndex == 0 ) {
+	if( frameData.renderCommandIndex == 0 )
+	{
 		return;
 	}
-	if ( frameData.renderCommands[ 0 ].op == RC_NOP ) {
+	if( frameData.renderCommands[ 0 ].op == RC_NOP )
+	{
 		return;
 	}
-
-	m_backend.Execute( frameData.renderCommandIndex, frameData.renderCommands );
-
+	
+	backend.Execute( frameData.renderCommandIndex, frameData.renderCommands );
+	
 	// pass in null for now - we may need to do some map specific hackery in the future
 	resolutionScale.InitForMap( NULL );
 }
@@ -1447,8 +1556,9 @@ idRenderSystemLocal::GetCroppedViewport
 Returns the current cropped pixel coordinates
 =====================
 */
-void idRenderSystemLocal::GetCroppedViewport( idScreenRect * viewport ) {
-	*viewport = m_renderCrops[ m_currentRenderCrop ];
+void idRenderSystemLocal::GetCroppedViewport( idScreenRect* viewport )
+{
+	*viewport = renderCrops[ currentRenderCrop ];
 }
 
 /*
@@ -1460,13 +1570,14 @@ fill rate requirements while still allowing the GUIs to be full resolution.
 In split screen mode the rendering size is also smaller.
 ========================
 */
-void idRenderSystemLocal::PerformResolutionScaling( int& newWidth, int& newHeight ) {
+void idRenderSystemLocal::PerformResolutionScaling( int& newWidth, int& newHeight )
+{
 
 	float xScale = 1.0f;
 	float yScale = 1.0f;
 	resolutionScale.ResetToFullResolution();
 	resolutionScale.GetCurrentResolutionScale( xScale, yScale );
-
+	
 	newWidth = idMath::Ftoi( GetWidth() * xScale );
 	newHeight = idMath::Ftoi( GetHeight() * yScale );
 }
@@ -1476,24 +1587,27 @@ void idRenderSystemLocal::PerformResolutionScaling( int& newWidth, int& newHeigh
 idRenderSystemLocal::CropRenderSize
 ================
 */
-void idRenderSystemLocal::CropRenderSize( int width, int height ) {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::CropRenderSize( int width, int height )
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-
+	
 	// close any gui drawing before changing the size
 	EmitFullscreenGui();
-
-	if ( width < 1 || height < 1 ) {
+	
+	if( width < 1 || height < 1 )
+	{
 		idLib::Error( "CropRenderSize: bad sizes" );
 	}
-
-	idScreenRect & previous = m_renderCrops[ m_currentRenderCrop ];
-
-	m_currentRenderCrop++;
-
-	idScreenRect & current = m_renderCrops[ m_currentRenderCrop ];
-
+	
+	idScreenRect& previous = renderCrops[ currentRenderCrop ];
+	
+	currentRenderCrop++;
+	
+	idScreenRect& current = renderCrops[ currentRenderCrop ];
+	
 	current.x1 = previous.x1;
 	current.x2 = previous.x1 + width - 1;
 	current.y1 = previous.y2 - height + 1;
@@ -1505,19 +1619,22 @@ void idRenderSystemLocal::CropRenderSize( int width, int height ) {
 idRenderSystemLocal::UnCrop
 ================
 */
-void idRenderSystemLocal::UnCrop() {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::UnCrop()
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-
-	if ( m_currentRenderCrop < 1 ) {
-		idLib::Error( "idRenderSystemLocal::UnCrop: m_currentRenderCrop < 1" );
+	
+	if( currentRenderCrop < 1 )
+	{
+		idLib::Error( "idRenderSystemLocal::UnCrop: currentRenderCrop < 1" );
 	}
-
+	
 	// close any gui drawing
 	EmitFullscreenGui();
-
-	m_currentRenderCrop--;
+	
+	currentRenderCrop--;
 }
 
 /*
@@ -1525,20 +1642,23 @@ void idRenderSystemLocal::UnCrop() {
 idRenderSystemLocal::CaptureRenderToImage
 ================
 */
-void idRenderSystemLocal::CaptureRenderToImage( const char *imageName, bool clearColorAfterCopy ) {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::CaptureRenderToImage( const char* imageName, bool clearColorAfterCopy )
+{
+	if( !bInitialized )
+	{
 		return;
 	}
 	EmitFullscreenGui();
-
-	idImage	* image = globalImages->GetImage( imageName );
-	if ( image == NULL ) {
+	
+	idImage*	 image = globalImages->GetImage( imageName );
+	if( image == NULL )
+	{
 		image = globalImages->AllocImage( imageName );
 	}
-
-	idScreenRect & rc = m_renderCrops[ m_currentRenderCrop ];
-
-	renderCommand_t & cmd = m_frameData->renderCommands[ m_frameData->renderCommandIndex++ ];
+	
+	idScreenRect& rc = renderCrops[ currentRenderCrop ];
+	
+	renderCommand_t& cmd = frameData->renderCommands[ frameData->renderCommandIndex++ ];
 	cmd.op = RC_COPY_RENDER;
 	cmd.x = rc.x1;
 	cmd.y = rc.y1;
@@ -1546,8 +1666,8 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName, bool clea
 	cmd.imageHeight = rc.GetHeight();
 	cmd.image = image;
 	cmd.clearColorAfterCopy = clearColorAfterCopy;
-
-	m_guiModel->Clear();
+	
+	guiModel->Clear();
 }
 
 /*
@@ -1555,38 +1675,41 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName, bool clea
 idRenderSystemLocal::CaptureRenderToFile
 ==============
 */
-void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlpha ) {
-	if ( !m_bInitialized ) {
+void idRenderSystemLocal::CaptureRenderToFile( const char* fileName, bool fixAlpha )
+{
+	if( !bInitialized )
+	{
 		return;
 	}
-
+	
 	// TODO: Refactor for both APIs
 #if 0
-	idScreenRect & rc = m_renderCrops[ m_currentRenderCrop ];
-
+	idScreenRect& rc = renderCrops[ currentRenderCrop ];
+	
 	EmitFullscreenGui();
-
-	RenderCommandBuffers( m_frameData->cmdHead );
-
+	
+	RenderCommandBuffers( frameData->cmdHead );
+	
 	qglReadBuffer( GL_BACK );
-
+	
 	// include extra space for OpenGL padding to word boundaries
 	int	c = ( rc.GetWidth() + 3 ) * rc.GetHeight();
-	byte *data = (byte *)R_StaticAlloc( c * 3 );
+	byte* data = ( byte* )R_StaticAlloc( c * 3 );
 	
-	qglReadPixels( rc.x1, rc.y1, rc.GetWidth(), rc.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, data ); 
-
-	byte *data2 = (byte *)R_StaticAlloc( c * 4 );
-
-	for ( int i = 0 ; i < c ; i++ ) {
+	qglReadPixels( rc.x1, rc.y1, rc.GetWidth(), rc.GetHeight(), GL_RGB, GL_UNSIGNED_BYTE, data );
+	
+	byte* data2 = ( byte* )R_StaticAlloc( c * 4 );
+	
+	for( int i = 0 ; i < c ; i++ )
+	{
 		data2[ i * 4 ] = data[ i * 3 ];
 		data2[ i * 4 + 1 ] = data[ i * 3 + 1 ];
 		data2[ i * 4 + 2 ] = data[ i * 3 + 2 ];
 		data2[ i * 4 + 3 ] = 0xff;
 	}
-
+	
 	R_WriteTGA( fileName, data2, rc.GetWidth(), rc.GetHeight(), true );
-
+	
 	R_StaticFree( data );
 	R_StaticFree( data2 );
 #endif
@@ -1598,10 +1721,11 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 idRenderSystemLocal::AllocRenderWorld
 ==============
 */
-idRenderWorld *idRenderSystemLocal::AllocRenderWorld() {
-	idRenderWorld *rw;
-	rw = new (TAG_RENDER) idRenderWorld;
-	m_worlds.Append( rw );
+idRenderWorld* idRenderSystemLocal::AllocRenderWorld()
+{
+	idRenderWorld* rw;
+	rw = new( TAG_RENDER ) idRenderWorld;
+	worlds.Append( rw );
 	return rw;
 }
 
@@ -1612,13 +1736,15 @@ idRenderSystemLocal::ReCreateWorldReferences
 ReloadModels and RegenerateWorld call this
 ==============
 */
-void idRenderSystemLocal::ReCreateWorldReferences() {
+void idRenderSystemLocal::ReCreateWorldReferences()
+{
 	// let the interaction generation code know this
 	// shouldn't be optimized for a particular view
-	m_viewDef = NULL;
-
-	for ( int i = 0; i < m_worlds.Num(); ++i ) {
-		m_worlds[ i ]->ReCreateReferences();
+	viewDef = NULL;
+	
+	for( int i = 0; i < worlds.Num(); ++i )
+	{
+		worlds[ i ]->ReCreateReferences();
 	}
 }
 
@@ -1629,9 +1755,11 @@ idRenderSystemLocal::FreeWorldDerivedData
 ReloadModels and RegenerateWorld call this
 ===================
 */
-void idRenderSystemLocal::FreeWorldDerivedData() {
-	for ( int i = 0; i < m_worlds.Num(); ++i ) {
-		m_worlds[ i ]->FreeDerivedData();
+void idRenderSystemLocal::FreeWorldDerivedData()
+{
+	for( int i = 0; i < worlds.Num(); ++i )
+	{
+		worlds[ i ]->FreeDerivedData();
 	}
 }
 
@@ -1640,9 +1768,11 @@ void idRenderSystemLocal::FreeWorldDerivedData() {
 idRenderSystemLocal::CheckWorldsForEntityDefsUsingModel
 ===================
 */
-void idRenderSystemLocal::CheckWorldsForEntityDefsUsingModel( idRenderModel * model ) {
-	for ( int i = 0; i < m_worlds.Num(); ++i ) {
-		m_worlds[ i ]->CheckForEntityDefsUsingModel( model );
+void idRenderSystemLocal::CheckWorldsForEntityDefsUsingModel( idRenderModel* model )
+{
+	for( int i = 0; i < worlds.Num(); ++i )
+	{
+		worlds[ i ]->CheckForEntityDefsUsingModel( model );
 	}
 }
 
@@ -1651,11 +1781,13 @@ void idRenderSystemLocal::CheckWorldsForEntityDefsUsingModel( idRenderModel * mo
 idRenderSystemLocal::FreeRenderWorld
 ==============
 */
-void idRenderSystemLocal::FreeRenderWorld( idRenderWorld *rw ) {
-	if ( primaryWorld == rw ) {
+void idRenderSystemLocal::FreeRenderWorld( idRenderWorld* rw )
+{
+	if( primaryWorld == rw )
+	{
 		primaryWorld = NULL;
 	}
-	m_worlds.Remove( rw );
+	worlds.Remove( rw );
 	delete rw;
 }
 
@@ -1667,49 +1799,56 @@ This prints both front and back end counters, so it should
 only be called when the back end thread is idle.
 =====================
 */
-void idRenderSystemLocal::PrintPerformanceCounters() {
-	if ( r_showPrimitives.GetInteger() != 0 ) {
-		backEndCounters_t & bc = m_backend.m_pc;
-
+void idRenderSystemLocal::PrintPerformanceCounters()
+{
+	if( r_showPrimitives.GetInteger() != 0 )
+	{
+		backEndCounters_t& bc = backend.pc;
+		
 		idLib::Printf( "views:%i draws:%i tris:%i (shdw:%i)\n",
-			pc.c_numViews,
-			bc.c_drawElements + bc.c_shadowElements,
-			( bc.c_drawIndexes + bc.c_shadowIndexes ) / 3,
-			bc.c_shadowIndexes / 3
-			);
-	}
-
-	if ( r_showDynamic.GetBool() ) {
-		idLib::Printf( "callback:%i md5:%i dfrmVerts:%i dfrmTris:%i tangTris:%i guis:%i\n",
-			pc.c_entityDefCallbacks,
-			pc.c_generateMd5,
-			pc.c_deformedVerts,
-			pc.c_deformedIndexes/3,
-			pc.c_tangentIndexes/3,
-			pc.c_guiSurfs
-			); 
-	}
-
-	if ( r_showCull.GetBool() ) {
-		idLib::Printf( "%i box in %i box out\n",
-			pc.c_box_cull_in, pc.c_box_cull_out );
+					   pc.c_numViews,
+					   bc.c_drawElements + bc.c_shadowElements,
+					   ( bc.c_drawIndexes + bc.c_shadowIndexes ) / 3,
+					   bc.c_shadowIndexes / 3
+					 );
 	}
 	
-	if ( r_showAddModel.GetBool() ) {
+	if( r_showDynamic.GetBool() )
+	{
+		idLib::Printf( "callback:%i md5:%i dfrmVerts:%i dfrmTris:%i tangTris:%i guis:%i\n",
+					   pc.c_entityDefCallbacks,
+					   pc.c_generateMd5,
+					   pc.c_deformedVerts,
+					   pc.c_deformedIndexes / 3,
+					   pc.c_tangentIndexes / 3,
+					   pc.c_guiSurfs
+					 );
+	}
+	
+	if( r_showCull.GetBool() )
+	{
+		idLib::Printf( "%i box in %i box out\n",
+					   pc.c_box_cull_in, pc.c_box_cull_out );
+	}
+	
+	if( r_showAddModel.GetBool() )
+	{
 		idLib::Printf( "callback:%i createInteractions:%i createShadowVolumes:%i\n",
-			pc.c_entityDefCallbacks, pc.c_createInteractions, pc.c_createShadowVolumes );
+					   pc.c_entityDefCallbacks, pc.c_createInteractions, pc.c_createShadowVolumes );
 		idLib::Printf( "viewEntities:%i  shadowEntities:%i  viewLights:%i\n", pc.c_visibleViewEntities,
-			pc.c_shadowViewEntities, pc.c_viewLights );
+					   pc.c_shadowViewEntities, pc.c_viewLights );
 	}
-	if ( r_showUpdates.GetBool() ) {
-		idLib::Printf( "entityUpdates:%i  entityRefs:%i  lightUpdates:%i  lightRefs:%i\n", 
-			pc.c_entityUpdates, pc.c_entityReferences,
-			pc.c_lightUpdates, pc.c_lightReferences );
+	if( r_showUpdates.GetBool() )
+	{
+		idLib::Printf( "entityUpdates:%i  entityRefs:%i  lightUpdates:%i  lightRefs:%i\n",
+					   pc.c_entityUpdates, pc.c_entityReferences,
+					   pc.c_lightUpdates, pc.c_lightReferences );
 	}
-	if ( r_showMemory.GetBool() ) {
-		idLib::Printf( "frameData: %i (%i)\n", m_frameData->frameMemoryAllocated.GetValue(), m_frameData->highWaterAllocated );
+	if( r_showMemory.GetBool() )
+	{
+		idLib::Printf( "frameData: %i (%i)\n", frameData->frameMemoryAllocated.GetValue(), frameData->highWaterAllocated );
 	}
-
+	
 	memset( &pc, 0, sizeof( pc ) );
-	memset( &m_backend.m_pc, 0, sizeof( m_backend.m_pc ) );
+	memset( &backend.pc, 0, sizeof( backend.pc ) );
 }

@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,22 +35,22 @@ If you have questions concerning this license or the applicable additional terms
 
 #define	WINDOW_STYLE	(WS_OVERLAPPED|WS_BORDER|WS_CAPTION|WS_VISIBLE|WS_THICKFRAME|WS_MINIMIZEBOX)
 
-void	Sys_QueEvent( sysEventType_t type, int value, int value2, int ptrLength, void *ptr, int inputDeviceNum );
+void	Sys_QueEvent( sysEventType_t type, int value, int value2, int ptrLength, void* ptr, int inputDeviceNum );
 
 void	Sys_CreateConsole();
 void	Sys_DestroyConsole();
 
-char	*Sys_ConsoleInput ();
-char	*Sys_GetCurrentUser();
+char*	Sys_ConsoleInput();
+char*	Sys_GetCurrentUser();
 
-void	Win_SetErrorText( const char *text );
+void	Win_SetErrorText( const char* text );
 
 cpuid_t	Sys_GetCPUId();
 
 // Input subsystem
 
-void	IN_Init ();
-void	IN_Shutdown ();
+void	IN_Init();
+void	IN_Shutdown();
 // add additional non keyboard / non mouse movement on top of the keyboard move cmd
 
 void	IN_DeactivateMouseIfWindowed();
@@ -62,60 +62,61 @@ void	IN_Frame();
 uint64 Sys_Microseconds();
 
 // window procedure
-LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-void Conbuf_AppendText( const char *msg );
+void Conbuf_AppendText( const char* msg );
 
-typedef struct {
+typedef struct
+{
 	//==================================
 	// OS
 	//==================================
-
+	
 	HWND			hWnd;
 	HINSTANCE		hInstance;
 	HDC				hDC;				// handle to device context
 	bool			activeApp;			// changed with WM_ACTIVATE messages
-
+	
 	OSVERSIONINFOEX	osversion;
-
+	
 	cpuid_t			cpuid;
-
+	
 	// when we get a windows message, we store the time off so keyboard processing
 	// can know the exact time of an event (not really needed now that we use async direct input)
 	int				sysMsgTime;
-
+	
 	CRITICAL_SECTION criticalSections[ MAX_CRITICAL_SECTIONS ];
-
+	
 	//==================================
 	// Input
 	//==================================
-
+	
 	bool			mouseReleased;		// when the game has the console down or is doing a long operation
 	bool			movingWindow;		// inhibit mouse grab when dragging the window
 	bool			mouseGrabbed;		// current state of grab and hide
-
+	
 	LPDIRECTINPUT8			g_pdi;
 	LPDIRECTINPUTDEVICE8	g_pMouse;
 	LPDIRECTINPUTDEVICE8	g_pKeyboard;
 	idJoystickWin32			g_Joystick;
-
+	
 	//==================================
 	// Renderer
 	//==================================
-
+	
 	int				isFullscreen;
 	int				nativeScreenWidth;	// this is the native screen width resolution of the renderer
 	int				nativeScreenHeight; // this is the native screen height resolution of the renderer
 	float			pixelAspect;
-
+	
 	int				desktopBitsPixel;
 	int				desktopWidth;
 	int				desktopHeight;
-
+	
 	int				cdsFullscreen;		// 0 = not fullscreen, otherwise monitor number
-
+	
 	uint16			oldHardwareGamma[ 3 ][ 256 ]; // desktop gamma is saved here for restoration at exit
-
+	
 } Win32Vars_t;
 
 extern Win32Vars_t	win32;

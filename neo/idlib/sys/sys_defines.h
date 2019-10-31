@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -47,34 +47,34 @@ If you have questions concerning this license or the applicable additional terms
 #undef ID_LITTLE_ENDIAN
 
 #if defined(_WIN32)
-	// _WIN32 always defined
-	// _WIN64 also defined for x64 target
+// _WIN32 always defined
+// _WIN64 also defined for x64 target
 
-	#if !defined( _MANAGED )
-		#if !defined( _WIN64 )
-			#define ID_WIN_X86_ASM
-			#define ID_WIN_X86_MMX_ASM
-			#define ID_WIN_X86_MMX_INTRIN
-			#define ID_WIN_X86_SSE_ASM
-			#define ID_WIN_X86_SSE_INTRIN
-			#define ID_WIN_X86_SSE2_ASM
-			#define ID_WIN_X86_SSE2_INTRIN
-			// the 32 bit build is now as close to the console builds as possible
-			#define ID_CONSOLE
-		#else
-			#define ID_PC_WIN64
-			#define ID_WIN_X86_MMX_INTRIN
-			#define ID_WIN_X86_SSE_INTRIN
-			#define ID_WIN_X86_SSE2_INTRIN
-			#define ID_WIN_X86_SSE3_INTRIN
-		#endif
-	#endif
+#if !defined( _MANAGED )
+#if !defined( _WIN64 )
+#define ID_WIN_X86_ASM
+#define ID_WIN_X86_MMX_ASM
+#define ID_WIN_X86_MMX_INTRIN
+#define ID_WIN_X86_SSE_ASM
+#define ID_WIN_X86_SSE_INTRIN
+#define ID_WIN_X86_SSE2_ASM
+#define ID_WIN_X86_SSE2_INTRIN
+// the 32 bit build is now as close to the console builds as possible
+#define ID_CONSOLE
+#else
+#define ID_PC_WIN64
+#define ID_WIN_X86_MMX_INTRIN
+#define ID_WIN_X86_SSE_INTRIN
+#define ID_WIN_X86_SSE2_INTRIN
+#define ID_WIN_X86_SSE3_INTRIN
+#endif
+#endif
 
 
-	#define ID_PC
-	#define ID_PC_WIN
-	#define ID_WIN32
-	#define ID_LITTLE_ENDIAN
+#define ID_PC
+#define ID_PC_WIN
+#define ID_WIN32
+#define ID_LITTLE_ENDIAN
 #else
 #error Unknown Platform
 #endif
@@ -111,7 +111,7 @@ If you have questions concerning this license or the applicable additional terms
 
 // we should never rely on this define in our code. this is here so dodgy external libraries don't get confused
 #ifndef WIN32
-	#define WIN32
+#define WIN32
 #endif
 
 #endif
