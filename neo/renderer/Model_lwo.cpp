@@ -55,33 +55,33 @@ void lwFreeClip( lwClip* clip )
 		{
 			case ID_STIL:
 			{
-				if( clip->source.still.name ) MeFree( clip->source.still.name );
+				if( clip->source.still.name ) Mem_Free( clip->source.still.name );
 				break;
 			}
 			case ID_ISEQ:
 			{
-				if( clip->source.seq.suffix ) MeFree( clip->source.seq.suffix );
-				if( clip->source.seq.prefix ) MeFree( clip->source.seq.prefix );
+				if( clip->source.seq.suffix ) Mem_Free( clip->source.seq.suffix );
+				if( clip->source.seq.prefix ) Mem_Free( clip->source.seq.prefix );
 				break;
 			}
 			case ID_ANIM:
 			{
-				if( clip->source.anim.server ) MeFree( clip->source.anim.server );
-				if( clip->source.anim.name ) MeFree( clip->source.anim.name );
+				if( clip->source.anim.server ) Mem_Free( clip->source.anim.server );
+				if( clip->source.anim.name ) Mem_Free( clip->source.anim.name );
 				break;
 			}
 			case ID_XREF:
 			{
-				if( clip->source.xref.string ) MeFree( clip->source.xref.string );
+				if( clip->source.xref.string ) Mem_Free( clip->source.xref.string );
 				break;
 			}
 			case ID_STCC:
 			{
-				if( clip->source.cycle.name ) MeFree( clip->source.cycle.name );
+				if( clip->source.cycle.name ) Mem_Free( clip->source.cycle.name );
 				break;
 			}
 		}
-		MeFree( clip );
+		Mem_Free( clip );
 	}
 }
 
@@ -104,7 +104,7 @@ lwClip* lwGetClip( idFile* fp, int cksize )
 	
 	/* allocate the Clip structure */
 	
-	clip = ( lwClip* )MeClearedAlloc( sizeof( lwClip ), TAG_MODEL );
+	clip = ( lwClip* )Mem_ClearedAlloc( sizeof( lwClip ), TAG_MODEL );
 	if( !clip ) goto Fail;
 	
 	clip->contrast.val = 1.0f;
@@ -235,7 +235,7 @@ lwClip* lwGetClip( idFile* fp, int cksize )
 				
 			case ID_IFLT:
 			case ID_PFLT:
-				filt = ( lwPlugin* )MeClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
+				filt = ( lwPlugin* )Mem_ClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
 				if( !filt ) goto Fail;
 				
 				filt->name = getS0( fp );
@@ -321,17 +321,17 @@ Free the memory used by an lwEnvelope.
 
 void lwFree( void* ptr )
 {
-	MeFree( ptr );
+	Mem_Free( ptr );
 }
 
 void lwFreeEnvelope( lwEnvelope* env )
 {
 	if( env )
 	{
-		if( env->name ) MeFree( env->name );
+		if( env->name ) Mem_Free( env->name );
 		lwListFree( env->key, lwFree );
 		lwListFree( env->cfilter, ( void ( __cdecl* )( void* ) )lwFreePlugin );
-		MeFree( env );
+		Mem_Free( env );
 	}
 }
 
@@ -362,7 +362,7 @@ lwEnvelope* lwGetEnvelope( idFile* fp, int cksize )
 	
 	/* allocate the Envelope structure */
 	
-	env = ( lwEnvelope* )MeClearedAlloc( sizeof( lwEnvelope ), TAG_MODEL );
+	env = ( lwEnvelope* )Mem_ClearedAlloc( sizeof( lwEnvelope ), TAG_MODEL );
 	if( !env ) goto Fail;
 	
 	/* remember where we started */
@@ -406,7 +406,7 @@ lwEnvelope* lwGetEnvelope( idFile* fp, int cksize )
 				break;
 				
 			case ID_KEY:
-				key = ( lwKey* )MeClearedAlloc( sizeof( lwKey ), TAG_MODEL );
+				key = ( lwKey* )Mem_ClearedAlloc( sizeof( lwKey ), TAG_MODEL );
 				if( !key ) goto Fail;
 				key->time = getF4( fp );
 				key->value = getF4( fp );
@@ -441,7 +441,7 @@ lwEnvelope* lwGetEnvelope( idFile* fp, int cksize )
 				break;
 				
 			case ID_CHAN:
-				plug = ( lwPlugin* )MeClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
+				plug = ( lwPlugin* )Mem_ClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
 				if( !plug ) goto Fail;
 				
 				plug->name = getS0( fp );
@@ -1072,7 +1072,7 @@ void* getbytes( idFile* fp, int size )
 		flen = FLEN_ERROR;
 		return NULL;
 	}
-	data = MeClearedAlloc( size, TAG_MODEL );
+	data = Mem_ClearedAlloc( size, TAG_MODEL );
 	if( !data )
 	{
 		flen = FLEN_ERROR;
@@ -1081,7 +1081,7 @@ void* getbytes( idFile* fp, int size )
 	if( size != fp->Read( data, size ) )
 	{
 		flen = FLEN_ERROR;
-		MeFree( data );
+		Mem_Free( data );
 		return NULL;
 	}
 	
@@ -1300,7 +1300,7 @@ char* getS0( idFile* fp )
 	}
 	
 	len = i + ( i & 1 );
-	s = ( char* )MeClearedAlloc( len, TAG_MODEL );
+	s = ( char* )Mem_ClearedAlloc( len, TAG_MODEL );
 	if( !s )
 	{
 		flen = FLEN_ERROR;
@@ -1460,7 +1460,7 @@ char* sgetS0( unsigned char** bp )
 		return NULL;
 	}
 	len += len & 1;
-	s = ( char* )MeClearedAlloc( len, TAG_MODEL );
+	s = ( char* )Mem_ClearedAlloc( len, TAG_MODEL );
 	if( !s )
 	{
 		flen = FLEN_ERROR;
@@ -1484,11 +1484,11 @@ void lwFreeLayer( lwLayer* layer )
 {
 	if( layer )
 	{
-		if( layer->name ) MeFree( layer->name );
+		if( layer->name ) Mem_Free( layer->name );
 		lwFreePoints( &layer->point );
 		lwFreePolygons( &layer->polygon );
 		lwListFree( layer->vmap, ( void ( __cdecl* )( void* ) )lwFreeVMap );
-		MeFree( layer );
+		Mem_Free( layer );
 	}
 }
 
@@ -1509,7 +1509,7 @@ void lwFreeObject( lwObject* object )
 		lwListFree( object->clip, ( void ( __cdecl* )( void* ) )lwFreeClip );
 		lwListFree( object->surf, ( void ( __cdecl* )( void* ) )lwFreeSurface );
 		lwFreeTags( &object->taglist );
-		MeFree( object );
+		Mem_Free( object );
 	}
 }
 
@@ -1585,10 +1585,10 @@ lwObject* lwGetObject( const char* filename, unsigned int* failID, int* failpos 
 	
 	/* allocate an object and a default layer */
 	
-	object = ( lwObject* )MeClearedAlloc( sizeof( lwObject ), TAG_MODEL );
+	object = ( lwObject* )Mem_ClearedAlloc( sizeof( lwObject ), TAG_MODEL );
 	if( !object ) goto Fail;
 	
-	layer = ( lwLayer* )MeClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
+	layer = ( lwLayer* )Mem_ClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
 	if( !layer ) goto Fail;
 	object->layer = layer;
 	
@@ -1611,7 +1611,7 @@ lwObject* lwGetObject( const char* filename, unsigned int* failID, int* failpos 
 			case ID_LAYR:
 				if( object->nlayers > 0 )
 				{
-					layer = ( lwLayer* )MeClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
+					layer = ( lwLayer* )Mem_ClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
 					if( !layer ) goto Fail;
 					lwListAdd( ( void** )&object->layer, layer );
 				}
@@ -1797,7 +1797,7 @@ static int add_clip( char* s, lwClip** clist, int* nclips )
 	lwClip* clip;
 	char* p;
 	
-	clip = ( lwClip* )MeClearedAlloc( sizeof( lwClip ), TAG_MODEL );
+	clip = ( lwClip* )Mem_ClearedAlloc( sizeof( lwClip ), TAG_MODEL );
 	if( clip == NULL ) return 0;
 	
 	clip->contrast.val = 1.0f;
@@ -1843,9 +1843,9 @@ static int add_tvel( float pos[], float vel[], lwEnvelope** elist, int* nenvs )
 	
 	for( i = 0; i < 3; i++ )
 	{
-		env = ( lwEnvelope* )MeClearedAlloc( sizeof( lwEnvelope ), TAG_MODEL );
-		key0 = ( lwKey* )MeClearedAlloc( sizeof( lwKey ), TAG_MODEL );
-		key1 = ( lwKey* )MeClearedAlloc( sizeof( lwKey ), TAG_MODEL );
+		env = ( lwEnvelope* )Mem_ClearedAlloc( sizeof( lwEnvelope ), TAG_MODEL );
+		key0 = ( lwKey* )Mem_ClearedAlloc( sizeof( lwKey ), TAG_MODEL );
+		key1 = ( lwKey* )Mem_ClearedAlloc( sizeof( lwKey ), TAG_MODEL );
 		if( !env || !key0 || !key1 ) return 0;
 		
 		key0->next = key1;
@@ -1858,7 +1858,7 @@ static int add_tvel( float pos[], float vel[], lwEnvelope** elist, int* nenvs )
 		
 		env->index = *nenvs + i + 1;
 		env->type = 0x0301 + i;
-		env->name = ( char* )MeClearedAlloc( 11, TAG_MODEL );
+		env->name = ( char* )Mem_ClearedAlloc( 11, TAG_MODEL );
 		if( env->name )
 		{
 			strcpy( env->name, "Position.X" );
@@ -1889,7 +1889,7 @@ static lwTexture* get_texture( char* s )
 {
 	lwTexture* tex;
 	
-	tex = ( lwTexture* )MeClearedAlloc( sizeof( lwTexture ), TAG_MODEL );
+	tex = ( lwTexture* )Mem_ClearedAlloc( sizeof( lwTexture ), TAG_MODEL );
 	if( !tex ) return NULL;
 	
 	tex->tmap.size.val[ 0 ] =
@@ -1908,7 +1908,7 @@ static lwTexture* get_texture( char* s )
 		else if( strstr( s, "Front" ) )       tex->param.imap.projection = 4;
 		tex->param.imap.aa_strength = 1.0f;
 		tex->param.imap.amplitude.val = 1.0f;
-		MeFree( s );
+		Mem_Free( s );
 	}
 	else
 	{
@@ -1941,7 +1941,7 @@ lwSurface* lwGetSurface5( idFile* fp, int cksize, lwObject* obj )
 	
 	/* allocate the Surface structure */
 	
-	surf = ( lwSurface* )MeClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
+	surf = ( lwSurface* )Mem_ClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
 	if( !surf ) goto Fail;
 	
 	/* non-zero defaults */
@@ -2042,7 +2042,7 @@ lwSurface* lwGetSurface5( idFile* fp, int cksize, lwObject* obj )
 				break;
 				
 			case ID_RSAN:
-				surf->reflection.seaangle = getF4( fp );
+				surf->reflection.seam_angle = getF4( fp );
 				break;
 				
 			case ID_TRAN:
@@ -2197,7 +2197,7 @@ lwSurface* lwGetSurface5( idFile* fp, int cksize, lwObject* obj )
 				break;
 				
 			case ID_SHDR:
-				shdr = ( lwPlugin* )MeClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
+				shdr = ( lwPlugin* )Mem_ClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
 				if( !shdr ) goto Fail;
 				shdr->name = ( char* )getbytes( fp, sz );
 				lwListAdd( ( void** )&surf->shader, shdr );
@@ -2315,11 +2315,11 @@ int lwGetPolygons5( idFile* fp, int cksize, lwPolygonList* plist, int ptoffset )
 		pv += nv;
 	}
 	
-	MeFree( buf );
+	Mem_Free( buf );
 	return 1;
 	
 Fail:
-	if( buf ) MeFree( buf );
+	if( buf ) Mem_Free( buf );
 	lwFreePolygons( plist );
 	return 0;
 }
@@ -2388,10 +2388,10 @@ lwObject* lwGetObject5( const char* filename, unsigned int* failID, int* failpos
 	
 	/* allocate an object and a default layer */
 	
-	object = ( lwObject* )MeClearedAlloc( sizeof( lwObject ), TAG_MODEL );
+	object = ( lwObject* )Mem_ClearedAlloc( sizeof( lwObject ), TAG_MODEL );
 	if( !object ) goto Fail2;
 	
-	layer = ( lwLayer* )MeClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
+	layer = ( lwLayer* )Mem_ClearedAlloc( sizeof( lwLayer ), TAG_MODEL );
 	if( !layer ) goto Fail2;
 	object->layer = layer;
 	object->nlayers = 1;
@@ -2490,10 +2490,10 @@ void lwFreePoints( lwPointList* point )
 		{
 			for( i = 0; i < point->count; i++ )
 			{
-				if( point->pt[ i ].pol ) MeFree( point->pt[ i ].pol );
-				if( point->pt[ i ].vm ) MeFree( point->pt[ i ].vm );
+				if( point->pt[ i ].pol ) Mem_Free( point->pt[ i ].pol );
+				if( point->pt[ i ].vm ) Mem_Free( point->pt[ i ].vm );
 			}
-			MeFree( point->pt );
+			Mem_Free( point->pt );
 		}
 		memset( point, 0, sizeof( lwPointList ) );
 	}
@@ -2521,12 +2521,12 @@ void lwFreePolygons( lwPolygonList* plist )
 				{
 					for( j = 0; j < plist->pol[ i ].nverts; j++ )
 						if( plist->pol[ i ].v[ j ].vm )
-							MeFree( plist->pol[ i ].v[ j ].vm );
+							Mem_Free( plist->pol[ i ].v[ j ].vm );
 				}
 			}
 			if( plist->pol[ 0 ].v )
-				MeFree( plist->pol[ 0 ].v );
-			MeFree( plist->pol );
+				Mem_Free( plist->pol[ 0 ].v );
+			Mem_Free( plist->pol );
 		}
 		memset( plist, 0, sizeof( lwPolygonList ) );
 	}
@@ -2554,12 +2554,12 @@ int lwGetPoints( idFile* fp, int cksize, lwPointList* point )
 	point->offset = point->count;
 	point->count += np;
 	lwPoint* oldpt = point->pt;
-	point->pt = ( lwPoint* )MeAlloc( point->count * sizeof( lwPoint ), TAG_MODEL );
+	point->pt = ( lwPoint* )Mem_Alloc( point->count * sizeof( lwPoint ), TAG_MODEL );
 	if( !point->pt ) return 0;
 	if( oldpt )
 	{
 		memcpy( point->pt, oldpt, point->offset * sizeof( lwPoint ) );
-		MeFree( oldpt );
+		Mem_Free( oldpt );
 	}
 	memset( &point->pt[ point->offset ], 0, np * sizeof( lwPoint ) );
 	
@@ -2578,7 +2578,7 @@ int lwGetPoints( idFile* fp, int cksize, lwPointList* point )
 		point->pt[ i ].pos[ 2 ] = f[ j + 2 ];
 	}
 	
-	MeFree( f );
+	Mem_Free( f );
 	return 1;
 }
 
@@ -2629,24 +2629,24 @@ int lwAllocPolygons( lwPolygonList* plist, int npols, int nverts )
 	plist->offset = plist->count;
 	plist->count += npols;
 	lwPolygon* oldpol = plist->pol;
-	plist->pol = ( lwPolygon* )MeAlloc( plist->count * sizeof( lwPolygon ), TAG_MODEL );
+	plist->pol = ( lwPolygon* )Mem_Alloc( plist->count * sizeof( lwPolygon ), TAG_MODEL );
 	if( !plist->pol ) return 0;
 	if( oldpol )
 	{
 		memcpy( plist->pol, oldpol, plist->offset * sizeof( lwPolygon ) );
-		MeFree( oldpol );
+		Mem_Free( oldpol );
 	}
 	memset( plist->pol + plist->offset, 0, npols * sizeof( lwPolygon ) );
 	
 	plist->voffset = plist->vcount;
 	plist->vcount += nverts;
 	lwPolVert* oldpolv = plist->pol[0].v;
-	plist->pol[0].v = ( lwPolVert* )MeAlloc( plist->vcount * sizeof( lwPolVert ), TAG_MODEL );
+	plist->pol[0].v = ( lwPolVert* )Mem_Alloc( plist->vcount * sizeof( lwPolVert ), TAG_MODEL );
 	if( !plist->pol[ 0 ].v ) return 0;
 	if( oldpolv )
 	{
 		memcpy( plist->pol[0].v, oldpolv, plist->voffset * sizeof( lwPolVert ) );
-		MeFree( oldpolv );
+		Mem_Free( oldpolv );
 	}
 	memset( plist->pol[ 0 ].v + plist->voffset, 0, nverts * sizeof( lwPolVert ) );
 	
@@ -2727,11 +2727,11 @@ int lwGetPolygons( idFile* fp, int cksize, lwPolygonList* plist, int ptoffset )
 		pv += nv;
 	}
 	
-	MeFree( buf );
+	Mem_Free( buf );
 	return 1;
 	
 Fail:
-	if( buf ) MeFree( buf );
+	if( buf ) Mem_Free( buf );
 	lwFreePolygons( plist );
 	return 0;
 }
@@ -2799,7 +2799,7 @@ int lwGetPointPolygons( lwPointList* point, lwPolygonList* polygon )
 	for( i = 0; i < point->count; i++ )
 	{
 		if( point->pt[ i ].npols == 0 ) continue;
-		point->pt[ i ].pol = ( int* )MeClearedAlloc( point->pt[ i ].npols * sizeof( int ), TAG_MODEL );
+		point->pt[ i ].pol = ( int* )Mem_ClearedAlloc( point->pt[ i ].npols * sizeof( int ), TAG_MODEL );
 		if( !point->pt[ i ].pol ) return 0;
 		point->pt[ i ].npols = 0;
 	}
@@ -2837,7 +2837,7 @@ int lwResolvePolySurfaces( lwPolygonList* polygon, lwTagList* tlist,
 	
 	if( tlist->count == 0 ) return 1;
 	
-	s = ( lwSurface** )MeClearedAlloc( tlist->count * sizeof( lwSurface* ), TAG_MODEL );
+	s = ( lwSurface** )Mem_ClearedAlloc( tlist->count * sizeof( lwSurface* ), TAG_MODEL );
 	if( !s ) return 0;
 	
 	for( i = 0; i < tlist->count; i++ )
@@ -2862,7 +2862,7 @@ int lwResolvePolySurfaces( lwPolygonList* polygon, lwTagList* tlist,
 		{
 			s[ index ] = lwDefaultSurface();
 			if( !s[ index ] ) return 0;
-			s[ index ]->name = ( char* )MeClearedAlloc( strlen( tlist->tag[ index ] ) + 1, TAG_MODEL );
+			s[ index ]->name = ( char* )Mem_ClearedAlloc( strlen( tlist->tag[ index ] ) + 1, TAG_MODEL );
 			if( !s[ index ]->name ) return 0;
 			strcpy( s[ index ]->name, tlist->tag[ index ] );
 			lwListAdd( ( void** )surf, s[ index ] );
@@ -2871,7 +2871,7 @@ int lwResolvePolySurfaces( lwPolygonList* polygon, lwTagList* tlist,
 		polygon->pol[ i ].surf = s[ index ];
 	}
 	
-	MeFree( s );
+	Mem_Free( s );
 	return 1;
 }
 
@@ -2945,9 +2945,9 @@ void lwFreeTags( lwTagList* tlist )
 			for( i = 0; i < tlist->count; i++ )
 				if( tlist->tag[ i ] )
 				{
-					MeFree( tlist->tag[ i ] );
+					Mem_Free( tlist->tag[ i ] );
 				}
-			MeFree( tlist->tag );
+			Mem_Free( tlist->tag );
 		}
 		memset( tlist, 0, sizeof( lwTagList ) );
 	}
@@ -2992,12 +2992,12 @@ int lwGetTags( idFile* fp, int cksize, lwTagList* tlist )
 	tlist->offset = tlist->count;
 	tlist->count += ntags;
 	char** oldtag = tlist->tag;
-	tlist->tag = ( char** )MeAlloc( tlist->count * sizeof( char* ), TAG_MODEL );
+	tlist->tag = ( char** )Mem_Alloc( tlist->count * sizeof( char* ), TAG_MODEL );
 	if( !tlist->tag ) goto Fail;
 	if( oldtag )
 	{
 		memcpy( tlist->tag, oldtag, tlist->offset * sizeof( char* ) );
-		MeFree( oldtag );
+		Mem_Free( oldtag );
 	}
 	memset( &tlist->tag[ tlist->offset ], 0, ntags * sizeof( char* ) );
 	
@@ -3007,11 +3007,11 @@ int lwGetTags( idFile* fp, int cksize, lwTagList* tlist )
 	for( i = 0; i < ntags; i++ )
 		tlist->tag[ i + tlist->offset ] = sgetS0( ( unsigned char** )&bp );
 		
-	MeFree( buf );
+	Mem_Free( buf );
 	return 1;
 	
 Fail:
-	if( buf ) MeFree( buf );
+	if( buf ) Mem_Free( buf );
 	return 0;
 }
 
@@ -3075,10 +3075,10 @@ void lwFreePlugin( lwPlugin* p )
 {
 	if( p )
 	{
-		if( p->ord ) MeFree( p->ord );
-		if( p->name ) MeFree( p->name );
-		if( p->data ) MeFree( p->data );
-		MeFree( p );
+		if( p->ord ) Mem_Free( p->ord );
+		if( p->name ) Mem_Free( p->name );
+		if( p->data ) Mem_Free( p->data );
+		Mem_Free( p );
 	}
 }
 
@@ -3094,23 +3094,23 @@ void lwFreeTexture( lwTexture* t )
 {
 	if( t )
 	{
-		if( t->ord ) MeFree( t->ord );
+		if( t->ord ) Mem_Free( t->ord );
 		switch( t->type )
 		{
 			case ID_IMAP:
-				if( t->param.imap.vmap_name ) MeFree( t->param.imap.vmap_name );
+				if( t->param.imap.vmap_name ) Mem_Free( t->param.imap.vmap_name );
 				break;
 			case ID_PROC:
-				if( t->param.proc.name ) MeFree( t->param.proc.name );
-				if( t->param.proc.data ) MeFree( t->param.proc.data );
+				if( t->param.proc.name ) Mem_Free( t->param.proc.name );
+				if( t->param.proc.data ) Mem_Free( t->param.proc.data );
 				break;
 			case ID_GRAD:
-				if( t->param.grad.key ) MeFree( t->param.grad.key );
-				if( t->param.grad.ikey ) MeFree( t->param.grad.ikey );
+				if( t->param.grad.key ) Mem_Free( t->param.grad.key );
+				if( t->param.grad.ikey ) Mem_Free( t->param.grad.ikey );
 				break;
 		}
-		if( t->tmap.ref_object ) MeFree( t->tmap.ref_object );
-		MeFree( t );
+		if( t->tmap.ref_object ) Mem_Free( t->tmap.ref_object );
+		Mem_Free( t );
 	}
 }
 
@@ -3126,8 +3126,8 @@ void lwFreeSurface( lwSurface* surf )
 {
 	if( surf )
 	{
-		if( surf->name ) MeFree( surf->name );
-		if( surf->srcname ) MeFree( surf->srcname );
+		if( surf->name ) Mem_Free( surf->name );
+		if( surf->srcname ) Mem_Free( surf->srcname );
 		
 		lwListFree( surf->shader, ( void ( __cdecl* )( void* ) )lwFreePlugin );
 		
@@ -3142,7 +3142,7 @@ void lwFreeSurface( lwSurface* surf )
 		lwListFree( surf->translucency.tex, ( void ( __cdecl* )( void* ) )lwFreeTexture );
 		lwListFree( surf->bump.tex, ( void ( __cdecl* )( void* ) )lwFreeTexture );
 		
-		MeFree( surf );
+		Mem_Free( surf );
 	}
 }
 
@@ -3571,7 +3571,7 @@ int lwGetGradient( idFile* fp, int rsz, lwTexture* tex )
 				
 			case ID_FKEY:
 				nkeys = sz / sizeof( lwGradKey );
-				tex->param.grad.key = ( lwGradKey* )MeClearedAlloc( nkeys * sizeof( lwGradKey ), TAG_MODEL );
+				tex->param.grad.key = ( lwGradKey* )Mem_ClearedAlloc( nkeys * sizeof( lwGradKey ), TAG_MODEL );
 				if( !tex->param.grad.key ) return 0;
 				for( i = 0; i < nkeys; i++ )
 				{
@@ -3583,7 +3583,7 @@ int lwGetGradient( idFile* fp, int rsz, lwTexture* tex )
 				
 			case ID_IKEY:
 				nkeys = sz / 2;
-				tex->param.grad.ikey = ( short* )MeClearedAlloc( nkeys * sizeof( short ), TAG_MODEL );
+				tex->param.grad.ikey = ( short* )Mem_ClearedAlloc( nkeys * sizeof( short ), TAG_MODEL );
 				if( !tex->param.grad.ikey ) return 0;
 				for( i = 0; i < nkeys; i++ )
 					tex->param.grad.ikey[ i ] = getU2( fp );
@@ -3634,7 +3634,7 @@ lwTexture* lwGetTexture( idFile* fp, int bloksz, unsigned int type )
 	unsigned short sz;
 	int ok;
 	
-	tex = ( lwTexture* )MeClearedAlloc( sizeof( lwTexture ), TAG_MODEL );
+	tex = ( lwTexture* )Mem_ClearedAlloc( sizeof( lwTexture ), TAG_MODEL );
 	if( !tex ) return NULL;
 	
 	tex->type = type;
@@ -3647,7 +3647,7 @@ lwTexture* lwGetTexture( idFile* fp, int bloksz, unsigned int type )
 	sz = getU2( fp );
 	if( !lwGetTHeader( fp, sz, tex ) )
 	{
-		MeFree( tex );
+		Mem_Free( tex );
 		return NULL;
 	}
 	
@@ -3692,7 +3692,7 @@ lwPlugin* lwGetShader( idFile* fp, int bloksz )
 	unsigned short sz;
 	int hsz, rlen, pos;
 	
-	shdr = ( lwPlugin* )MeClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
+	shdr = ( lwPlugin* )Mem_ClearedAlloc( sizeof( lwPlugin ), TAG_MODEL );
 	if( !shdr ) return NULL;
 	
 	pos = fp->Tell();
@@ -3858,7 +3858,7 @@ lwSurface* lwDefaultSurface()
 {
 	lwSurface* surf;
 	
-	surf = ( lwSurface* )MeClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
+	surf = ( lwSurface* )Mem_ClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
 	if( !surf ) return NULL;
 	
 	surf->color.rgb[ 0 ] = 0.78431f;
@@ -3893,7 +3893,7 @@ lwSurface* lwGetSurface( idFile* fp, int cksize )
 	
 	/* allocate the Surface structure */
 	
-	surf = ( lwSurface* )MeClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
+	surf = ( lwSurface* )Mem_ClearedAlloc( sizeof( lwSurface ), TAG_MODEL );
 	if( !surf ) goto Fail;
 	
 	/* non-zero defaults */
@@ -3973,7 +3973,7 @@ lwSurface* lwGetSurface( idFile* fp, int cksize )
 				break;
 				
 			case ID_RSAN:
-				surf->reflection.seaangle = getF4( fp );
+				surf->reflection.seam_angle = getF4( fp );
 				break;
 				
 			case ID_TRAN:
@@ -4150,15 +4150,15 @@ void lwFreeVMap( lwVMap* vmap )
 {
 	if( vmap )
 	{
-		if( vmap->name ) MeFree( vmap->name );
-		if( vmap->vindex ) MeFree( vmap->vindex );
-		if( vmap->pindex ) MeFree( vmap->pindex );
+		if( vmap->name ) Mem_Free( vmap->name );
+		if( vmap->vindex ) Mem_Free( vmap->vindex );
+		if( vmap->pindex ) Mem_Free( vmap->pindex );
 		if( vmap->val )
 		{
-			if( vmap->val[ 0 ] ) MeFree( vmap->val[ 0 ] );
-			MeFree( vmap->val );
+			if( vmap->val[ 0 ] ) Mem_Free( vmap->val[ 0 ] );
+			Mem_Free( vmap->val );
 		}
-		MeFree( vmap );
+		Mem_Free( vmap );
 	}
 }
 
@@ -4185,10 +4185,10 @@ lwVMap* lwGetVMap( idFile* fp, int cksize, int ptoffset, int poloffset,
 	buf = ( unsigned char* )getbytes( fp, cksize );
 	if( !buf ) return NULL;
 	
-	vmap = ( lwVMap* )MeClearedAlloc( sizeof( lwVMap ), TAG_MODEL );
+	vmap = ( lwVMap* )Mem_ClearedAlloc( sizeof( lwVMap ), TAG_MODEL );
 	if( !vmap )
 	{
-		MeFree( buf );
+		Mem_Free( buf );
 		return NULL;
 	}
 	
@@ -4218,19 +4218,19 @@ lwVMap* lwGetVMap( idFile* fp, int cksize, int ptoffset, int poloffset,
 	/* allocate the vmap */
 	
 	vmap->nverts = npts;
-	vmap->vindex = ( int* )MeClearedAlloc( npts * sizeof( int ), TAG_MODEL );
+	vmap->vindex = ( int* )Mem_ClearedAlloc( npts * sizeof( int ), TAG_MODEL );
 	if( !vmap->vindex ) goto Fail;
 	if( perpoly )
 	{
-		vmap->pindex = ( int* )MeClearedAlloc( npts * sizeof( int ), TAG_MODEL );
+		vmap->pindex = ( int* )Mem_ClearedAlloc( npts * sizeof( int ), TAG_MODEL );
 		if( !vmap->pindex ) goto Fail;
 	}
 	
 	if( vmap->dim > 0 )
 	{
-		vmap->val = ( float** )MeClearedAlloc( npts * sizeof( float* ), TAG_MODEL );
+		vmap->val = ( float** )Mem_ClearedAlloc( npts * sizeof( float* ), TAG_MODEL );
 		if( !vmap->val ) goto Fail;
-		f = ( float* )MeClearedAlloc( npts * vmap->dim * sizeof( float ), TAG_MODEL );
+		f = ( float* )Mem_ClearedAlloc( npts * vmap->dim * sizeof( float ), TAG_MODEL );
 		if( !f ) goto Fail;
 		for( i = 0; i < npts; i++ )
 			vmap->val[ i ] = f + i * vmap->dim;
@@ -4248,11 +4248,11 @@ lwVMap* lwGetVMap( idFile* fp, int cksize, int ptoffset, int poloffset,
 			vmap->val[ i ][ j ] = sgetF4( &bp );
 	}
 	
-	MeFree( buf );
+	Mem_Free( buf );
 	return vmap;
 	
 Fail:
-	if( buf ) MeFree( buf );
+	if( buf ) Mem_Free( buf );
 	lwFreeVMap( vmap );
 	return NULL;
 }
@@ -4287,7 +4287,7 @@ int lwGetPointVMaps( lwPointList* point, lwVMap* vmap )
 	{
 		if( point->pt[ i ].nvmaps )
 		{
-			point->pt[ i ].vm = ( lwVMapPt* )MeClearedAlloc( point->pt[ i ].nvmaps * sizeof( lwVMapPt ), TAG_MODEL );
+			point->pt[ i ].vm = ( lwVMapPt* )Mem_ClearedAlloc( point->pt[ i ].nvmaps * sizeof( lwVMapPt ), TAG_MODEL );
 			if( !point->pt[ i ].vm ) return 0;
 			point->pt[ i ].nvmaps = 0;
 		}
@@ -4361,7 +4361,7 @@ int lwGetPolyVMaps( lwPolygonList* polygon, lwVMap* vmap )
 			pv = &polygon->pol[ i ].v[ j ];
 			if( pv->nvmaps )
 			{
-				pv->vm = ( lwVMapPt* )MeClearedAlloc( pv->nvmaps * sizeof( lwVMapPt ), TAG_MODEL );
+				pv->vm = ( lwVMapPt* )Mem_ClearedAlloc( pv->nvmaps * sizeof( lwVMapPt ), TAG_MODEL );
 				if( !pv->vm ) return 0;
 				pv->nvmaps = 0;
 			}

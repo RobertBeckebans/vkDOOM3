@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderProgs.h"
 #include "GLState.h"
 #include "Image.h"
@@ -178,7 +178,7 @@ void idMaterial::FreeData()
 			}
 			if( stages[i].newStage != NULL )
 			{
-				MeFree( stages[i].newStage );
+				Mem_Free( stages[i].newStage );
 				stages[i].newStage = NULL;
 			}
 		}
@@ -259,9 +259,9 @@ typedef struct
 {
 	char*	name;
 	int		clearSolid, surfaceFlags, contents;
-} infoPart;
+} infoParm_t;
 
-static infoPart	infoParms[] =
+static infoParm_t	infoParms[] =
 {
 	// game relevant attributes
 	{"solid",		0,	0,	CONTENTS_SOLID },		// may need to override a clearSolid
@@ -1840,7 +1840,7 @@ void idMaterial::ParseStage( idLexer& src, const textureRepeat_t trpDefault )
 	if( newStage.fragmentProgram || newStage.vertexProgram )
 	{
 		newStage.glslProgram = renderProgManager.FindProgram( GetName(), newStage.vertexProgram, newStage.fragmentProgram );
-		ss->newStage = ( newShaderStage_t* )MeAlloc( sizeof( newStage ), TAG_MATERIAL );
+		ss->newStage = ( newShaderStage_t* )Mem_Alloc( sizeof( newStage ), TAG_MATERIAL );
 		*( ss->newStage ) = newStage;
 	}
 	

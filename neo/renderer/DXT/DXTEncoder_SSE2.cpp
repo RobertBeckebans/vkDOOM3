@@ -161,10 +161,10 @@ ID_INLINE void idDxtEncoder::ExtractBlock_SSE2( const byte* inPtr, int width, by
 		movdqa		xmmword ptr [edi+48], xmm3
 	}
 #elif defined ( ID_WIN_X86_SSE2_INTRIN )
-	*( ( __m128i* )( &colorBlock[ 0] ) ) = _mload_si128( ( __m128i* )( inPtr + width * 4 * 0 ) );
-	*( ( __m128i* )( &colorBlock[16] ) ) = _mload_si128( ( __m128i* )( inPtr + width * 4 * 1 ) );
-	*( ( __m128i* )( &colorBlock[32] ) ) = _mload_si128( ( __m128i* )( inPtr + width * 4 * 2 ) );
-	*( ( __m128i* )( &colorBlock[48] ) ) = _mload_si128( ( __m128i* )( inPtr + width * 4 * 3 ) );
+	*( ( __m128i* )( &colorBlock[ 0] ) ) = _mm_load_si128( ( __m128i* )( inPtr + width * 4 * 0 ) );
+	*( ( __m128i* )( &colorBlock[16] ) ) = _mm_load_si128( ( __m128i* )( inPtr + width * 4 * 1 ) );
+	*( ( __m128i* )( &colorBlock[32] ) ) = _mm_load_si128( ( __m128i* )( inPtr + width * 4 * 2 ) );
+	*( ( __m128i* )( &colorBlock[48] ) ) = _mm_load_si128( ( __m128i* )( inPtr + width * 4 * 3 ) );
 #else
 	assert( false );
 #endif
@@ -214,28 +214,28 @@ ID_INLINE void idDxtEncoder::GetMinMaxBBox_SSE2( const byte* colorBlock, byte* m
 	__m128i block2 = *( ( __m128i* )( &colorBlock[32] ) );
 	__m128i block3 = *( ( __m128i* )( &colorBlock[48] ) );
 	
-	__m128i max1 = _mmax_epu8( block0, block1 );
-	__m128i min1 = _mmin_epu8( block0, block1 );
-	__m128i max2 = _mmax_epu8( block2, block3 );
-	__m128i min2 = _mmin_epu8( block2, block3 );
+	__m128i max1 = _mm_max_epu8( block0, block1 );
+	__m128i min1 = _mm_min_epu8( block0, block1 );
+	__m128i max2 = _mm_max_epu8( block2, block3 );
+	__m128i min2 = _mm_min_epu8( block2, block3 );
 	
-	__m128i max3 = _mmax_epu8( max1, max2 );
-	__m128i min3 = _mmin_epu8( min1, min2 );
+	__m128i max3 = _mm_max_epu8( max1, max2 );
+	__m128i min3 = _mm_min_epu8( min1, min2 );
 	
-	__m128i max4 = _mshuffle_epi32( max3, R_SHUFFLE_D( 2, 3, 2, 3 ) );
-	__m128i min4 = _mshuffle_epi32( min3, R_SHUFFLE_D( 2, 3, 2, 3 ) );
+	__m128i max4 = _mm_shuffle_epi32( max3, R_SHUFFLE_D( 2, 3, 2, 3 ) );
+	__m128i min4 = _mm_shuffle_epi32( min3, R_SHUFFLE_D( 2, 3, 2, 3 ) );
 	
-	__m128i max5 = _mmax_epu8( max3, max4 );
-	__m128i min5 = _mmin_epu8( min3, min4 );
+	__m128i max5 = _mm_max_epu8( max3, max4 );
+	__m128i min5 = _mm_min_epu8( min3, min4 );
 	
-	__m128i max6 = _mshufflelo_epi16( max5, R_SHUFFLE_D( 2, 3, 2, 3 ) );
-	__m128i min6 = _mshufflelo_epi16( min5, R_SHUFFLE_D( 2, 3, 2, 3 ) );
+	__m128i max6 = _mm_shufflelo_epi16( max5, R_SHUFFLE_D( 2, 3, 2, 3 ) );
+	__m128i min6 = _mm_shufflelo_epi16( min5, R_SHUFFLE_D( 2, 3, 2, 3 ) );
 	
-	max6 = _mmax_epu8( max5, max6 );
-	min6 = _mmin_epu8( min5, min6 );
+	max6 = _mm_max_epu8( max5, max6 );
+	min6 = _mm_min_epu8( min5, min6 );
 	
-	*( ( int* )maxColor ) = _mcvtsi128_si32( max6 );
-	*( ( int* )minColor ) = _mcvtsi128_si32( min6 );
+	*( ( int* )maxColor ) = _mm_cvtsi128_si32( max6 );
+	*( ( int* )minColor ) = _mm_cvtsi128_si32( min6 );
 #else
 	assert( false );
 #endif
@@ -268,24 +268,24 @@ ID_INLINE void idDxtEncoder::InsetColorsBBox_SSE2( byte* minColor, byte* maxColo
 		movd		dword ptr [edi], xmm1
 	}
 #elif defined ( ID_WIN_X86_SSE2_INTRIN )
-	__m128i min = _mcvtsi32_si128( *( int* )minColor );
-	__m128i max = _mcvtsi32_si128( *( int* )maxColor );
+	__m128i min = _mm_cvtsi32_si128( *( int* )minColor );
+	__m128i max = _mm_cvtsi32_si128( *( int* )maxColor );
 	
-	__m128i xmm0 = _munpacklo_epi8( min, *( __m128i* )SIMD_SSE2_byte_0 );
-	__m128i xmm1 = _munpacklo_epi8( max, *( __m128i* )SIMD_SSE2_byte_0 );
+	__m128i xmm0 = _mm_unpacklo_epi8( min, *( __m128i* )SIMD_SSE2_byte_0 );
+	__m128i xmm1 = _mm_unpacklo_epi8( max, *( __m128i* )SIMD_SSE2_byte_0 );
 	
-	__m128i xmm2 = _msub_epi16( xmm1, xmm0 );
+	__m128i xmm2 = _mm_sub_epi16( xmm1, xmm0 );
 	
-	xmm2 = _mmulhi_epi16( xmm2, *( __m128i* )SIMD_SSE2_word_insetShift );
+	xmm2 = _mm_mulhi_epi16( xmm2, *( __m128i* )SIMD_SSE2_word_insetShift );
 	
-	xmm0 = _madd_epi16( xmm0, xmm2 );
-	xmm1 = _msub_epi16( xmm1, xmm2 );
+	xmm0 = _mm_add_epi16( xmm0, xmm2 );
+	xmm1 = _mm_sub_epi16( xmm1, xmm2 );
 	
-	xmm0 = _mpackus_epi16( xmm0, xmm0 );
-	xmm1 = _mpackus_epi16( xmm1, xmm1 );
+	xmm0 = _mm_packus_epi16( xmm0, xmm0 );
+	xmm1 = _mm_packus_epi16( xmm1, xmm1 );
 	
-	*( ( int* )minColor ) = _mcvtsi128_si32( xmm0 );
-	*( ( int* )maxColor ) = _mcvtsi128_si32( xmm1 );
+	*( ( int* )minColor ) = _mm_cvtsi128_si32( xmm0 );
+	*( ( int* )maxColor ) = _mm_cvtsi128_si32( xmm1 );
 #else
 	assert( false );
 #endif
@@ -467,135 +467,135 @@ void idDxtEncoder::EmitColorIndices_SSE2( const byte* colorBlock, const byte* mi
 	__m128c result = SIMD_SSE2_zero;
 	__m128c color0, color1, color2, color3;
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	__m128c minColor = _mcvtsi32_si128( *( int* )minColor_ );
-	__m128c maxColor = _mcvtsi32_si128( *( int* )maxColor_ );
+	__m128c minColor = _mm_cvtsi32_si128( *( int* )minColor_ );
+	__m128c maxColor = _mm_cvtsi32_si128( *( int* )maxColor_ );
 	__m128c blocka[2], blockb[2];
 	blocka[0] = *( ( __m128i* )( &colorBlock[ 0] ) );
 	blocka[1] = *( ( __m128i* )( &colorBlock[32] ) );
 	blockb[0] = *( ( __m128i* )( &colorBlock[16] ) );
 	blockb[1] = *( ( __m128i* )( &colorBlock[48] ) );
 	
-	temp0 = _mand_si128( maxColor, ( const __m128i& )SIMD_SSE2_byte_colorMask );
-	temp0 = _munpacklo_epi8( temp0, zero );
-	temp4 = _mshufflelo_epi16( temp0, R_SHUFFLE_D( 0, 3, 2, 3 ) );
-	temp5 = _mshufflelo_epi16( temp0, R_SHUFFLE_D( 3, 1, 3, 3 ) );
-	temp4 = _msrli_epi16( temp4, 5 );
-	temp5 = _msrli_epi16( temp5, 6 );
-	temp0 = _mor_si128( temp0, temp4 );
-	temp0 = _mor_si128( temp0, temp5 );
+	temp0 = _mm_and_si128( maxColor, ( const __m128i& )SIMD_SSE2_byte_colorMask );
+	temp0 = _mm_unpacklo_epi8( temp0, zero );
+	temp4 = _mm_shufflelo_epi16( temp0, R_SHUFFLE_D( 0, 3, 2, 3 ) );
+	temp5 = _mm_shufflelo_epi16( temp0, R_SHUFFLE_D( 3, 1, 3, 3 ) );
+	temp4 = _mm_srli_epi16( temp4, 5 );
+	temp5 = _mm_srli_epi16( temp5, 6 );
+	temp0 = _mm_or_si128( temp0, temp4 );
+	temp0 = _mm_or_si128( temp0, temp5 );
 	
 	
-	temp1 = _mand_si128( minColor, ( const __m128i& )SIMD_SSE2_byte_colorMask );
-	temp1 = _munpacklo_epi8( temp1, zero );
-	temp4 = _mshufflelo_epi16( temp1, R_SHUFFLE_D( 0, 3, 2, 3 ) );
-	temp5 = _mshufflelo_epi16( temp1, R_SHUFFLE_D( 3, 1, 3, 3 ) );
-	temp4 = _msrli_epi16( temp4, 5 );
-	temp5 = _msrli_epi16( temp5, 6 );
-	temp1 = _mor_si128( temp1, temp4 );
-	temp1 = _mor_si128( temp1, temp5 );
+	temp1 = _mm_and_si128( minColor, ( const __m128i& )SIMD_SSE2_byte_colorMask );
+	temp1 = _mm_unpacklo_epi8( temp1, zero );
+	temp4 = _mm_shufflelo_epi16( temp1, R_SHUFFLE_D( 0, 3, 2, 3 ) );
+	temp5 = _mm_shufflelo_epi16( temp1, R_SHUFFLE_D( 3, 1, 3, 3 ) );
+	temp4 = _mm_srli_epi16( temp4, 5 );
+	temp5 = _mm_srli_epi16( temp5, 6 );
+	temp1 = _mm_or_si128( temp1, temp4 );
+	temp1 = _mm_or_si128( temp1, temp5 );
 	
 	
-	temp2 = _mpackus_epi16( temp0, zero );
-	color0 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp2 = _mm_packus_epi16( temp0, zero );
+	color0 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp6 = _madd_epi16( temp0, temp0 );
-	temp6 = _madd_epi16( temp6, temp1 );
-	temp6 = _mmulhi_epi16( temp6, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
-	temp6 = _mpackus_epi16( temp6, zero );
-	color2 = _mshuffle_epi32( temp6, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp6 = _mm_add_epi16( temp0, temp0 );
+	temp6 = _mm_add_epi16( temp6, temp1 );
+	temp6 = _mm_mulhi_epi16( temp6, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
+	temp6 = _mm_packus_epi16( temp6, zero );
+	color2 = _mm_shuffle_epi32( temp6, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp3 = _mpackus_epi16( temp1, zero );
-	color1 = _mshuffle_epi32( temp3, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp3 = _mm_packus_epi16( temp1, zero );
+	color1 = _mm_shuffle_epi32( temp3, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp1 = _madd_epi16( temp1, temp1 );
-	temp0 = _madd_epi16( temp0, temp1 );
-	temp0 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
-	temp0 = _mpackus_epi16( temp0, zero );
-	color3 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp1 = _mm_add_epi16( temp1, temp1 );
+	temp0 = _mm_add_epi16( temp0, temp1 );
+	temp0 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
+	temp0 = _mm_packus_epi16( temp0, zero );
+	color3 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
 	for( int i = 1; i >= 0; i-- )
 	{
 		// Load block
-		temp3 = _mshuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp3 = _mm_shuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp0 = _msad_epu8( temp3, color0 );
-		temp6 = _msad_epu8( temp5, color0 );
-		temp0 = _mpacks_epi32( temp0, temp6 );
+		temp0 = _mm_sad_epu8( temp3, color0 );
+		temp6 = _mm_sad_epu8( temp5, color0 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );
 	
-		temp1 = _msad_epu8( temp3, color1 );
-		temp6 = _msad_epu8( temp5, color1 );
-		temp1 = _mpacks_epi32( temp1, temp6 );
+		temp1 = _mm_sad_epu8( temp3, color1 );
+		temp6 = _mm_sad_epu8( temp5, color1 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );
 	
-		temp2 = _msad_epu8( temp3, color2 );
-		temp6 = _msad_epu8( temp5, color2 );
-		temp2 = _mpacks_epi32( temp2, temp6 );
+		temp2 = _mm_sad_epu8( temp3, color2 );
+		temp6 = _mm_sad_epu8( temp5, color2 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );
 	
-		temp3 = _msad_epu8( temp3, color3 );
-		temp5 = _msad_epu8( temp5, color3 );
-		temp3 = _mpacks_epi32( temp3, temp5 );
+		temp3 = _mm_sad_epu8( temp3, color3 );
+		temp5 = _mm_sad_epu8( temp5, color3 );
+		temp3 = _mm_packs_epi32( temp3, temp5 );
 	
 		// Load block
-		temp4 = _mshuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp4 = _mm_shuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp6 = _msad_epu8( temp4, color0 );
-		temp7 = _msad_epu8( temp5, color0 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp0 = _mpacks_epi32( temp0, temp6 );	// d0
+		temp6 = _mm_sad_epu8( temp4, color0 );
+		temp7 = _mm_sad_epu8( temp5, color0 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );	// d0
 	
-		temp6 = _msad_epu8( temp4, color1 );
-		temp7 = _msad_epu8( temp5, color1 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp1 = _mpacks_epi32( temp1, temp6 );	// d1
+		temp6 = _mm_sad_epu8( temp4, color1 );
+		temp7 = _mm_sad_epu8( temp5, color1 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );	// d1
 	
-		temp6 = _msad_epu8( temp4, color2 );
-		temp7 = _msad_epu8( temp5, color2 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp2 = _mpacks_epi32( temp2, temp6 );	// d2
+		temp6 = _mm_sad_epu8( temp4, color2 );
+		temp7 = _mm_sad_epu8( temp5, color2 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );	// d2
 	
-		temp4 = _msad_epu8( temp4, color3 );
-		temp5 = _msad_epu8( temp5, color3 );
-		temp4 = _mpacks_epi32( temp4, temp5 );
-		temp3 = _mpacks_epi32( temp3, temp4 );	// d3
+		temp4 = _mm_sad_epu8( temp4, color3 );
+		temp5 = _mm_sad_epu8( temp5, color3 );
+		temp4 = _mm_packs_epi32( temp4, temp5 );
+		temp3 = _mm_packs_epi32( temp3, temp4 );	// d3
 	
-		temp7 = _mslli_epi32( result, 16 );
+		temp7 = _mm_slli_epi32( result, 16 );
 	
-		temp4 = _mcmpgt_epi16( temp0, temp2 );	// b2
-		temp5 = _mcmpgt_epi16( temp1, temp3 );	// b3
-		temp0 = _mcmpgt_epi16( temp0, temp3 );	// b0
-		temp1 = _mcmpgt_epi16( temp1, temp2 );	// b1
-		temp2 = _mcmpgt_epi16( temp2, temp3 );	// b4
+		temp4 = _mm_cmpgt_epi16( temp0, temp2 );	// b2
+		temp5 = _mm_cmpgt_epi16( temp1, temp3 );	// b3
+		temp0 = _mm_cmpgt_epi16( temp0, temp3 );	// b0
+		temp1 = _mm_cmpgt_epi16( temp1, temp2 );	// b1
+		temp2 = _mm_cmpgt_epi16( temp2, temp3 );	// b4
 	
-		temp4 = _mand_si128( temp4, temp1 );		// x0
-		temp5 = _mand_si128( temp5, temp0 );		// x1
-		temp2 = _mand_si128( temp2, temp0 );		// x2
-		temp4 = _mor_si128( temp4, temp5 );
-		temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
-		temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_word_2 );
-		temp2 = _mor_si128( temp2, temp4 );
+		temp4 = _mm_and_si128( temp4, temp1 );		// x0
+		temp5 = _mm_and_si128( temp5, temp0 );		// x1
+		temp2 = _mm_and_si128( temp2, temp0 );		// x2
+		temp4 = _mm_or_si128( temp4, temp5 );
+		temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
+		temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_word_2 );
+		temp2 = _mm_or_si128( temp2, temp4 );
 	
-		temp5 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp2 = _munpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _munpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _mslli_epi32( temp5, 8 );
-		temp7 = _mor_si128( temp7, temp5 );
-		result = _mor_si128( temp7, temp2 );
+		temp5 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp2 = _mm_unpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_unpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_slli_epi32( temp5, 8 );
+		temp7 = _mm_or_si128( temp7, temp5 );
+		result = _mm_or_si128( temp7, temp2 );
 	}
 	
-	temp4 = _mshuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
-	temp5 = _mshuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-	temp6 = _mshuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
-	temp4 = _mslli_epi32( temp4, 2 );
-	temp5 = _mslli_epi32( temp5, 4 );
-	temp6 = _mslli_epi32( temp6, 6 );
-	temp7 = _mor_si128( result, temp4 );
-	temp7 = _mor_si128( temp7, temp5 );
-	temp7 = _mor_si128( temp7, temp6 );
+	temp4 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
+	temp5 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp6 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
+	temp4 = _mm_slli_epi32( temp4, 2 );
+	temp5 = _mm_slli_epi32( temp5, 4 );
+	temp6 = _mm_slli_epi32( temp6, 6 );
+	temp7 = _mm_or_si128( result, temp4 );
+	temp7 = _mm_or_si128( temp7, temp5 );
+	temp7 = _mm_or_si128( temp7, temp6 );
 	
-	unsigned int out = _mcvtsi128_si32( temp7 );
+	unsigned int out = _mm_cvtsi128_si32( temp7 );
 	EmitUInt( out );
 #else
 	assert( false );
@@ -775,42 +775,42 @@ void idDxtEncoder::EmitColorAlphaIndices_SSE2( const byte* colorBlock, const byt
 	__m128c result = SIMD_SSE2_zero;
 	__m128c color0, color1, color2;
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	__m128c minColor = _mcvtsi32_si128( *( int* )minColor_ );
-	__m128c maxColor = _mcvtsi32_si128( *( int* )maxColor_ );
+	__m128c minColor = _mm_cvtsi32_si128( *( int* )minColor_ );
+	__m128c maxColor = _mm_cvtsi32_si128( *( int* )maxColor_ );
 	__m128c blocka[2], blockb[2];
 	blocka[0] = *( ( __m128i* )( &colorBlock[ 0] ) );
 	blocka[1] = *( ( __m128i* )( &colorBlock[32] ) );
 	blockb[0] = *( ( __m128i* )( &colorBlock[16] ) );
 	blockb[1] = *( ( __m128i* )( &colorBlock[48] ) );
 	
-	temp0 = _mand_si128( maxColor, *( __m128c* )SIMD_SSE2_byte_colorMask );
-	temp0 = _munpacklo_epi8( temp0, zero );
-	temp4 = _mshufflelo_epi16( temp0, R_SHUFFLE_D( 0, 3, 2, 3 ) );
-	temp5 = _mshufflelo_epi16( temp0, R_SHUFFLE_D( 3, 1, 3, 3 ) );
-	temp4 = _msrli_epi16( temp4, 5 );
-	temp5 = _msrli_epi16( temp5, 6 );
-	temp0 = _mor_si128( temp0, temp4 );
-	temp0 = _mor_si128( temp0, temp5 );
+	temp0 = _mm_and_si128( maxColor, *( __m128c* )SIMD_SSE2_byte_colorMask );
+	temp0 = _mm_unpacklo_epi8( temp0, zero );
+	temp4 = _mm_shufflelo_epi16( temp0, R_SHUFFLE_D( 0, 3, 2, 3 ) );
+	temp5 = _mm_shufflelo_epi16( temp0, R_SHUFFLE_D( 3, 1, 3, 3 ) );
+	temp4 = _mm_srli_epi16( temp4, 5 );
+	temp5 = _mm_srli_epi16( temp5, 6 );
+	temp0 = _mm_or_si128( temp0, temp4 );
+	temp0 = _mm_or_si128( temp0, temp5 );
 	
-	temp1 = _mand_si128( minColor, *( __m128c* )SIMD_SSE2_byte_colorMask );
-	temp1 = _munpacklo_epi8( temp1, zero );
-	temp4 = _mshufflelo_epi16( temp1, R_SHUFFLE_D( 0, 3, 2, 3 ) );
-	temp5 = _mshufflelo_epi16( temp1, R_SHUFFLE_D( 3, 1, 3, 3 ) );
-	temp4 = _msrli_epi16( temp4, 5 );
-	temp5 = _msrli_epi16( temp5, 6 );
-	temp1 = _mor_si128( temp1, temp4 );
-	temp1 = _mor_si128( temp1, temp5 );
+	temp1 = _mm_and_si128( minColor, *( __m128c* )SIMD_SSE2_byte_colorMask );
+	temp1 = _mm_unpacklo_epi8( temp1, zero );
+	temp4 = _mm_shufflelo_epi16( temp1, R_SHUFFLE_D( 0, 3, 2, 3 ) );
+	temp5 = _mm_shufflelo_epi16( temp1, R_SHUFFLE_D( 3, 1, 3, 3 ) );
+	temp4 = _mm_srli_epi16( temp4, 5 );
+	temp5 = _mm_srli_epi16( temp5, 6 );
+	temp1 = _mm_or_si128( temp1, temp4 );
+	temp1 = _mm_or_si128( temp1, temp5 );
 	
-	temp2 = _mpackus_epi16( temp0, zero );
-	color0 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp2 = _mm_packus_epi16( temp0, zero );
+	color0 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp6 = _madd_epi16( temp0, temp0 );
-	temp6 = _msrli_epi16( temp6, 1 );			// diff from color
-	temp6 = _mpackus_epi16( temp6, zero );
-	color2 = _mshuffle_epi32( temp6, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp6 = _mm_add_epi16( temp0, temp0 );
+	temp6 = _mm_srli_epi16( temp6, 1 );			// diff from color
+	temp6 = _mm_packus_epi16( temp6, zero );
+	color2 = _mm_shuffle_epi32( temp6, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp3 = _mpackus_epi16( temp1, zero );
-	color1 = _mshuffle_epi32( temp3, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp3 = _mm_packus_epi16( temp1, zero );
+	color1 = _mm_shuffle_epi32( temp3, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
 	// not used
 	//color3 = zero;
@@ -818,95 +818,95 @@ void idDxtEncoder::EmitColorAlphaIndices_SSE2( const byte* colorBlock, const byt
 	for( int i = 1; i >= 0; i-- )
 	{
 		// Load block
-		temp3 = _mshuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp3 = _mm_shuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp0 = _msad_epu8( temp3, color0 );
-		temp6 = _msad_epu8( temp5, color0 );
-		temp0 = _mpacks_epi32( temp0, temp6 );
+		temp0 = _mm_sad_epu8( temp3, color0 );
+		temp6 = _mm_sad_epu8( temp5, color0 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );
 	
-		temp1 = _msad_epu8( temp3, color1 );
-		temp6 = _msad_epu8( temp5, color1 );
-		temp1 = _mpacks_epi32( temp1, temp6 );
+		temp1 = _mm_sad_epu8( temp3, color1 );
+		temp6 = _mm_sad_epu8( temp5, color1 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );
 	
-		temp2 = _msad_epu8( temp3, color2 );
-		temp6 = _msad_epu8( temp5, color2 );
-		temp2 = _mpacks_epi32( temp2, temp6 );
+		temp2 = _mm_sad_epu8( temp3, color2 );
+		temp6 = _mm_sad_epu8( temp5, color2 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );
 	
 	
 		// diff from color
-		temp3 = _mshuffle_ps( temp3, temp5, R_SHUFFLE_D( 0, 2, 0, 2 ) );
-		temp3 = _msrli_epi32( temp3, 24 );
-		temp3 = _mpacks_epi32( temp3, temp3 );
+		temp3 = _mm_shuffle_ps( temp3, temp5, R_SHUFFLE_D( 0, 2, 0, 2 ) );
+		temp3 = _mm_srli_epi32( temp3, 24 );
+		temp3 = _mm_packs_epi32( temp3, temp3 );
 	
 	
 		// Load block
-		temp4 = _mshuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp4 = _mm_shuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp6 = _msad_epu8( temp4, color0 );
-		temp7 = _msad_epu8( temp5, color0 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp0 = _mpacks_epi32( temp0, temp6 );	// d0
+		temp6 = _mm_sad_epu8( temp4, color0 );
+		temp7 = _mm_sad_epu8( temp5, color0 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );	// d0
 	
-		temp6 = _msad_epu8( temp4, color1 );
-		temp7 = _msad_epu8( temp5, color1 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp1 = _mpacks_epi32( temp1, temp6 );	// d1
+		temp6 = _mm_sad_epu8( temp4, color1 );
+		temp7 = _mm_sad_epu8( temp5, color1 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );	// d1
 	
-		temp6 = _msad_epu8( temp4, color2 );
-		temp7 = _msad_epu8( temp5, color2 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp2 = _mpacks_epi32( temp2, temp6 );	// d2
-	
-	
-		// diff from color
-		temp4 = _mshuffle_ps( temp4, temp5, R_SHUFFLE_D( 0, 2, 0, 2 ) );		// c3
-		temp4 = _msrli_epi32( temp4, 24 );
-		temp4 = _mpacks_epi32( temp4, temp4 );
-		temp3 = _munpacklo_epi64( temp3, temp4 );
-	
-		temp7 = _mslli_epi32( result, 16 );
+		temp6 = _mm_sad_epu8( temp4, color2 );
+		temp7 = _mm_sad_epu8( temp5, color2 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );	// d2
 	
 	
 		// diff from color
-		temp4 = _mcmpgt_epi16( temp2, temp1 );						// b1
-		temp2 = _mcmpgt_epi16( temp2, temp0 );						// b0
-		temp1 = _mcmpgt_epi16( temp1, temp0 );						// b2
-		temp3 = _mmax_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_127 );	// b3
-		temp3 = _mcmpeq_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_127 );
+		temp4 = _mm_shuffle_ps( temp4, temp5, R_SHUFFLE_D( 0, 2, 0, 2 ) );		// c3
+		temp4 = _mm_srli_epi32( temp4, 24 );
+		temp4 = _mm_packs_epi32( temp4, temp4 );
+		temp3 = _mm_unpacklo_epi64( temp3, temp4 );
 	
-		temp2 = _mand_si128( temp2, temp4 );
-		temp2 = _mor_si128( temp2, temp3 );							// b0 & b1 | b3
-		temp1 = _mxor_si128( temp1, temp4 );
-		temp1 = _mor_si128( temp1, temp3 );							// b2 ^ b1 | b3
-		temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_2 );
-		temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_word_1 );
-		temp2 = _mor_si128( temp2, temp1 );
+		temp7 = _mm_slli_epi32( result, 16 );
 	
 	
+		// diff from color
+		temp4 = _mm_cmpgt_epi16( temp2, temp1 );						// b1
+		temp2 = _mm_cmpgt_epi16( temp2, temp0 );						// b0
+		temp1 = _mm_cmpgt_epi16( temp1, temp0 );						// b2
+		temp3 = _mm_max_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_127 );	// b3
+		temp3 = _mm_cmpeq_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_127 );
 	
-		temp5 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp2 = _munpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _munpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _mslli_epi32( temp5, 8 );
-		temp7 = _mor_si128( temp7, temp5 );
-		result = _mor_si128( temp7, temp2 );
+		temp2 = _mm_and_si128( temp2, temp4 );
+		temp2 = _mm_or_si128( temp2, temp3 );							// b0 & b1 | b3
+		temp1 = _mm_xor_si128( temp1, temp4 );
+		temp1 = _mm_or_si128( temp1, temp3 );							// b2 ^ b1 | b3
+		temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_2 );
+		temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_word_1 );
+		temp2 = _mm_or_si128( temp2, temp1 );
+	
+	
+	
+		temp5 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp2 = _mm_unpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_unpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_slli_epi32( temp5, 8 );
+		temp7 = _mm_or_si128( temp7, temp5 );
+		result = _mm_or_si128( temp7, temp2 );
 	}
 	
-	temp4 = _mshuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
-	temp5 = _mshuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-	temp6 = _mshuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
-	temp4 = _mslli_epi32( temp4, 2 );
-	temp5 = _mslli_epi32( temp5, 4 );
-	temp6 = _mslli_epi32( temp6, 6 );
-	temp7 = _mor_si128( result, temp4 );
-	temp7 = _mor_si128( temp7, temp5 );
-	temp7 = _mor_si128( temp7, temp6 );
+	temp4 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
+	temp5 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp6 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
+	temp4 = _mm_slli_epi32( temp4, 2 );
+	temp5 = _mm_slli_epi32( temp5, 4 );
+	temp6 = _mm_slli_epi32( temp6, 6 );
+	temp7 = _mm_or_si128( result, temp4 );
+	temp7 = _mm_or_si128( temp7, temp5 );
+	temp7 = _mm_or_si128( temp7, temp6 );
 	
-	unsigned int out = _mcvtsi128_si32( temp7 );
+	unsigned int out = _mm_cvtsi128_si32( temp7 );
 	EmitUInt( out );
 #else
 	assert( false );
@@ -1071,8 +1071,8 @@ void idDxtEncoder::EmitCoCgIndices_SSE2( const byte* colorBlock, const byte* min
 	__m128c result = SIMD_SSE2_zero;
 	__m128c color0, color1, color2, color3;
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	__m128c minColor = _mcvtsi32_si128( *( int* )minColor_ );
-	__m128c maxColor = _mcvtsi32_si128( *( int* )maxColor_ );
+	__m128c minColor = _mm_cvtsi32_si128( *( int* )minColor_ );
+	__m128c maxColor = _mm_cvtsi32_si128( *( int* )maxColor_ );
 	__m128c blocka[2], blockb[2];
 	blocka[0] = *( ( __m128i* )( &colorBlock[ 0] ) );
 	blocka[1] = *( ( __m128i* )( &colorBlock[32] ) );
@@ -1082,110 +1082,110 @@ void idDxtEncoder::EmitCoCgIndices_SSE2( const byte* colorBlock, const byte* min
 	temp7 = zero;
 	
 	temp0 = maxColor;
-	temp0 = _mand_si128( temp0, *( __m128c* )SIMD_SSE2_byte_colorMask2 );
-	color0 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp0 = _mm_and_si128( temp0, *( __m128c* )SIMD_SSE2_byte_colorMask2 );
+	color0 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
 	temp1 = minColor;
-	temp1 = _mand_si128( temp1, *( __m128c* )SIMD_SSE2_byte_colorMask2 );
-	color1 = _mshuffle_epi32( temp1, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp1 = _mm_and_si128( temp1, *( __m128c* )SIMD_SSE2_byte_colorMask2 );
+	color1 = _mm_shuffle_epi32( temp1, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp0 = _munpacklo_epi8( color0, zero );
-	temp1 = _munpacklo_epi8( color1, zero );
+	temp0 = _mm_unpacklo_epi8( color0, zero );
+	temp1 = _mm_unpacklo_epi8( color1, zero );
 	
-	temp6 = _madd_epi16( temp1, temp0 );
-	temp0 = _madd_epi16( temp0, temp6 );
-	temp0 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
-	temp0 = _mpackus_epi16( temp0, zero );
-	color2 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp6 = _mm_add_epi16( temp1, temp0 );
+	temp0 = _mm_add_epi16( temp0, temp6 );
+	temp0 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
+	temp0 = _mm_packus_epi16( temp0, zero );
+	color2 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
-	temp1 = _madd_epi16( temp1, temp6 );
-	temp1 = _mmulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
-	temp1 = _mpackus_epi16( temp1, zero );
-	color3 = _mshuffle_epi32( temp1, R_SHUFFLE_D( 0, 1, 0, 1 ) );
+	temp1 = _mm_add_epi16( temp1, temp6 );
+	temp1 = _mm_mulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_div_by_3 );		// * ( ( 1 << 16 ) / 3 + 1 ) ) >> 16
+	temp1 = _mm_packus_epi16( temp1, zero );
+	color3 = _mm_shuffle_epi32( temp1, R_SHUFFLE_D( 0, 1, 0, 1 ) );
 	
 	for( int i = 1; i >= 0; i-- )
 	{
 		// Load block
-		temp3 = _mshuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp3 = _mm_shuffle_epi32( blocka[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blocka[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp0 = _msad_epu8( temp3, color0 );
-		temp6 = _msad_epu8( temp5, color0 );
-		temp0 = _mpacks_epi32( temp0, temp6 );
+		temp0 = _mm_sad_epu8( temp3, color0 );
+		temp6 = _mm_sad_epu8( temp5, color0 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );
 	
-		temp1 = _msad_epu8( temp3, color1 );
-		temp6 = _msad_epu8( temp5, color1 );
-		temp1 = _mpacks_epi32( temp1, temp6 );
+		temp1 = _mm_sad_epu8( temp3, color1 );
+		temp6 = _mm_sad_epu8( temp5, color1 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );
 	
-		temp2 = _msad_epu8( temp3, color2 );
-		temp6 = _msad_epu8( temp5, color2 );
-		temp2 = _mpacks_epi32( temp2, temp6 );
+		temp2 = _mm_sad_epu8( temp3, color2 );
+		temp6 = _mm_sad_epu8( temp5, color2 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );
 	
-		temp3 = _msad_epu8( temp3, color3 );
-		temp5 = _msad_epu8( temp5, color3 );
-		temp3 = _mpacks_epi32( temp3, temp5 );
+		temp3 = _mm_sad_epu8( temp3, color3 );
+		temp5 = _mm_sad_epu8( temp5, color3 );
+		temp3 = _mm_packs_epi32( temp3, temp5 );
 	
 	
 		// Load block
-		temp4 = _mshuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
-		temp5 = _mshuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp4 = _mm_shuffle_epi32( blockb[i], R_SHUFFLE_D( 0, 2, 1, 3 ) );
+		temp5 = _mm_shuffle_ps( blockb[i], zero, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-		temp6 = _msad_epu8( temp4, color0 );
-		temp7 = _msad_epu8( temp5, color0 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp0 = _mpacks_epi32( temp0, temp6 );	// d0
+		temp6 = _mm_sad_epu8( temp4, color0 );
+		temp7 = _mm_sad_epu8( temp5, color0 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp0 = _mm_packs_epi32( temp0, temp6 );	// d0
 	
-		temp6 = _msad_epu8( temp4, color1 );
-		temp7 = _msad_epu8( temp5, color1 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp1 = _mpacks_epi32( temp1, temp6 );	// d1
+		temp6 = _mm_sad_epu8( temp4, color1 );
+		temp7 = _mm_sad_epu8( temp5, color1 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp1 = _mm_packs_epi32( temp1, temp6 );	// d1
 	
-		temp6 = _msad_epu8( temp4, color2 );
-		temp7 = _msad_epu8( temp5, color2 );
-		temp6 = _mpacks_epi32( temp6, temp7 );
-		temp2 = _mpacks_epi32( temp2, temp6 );	// d2
+		temp6 = _mm_sad_epu8( temp4, color2 );
+		temp7 = _mm_sad_epu8( temp5, color2 );
+		temp6 = _mm_packs_epi32( temp6, temp7 );
+		temp2 = _mm_packs_epi32( temp2, temp6 );	// d2
 	
-		temp4 = _msad_epu8( temp4, color3 );
-		temp5 = _msad_epu8( temp5, color3 );
-		temp4 = _mpacks_epi32( temp4, temp5 );
-		temp3 = _mpacks_epi32( temp3, temp4 );	// d3
+		temp4 = _mm_sad_epu8( temp4, color3 );
+		temp5 = _mm_sad_epu8( temp5, color3 );
+		temp4 = _mm_packs_epi32( temp4, temp5 );
+		temp3 = _mm_packs_epi32( temp3, temp4 );	// d3
 	
-		temp7 = _mslli_epi32( result, 16 );
+		temp7 = _mm_slli_epi32( result, 16 );
 	
-		temp4 = _mcmpgt_epi16( temp0, temp2 );	// b2
-		temp5 = _mcmpgt_epi16( temp1, temp3 );	// b3
-		temp0 = _mcmpgt_epi16( temp0, temp3 );	// b0
-		temp1 = _mcmpgt_epi16( temp1, temp2 );	// b1
-		temp2 = _mcmpgt_epi16( temp2, temp3 );	// b4
-		temp4 = _mand_si128( temp4, temp1 );		// x0
-		temp5 = _mand_si128( temp5, temp0 );		// x1
-		temp2 = _mand_si128( temp2, temp0 );		// x2
-		temp4 = _mor_si128( temp4, temp5 );
-		temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
-		temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_word_2 );
-		temp2 = _mor_si128( temp2, temp4 );
+		temp4 = _mm_cmpgt_epi16( temp0, temp2 );	// b2
+		temp5 = _mm_cmpgt_epi16( temp1, temp3 );	// b3
+		temp0 = _mm_cmpgt_epi16( temp0, temp3 );	// b0
+		temp1 = _mm_cmpgt_epi16( temp1, temp2 );	// b1
+		temp2 = _mm_cmpgt_epi16( temp2, temp3 );	// b4
+		temp4 = _mm_and_si128( temp4, temp1 );		// x0
+		temp5 = _mm_and_si128( temp5, temp0 );		// x1
+		temp2 = _mm_and_si128( temp2, temp0 );		// x2
+		temp4 = _mm_or_si128( temp4, temp5 );
+		temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
+		temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_word_2 );
+		temp2 = _mm_or_si128( temp2, temp4 );
 	
-		temp5 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-		temp2 = _munpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _munpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
-		temp5 = _mslli_epi32( temp5, 8 );
-		temp7 = _mor_si128( temp7, temp5 );
-		result = _mor_si128( temp7, temp2 );
+		temp5 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+		temp2 = _mm_unpacklo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_unpacklo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_0 );
+		temp5 = _mm_slli_epi32( temp5, 8 );
+		temp7 = _mm_or_si128( temp7, temp5 );
+		result = _mm_or_si128( temp7, temp2 );
 	}
 	
-	temp4 = _mshuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
-	temp5 = _mshuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
-	temp6 = _mshuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
-	temp4 = _mslli_epi32( temp4, 2 );
-	temp5 = _mslli_epi32( temp5, 4 );
-	temp6 = _mslli_epi32( temp6, 6 );
-	temp7 = _mor_si128( result, temp4 );
-	temp7 = _mor_si128( temp7, temp5 );
-	temp7 = _mor_si128( temp7, temp6 );
+	temp4 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 1, 2, 3, 0 ) );
+	temp5 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp6 = _mm_shuffle_epi32( result, R_SHUFFLE_D( 3, 0, 1, 2 ) );
+	temp4 = _mm_slli_epi32( temp4, 2 );
+	temp5 = _mm_slli_epi32( temp5, 4 );
+	temp6 = _mm_slli_epi32( temp6, 6 );
+	temp7 = _mm_or_si128( result, temp4 );
+	temp7 = _mm_or_si128( temp7, temp5 );
+	temp7 = _mm_or_si128( temp7, temp6 );
 	
-	unsigned int out = _mcvtsi128_si32( temp7 );
+	unsigned int out = _mm_cvtsi128_si32( temp7 );
 	EmitUInt( out );
 #else
 	assert( false );
@@ -1348,13 +1348,13 @@ void idDxtEncoder::EmitAlphaIndices_SSE2( const byte* block, const int minAlpha_
 	__m128i block3 = *( ( __m128i* )( &block[48] ) );
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
-	temp0 = _msrli_epi32( block0, 24 );
-	temp5 = _msrli_epi32( block1, 24 );
-	temp6 = _msrli_epi32( block2, 24 );
-	temp4 = _msrli_epi32( block3, 24 );
+	temp0 = _mm_srli_epi32( block0, 24 );
+	temp5 = _mm_srli_epi32( block1, 24 );
+	temp6 = _mm_srli_epi32( block2, 24 );
+	temp4 = _mm_srli_epi32( block3, 24 );
 	
-	temp0 = _mpackus_epi16( temp0, temp5 );
-	temp6 = _mpackus_epi16( temp6, temp4 );
+	temp0 = _mm_packus_epi16( temp0, temp5 );
+	temp6 = _mm_packus_epi16( temp6, temp4 );
 	
 	//---------------------
 	
@@ -1368,103 +1368,103 @@ void idDxtEncoder::EmitAlphaIndices_SSE2( const byte* block, const int minAlpha_
 	// ab6 = (  3 * maxAlpha + 11 * minAlpha + ALPHA_RANGE ) / 14
 	// ab7 = (  1 * maxAlpha + 13 * minAlpha + ALPHA_RANGE ) / 14
 	
-	temp5 = _mcvtsi32_si128( maxAlpha_ );
-	temp5 = _mshufflelo_epi16( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_cvtsi32_si128( maxAlpha_ );
+	temp5 = _mm_shufflelo_epi16( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp2 = _mcvtsi32_si128( minAlpha_ );
-	temp2 = _mshufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp2 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_cvtsi32_si128( minAlpha_ );
+	temp2 = _mm_shufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp7 = _mmullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
-	temp5 = _mmullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
-	temp3 = _mmullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
-	temp2 = _mmullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
+	temp7 = _mm_mullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
+	temp5 = _mm_mullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
+	temp3 = _mm_mullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
+	temp2 = _mm_mullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
 	
-	temp5 = _madd_epi16( temp5, temp2 );
-	temp7 = _madd_epi16( temp7, temp3 );
+	temp5 = _mm_add_epi16( temp5, temp2 );
+	temp7 = _mm_add_epi16( temp7, temp3 );
 	
-	temp5 = _madd_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_7 );
-	temp7 = _madd_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_7 );
+	temp5 = _mm_add_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_7 );
+	temp7 = _mm_add_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_7 );
 	
-	temp5 = _mmulhi_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
-	temp7 = _mmulhi_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
+	temp5 = _mm_mulhi_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
+	temp7 = _mm_mulhi_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
 	
-	temp1 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 3, 3, 3, 3 ) );
-	temp2 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 2, 2, 2, 2 ) );
-	temp3 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 1, 1, 1, 1 ) );
-	temp1 = _mpackus_epi16( temp1, temp1 );
-	temp2 = _mpackus_epi16( temp2, temp2 );
-	temp3 = _mpackus_epi16( temp3, temp3 );
+	temp1 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 3, 3, 3, 3 ) );
+	temp2 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 2, 2, 2, 2 ) );
+	temp3 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 1, 1, 1, 1 ) );
+	temp1 = _mm_packus_epi16( temp1, temp1 );
+	temp2 = _mm_packus_epi16( temp2, temp2 );
+	temp3 = _mm_packus_epi16( temp3, temp3 );
 	
-	temp0 = _mpackus_epi16( temp0, temp6 );
+	temp0 = _mm_packus_epi16( temp0, temp6 );
 	
-	temp4 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp5 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 1, 1, 1, 1 ) );
-	temp6 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 2, 2, 2, 2 ) );
-	temp7 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 3, 3, 3, 3 ) );
-	temp4 = _mpackus_epi16( temp4, temp4 );
-	temp5 = _mpackus_epi16( temp5, temp5 );
-	temp6 = _mpackus_epi16( temp6, temp6 );
-	temp7 = _mpackus_epi16( temp7, temp7 );
+	temp4 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 1, 1, 1, 1 ) );
+	temp6 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 2, 2, 2, 2 ) );
+	temp7 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 3, 3, 3, 3 ) );
+	temp4 = _mm_packus_epi16( temp4, temp4 );
+	temp5 = _mm_packus_epi16( temp5, temp5 );
+	temp6 = _mm_packus_epi16( temp6, temp6 );
+	temp7 = _mm_packus_epi16( temp7, temp7 );
 	
-	temp1 = _mmax_epu8( temp1, temp0 );
-	temp2 = _mmax_epu8( temp2, temp0 );
-	temp3 = _mmax_epu8( temp3, temp0 );
-	temp1 = _mcmpeq_epi8( temp1, temp0 );
-	temp2 = _mcmpeq_epi8( temp2, temp0 );
-	temp3 = _mcmpeq_epi8( temp3, temp0 );
-	temp4 = _mmax_epu8( temp4, temp0 );
-	temp5 = _mmax_epu8( temp5, temp0 );
-	temp6 = _mmax_epu8( temp6, temp0 );
-	temp7 = _mmax_epu8( temp7, temp0 );
-	temp4 = _mcmpeq_epi8( temp4, temp0 );
-	temp5 = _mcmpeq_epi8( temp5, temp0 );
-	temp6 = _mcmpeq_epi8( temp6, temp0 );
-	temp7 = _mcmpeq_epi8( temp7, temp0 );
-	temp0 = _madds_epi8( ( const __m128i& )SIMD_SSE2_byte_8, temp1 );
-	temp2 = _madds_epi8( temp2, temp3 );
-	temp4 = _madds_epi8( temp4, temp5 );
-	temp6 = _madds_epi8( temp6, temp7 );
-	temp0 = _madds_epi8( temp0, temp2 );
-	temp4 = _madds_epi8( temp4, temp6 );
-	temp0 = _madds_epi8( temp0, temp4 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_7 );
-	temp1 = _mcmpgt_epi8( ( const __m128i& )SIMD_SSE2_byte_2, temp0 );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_1 );
-	temp0 = _mxor_si128( temp0, temp1 );
+	temp1 = _mm_max_epu8( temp1, temp0 );
+	temp2 = _mm_max_epu8( temp2, temp0 );
+	temp3 = _mm_max_epu8( temp3, temp0 );
+	temp1 = _mm_cmpeq_epi8( temp1, temp0 );
+	temp2 = _mm_cmpeq_epi8( temp2, temp0 );
+	temp3 = _mm_cmpeq_epi8( temp3, temp0 );
+	temp4 = _mm_max_epu8( temp4, temp0 );
+	temp5 = _mm_max_epu8( temp5, temp0 );
+	temp6 = _mm_max_epu8( temp6, temp0 );
+	temp7 = _mm_max_epu8( temp7, temp0 );
+	temp4 = _mm_cmpeq_epi8( temp4, temp0 );
+	temp5 = _mm_cmpeq_epi8( temp5, temp0 );
+	temp6 = _mm_cmpeq_epi8( temp6, temp0 );
+	temp7 = _mm_cmpeq_epi8( temp7, temp0 );
+	temp0 = _mm_adds_epi8( ( const __m128i& )SIMD_SSE2_byte_8, temp1 );
+	temp2 = _mm_adds_epi8( temp2, temp3 );
+	temp4 = _mm_adds_epi8( temp4, temp5 );
+	temp6 = _mm_adds_epi8( temp6, temp7 );
+	temp0 = _mm_adds_epi8( temp0, temp2 );
+	temp4 = _mm_adds_epi8( temp4, temp6 );
+	temp0 = _mm_adds_epi8( temp0, temp4 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_7 );
+	temp1 = _mm_cmpgt_epi8( ( const __m128i& )SIMD_SSE2_byte_2, temp0 );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_1 );
+	temp0 = _mm_xor_si128( temp0, temp1 );
 	
-	temp1 = _msrli_epi64( temp0,  8 -  3 );
-	temp2 = _msrli_epi64( temp0, 16 -  6 );
-	temp3 = _msrli_epi64( temp0, 24 -  9 );
-	temp4 = _msrli_epi64( temp0, 32 - 12 );
-	temp5 = _msrli_epi64( temp0, 40 - 15 );
-	temp6 = _msrli_epi64( temp0, 48 - 18 );
-	temp7 = _msrli_epi64( temp0, 56 - 21 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask0 );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask1 );
-	temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask2 );
-	temp3 = _mand_si128( temp3, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask3 );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask4 );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask5 );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask6 );
-	temp7 = _mand_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask7 );
-	temp0 = _mor_si128( temp0, temp1 );
-	temp2 = _mor_si128( temp2, temp3 );
-	temp4 = _mor_si128( temp4, temp5 );
-	temp6 = _mor_si128( temp6, temp7 );
-	temp0 = _mor_si128( temp0, temp2 );
-	temp4 = _mor_si128( temp4, temp6 );
-	temp0 = _mor_si128( temp0, temp4 );
+	temp1 = _mm_srli_epi64( temp0,  8 -  3 );
+	temp2 = _mm_srli_epi64( temp0, 16 -  6 );
+	temp3 = _mm_srli_epi64( temp0, 24 -  9 );
+	temp4 = _mm_srli_epi64( temp0, 32 - 12 );
+	temp5 = _mm_srli_epi64( temp0, 40 - 15 );
+	temp6 = _mm_srli_epi64( temp0, 48 - 18 );
+	temp7 = _mm_srli_epi64( temp0, 56 - 21 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask0 );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask1 );
+	temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask2 );
+	temp3 = _mm_and_si128( temp3, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask3 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask4 );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask5 );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask6 );
+	temp7 = _mm_and_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask7 );
+	temp0 = _mm_or_si128( temp0, temp1 );
+	temp2 = _mm_or_si128( temp2, temp3 );
+	temp4 = _mm_or_si128( temp4, temp5 );
+	temp6 = _mm_or_si128( temp6, temp7 );
+	temp0 = _mm_or_si128( temp0, temp2 );
+	temp4 = _mm_or_si128( temp4, temp6 );
+	temp0 = _mm_or_si128( temp0, temp4 );
 	
 	
-	int out = _mcvtsi128_si32( temp0 );
+	int out = _mm_cvtsi128_si32( temp0 );
 	EmitUInt( out );
 	outData--;
 	
-	temp1 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp1 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
 	
-	out = _mcvtsi128_si32( temp1 );
+	out = _mm_cvtsi128_si32( temp1 );
 	EmitUInt( out );
 	outData--;
 #else
@@ -1631,20 +1631,20 @@ void idDxtEncoder::EmitAlphaIndices_SSE2( const byte* block, const int channelBi
 	__m128i block3 = *( ( __m128i* )( &block[48] ) );
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
-	temp7 = _mcvtsi32_si128( channelBitOffset );
+	temp7 = _mm_cvtsi32_si128( channelBitOffset );
 	
-	temp0 = _msrl_epi32( block0, temp7 );
-	temp5 = _msrl_epi32( block1, temp7 );
-	temp6 = _msrl_epi32( block2, temp7 );
-	temp4 = _msrl_epi32( block3, temp7 );
+	temp0 = _mm_srl_epi32( block0, temp7 );
+	temp5 = _mm_srl_epi32( block1, temp7 );
+	temp6 = _mm_srl_epi32( block2, temp7 );
+	temp4 = _mm_srl_epi32( block3, temp7 );
 	
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
 	
-	temp0 = _mpackus_epi16( temp0, temp5 );
-	temp6 = _mpackus_epi16( temp6, temp4 );
+	temp0 = _mm_packus_epi16( temp0, temp5 );
+	temp6 = _mm_packus_epi16( temp6, temp4 );
 	
 	//---------------------
 	
@@ -1658,103 +1658,103 @@ void idDxtEncoder::EmitAlphaIndices_SSE2( const byte* block, const int channelBi
 	// ab6 = (  3 * maxAlpha + 11 * minAlpha + ALPHA_RANGE ) / 14
 	// ab7 = (  1 * maxAlpha + 13 * minAlpha + ALPHA_RANGE ) / 14
 	
-	temp5 = _mcvtsi32_si128( maxAlpha_ );
-	temp5 = _mshufflelo_epi16( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp5 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_cvtsi32_si128( maxAlpha_ );
+	temp5 = _mm_shufflelo_epi16( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp2 = _mcvtsi32_si128( minAlpha_ );
-	temp2 = _mshufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp2 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_cvtsi32_si128( minAlpha_ );
+	temp2 = _mm_shufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp7 = _mmullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
-	temp5 = _mmullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
-	temp3 = _mmullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
-	temp2 = _mmullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
+	temp7 = _mm_mullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
+	temp5 = _mm_mullo_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
+	temp3 = _mm_mullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_9_11_13 );
+	temp2 = _mm_mullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_7_5_3_1 );
 	
-	temp5 = _madd_epi16( temp5, temp2 );
-	temp7 = _madd_epi16( temp7, temp3 );
+	temp5 = _mm_add_epi16( temp5, temp2 );
+	temp7 = _mm_add_epi16( temp7, temp3 );
 	
-	temp5 = _madd_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_7 );
-	temp7 = _madd_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_7 );
+	temp5 = _mm_add_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_7 );
+	temp7 = _mm_add_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_7 );
 	
-	temp5 = _mmulhi_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
-	temp7 = _mmulhi_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
+	temp5 = _mm_mulhi_epi16( temp5, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
+	temp7 = _mm_mulhi_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_div_by_14 );
 	
-	temp1 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 3, 3, 3, 3 ) );
-	temp2 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 2, 2, 2, 2 ) );
-	temp3 = _mshuffle_epi32( temp5, R_SHUFFLE_D( 1, 1, 1, 1 ) );
-	temp1 = _mpackus_epi16( temp1, temp1 );
-	temp2 = _mpackus_epi16( temp2, temp2 );
-	temp3 = _mpackus_epi16( temp3, temp3 );
+	temp1 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 3, 3, 3, 3 ) );
+	temp2 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 2, 2, 2, 2 ) );
+	temp3 = _mm_shuffle_epi32( temp5, R_SHUFFLE_D( 1, 1, 1, 1 ) );
+	temp1 = _mm_packus_epi16( temp1, temp1 );
+	temp2 = _mm_packus_epi16( temp2, temp2 );
+	temp3 = _mm_packus_epi16( temp3, temp3 );
 	
-	temp0 = _mpackus_epi16( temp0, temp6 );
+	temp0 = _mm_packus_epi16( temp0, temp6 );
 	
-	temp4 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp5 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 1, 1, 1, 1 ) );
-	temp6 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 2, 2, 2, 2 ) );
-	temp7 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 3, 3, 3, 3 ) );
-	temp4 = _mpackus_epi16( temp4, temp4 );
-	temp5 = _mpackus_epi16( temp5, temp5 );
-	temp6 = _mpackus_epi16( temp6, temp6 );
-	temp7 = _mpackus_epi16( temp7, temp7 );
+	temp4 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp5 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 1, 1, 1, 1 ) );
+	temp6 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 2, 2, 2, 2 ) );
+	temp7 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 3, 3, 3, 3 ) );
+	temp4 = _mm_packus_epi16( temp4, temp4 );
+	temp5 = _mm_packus_epi16( temp5, temp5 );
+	temp6 = _mm_packus_epi16( temp6, temp6 );
+	temp7 = _mm_packus_epi16( temp7, temp7 );
 	
-	temp1 = _mmax_epu8( temp1, temp0 );
-	temp2 = _mmax_epu8( temp2, temp0 );
-	temp3 = _mmax_epu8( temp3, temp0 );
-	temp1 = _mcmpeq_epi8( temp1, temp0 );
-	temp2 = _mcmpeq_epi8( temp2, temp0 );
-	temp3 = _mcmpeq_epi8( temp3, temp0 );
-	temp4 = _mmax_epu8( temp4, temp0 );
-	temp5 = _mmax_epu8( temp5, temp0 );
-	temp6 = _mmax_epu8( temp6, temp0 );
-	temp7 = _mmax_epu8( temp7, temp0 );
-	temp4 = _mcmpeq_epi8( temp4, temp0 );
-	temp5 = _mcmpeq_epi8( temp5, temp0 );
-	temp6 = _mcmpeq_epi8( temp6, temp0 );
-	temp7 = _mcmpeq_epi8( temp7, temp0 );
-	temp0 = _madds_epi8( ( const __m128i& )SIMD_SSE2_byte_8, temp1 );
-	temp2 = _madds_epi8( temp2, temp3 );
-	temp4 = _madds_epi8( temp4, temp5 );
-	temp6 = _madds_epi8( temp6, temp7 );
-	temp0 = _madds_epi8( temp0, temp2 );
-	temp4 = _madds_epi8( temp4, temp6 );
-	temp0 = _madds_epi8( temp0, temp4 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_7 );
-	temp1 = _mcmpgt_epi8( ( const __m128i& )SIMD_SSE2_byte_2, temp0 );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_1 );
-	temp0 = _mxor_si128( temp0, temp1 );
+	temp1 = _mm_max_epu8( temp1, temp0 );
+	temp2 = _mm_max_epu8( temp2, temp0 );
+	temp3 = _mm_max_epu8( temp3, temp0 );
+	temp1 = _mm_cmpeq_epi8( temp1, temp0 );
+	temp2 = _mm_cmpeq_epi8( temp2, temp0 );
+	temp3 = _mm_cmpeq_epi8( temp3, temp0 );
+	temp4 = _mm_max_epu8( temp4, temp0 );
+	temp5 = _mm_max_epu8( temp5, temp0 );
+	temp6 = _mm_max_epu8( temp6, temp0 );
+	temp7 = _mm_max_epu8( temp7, temp0 );
+	temp4 = _mm_cmpeq_epi8( temp4, temp0 );
+	temp5 = _mm_cmpeq_epi8( temp5, temp0 );
+	temp6 = _mm_cmpeq_epi8( temp6, temp0 );
+	temp7 = _mm_cmpeq_epi8( temp7, temp0 );
+	temp0 = _mm_adds_epi8( ( const __m128i& )SIMD_SSE2_byte_8, temp1 );
+	temp2 = _mm_adds_epi8( temp2, temp3 );
+	temp4 = _mm_adds_epi8( temp4, temp5 );
+	temp6 = _mm_adds_epi8( temp6, temp7 );
+	temp0 = _mm_adds_epi8( temp0, temp2 );
+	temp4 = _mm_adds_epi8( temp4, temp6 );
+	temp0 = _mm_adds_epi8( temp0, temp4 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_7 );
+	temp1 = _mm_cmpgt_epi8( ( const __m128i& )SIMD_SSE2_byte_2, temp0 );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_1 );
+	temp0 = _mm_xor_si128( temp0, temp1 );
 	
-	temp1 = _msrli_epi64( temp0,  8 -  3 );
-	temp2 = _msrli_epi64( temp0, 16 -  6 );
-	temp3 = _msrli_epi64( temp0, 24 -  9 );
-	temp4 = _msrli_epi64( temp0, 32 - 12 );
-	temp5 = _msrli_epi64( temp0, 40 - 15 );
-	temp6 = _msrli_epi64( temp0, 48 - 18 );
-	temp7 = _msrli_epi64( temp0, 56 - 21 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask0 );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask1 );
-	temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask2 );
-	temp3 = _mand_si128( temp3, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask3 );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask4 );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask5 );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask6 );
-	temp7 = _mand_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask7 );
-	temp0 = _mor_si128( temp0, temp1 );
-	temp2 = _mor_si128( temp2, temp3 );
-	temp4 = _mor_si128( temp4, temp5 );
-	temp6 = _mor_si128( temp6, temp7 );
-	temp0 = _mor_si128( temp0, temp2 );
-	temp4 = _mor_si128( temp4, temp6 );
-	temp0 = _mor_si128( temp0, temp4 );
+	temp1 = _mm_srli_epi64( temp0,  8 -  3 );
+	temp2 = _mm_srli_epi64( temp0, 16 -  6 );
+	temp3 = _mm_srli_epi64( temp0, 24 -  9 );
+	temp4 = _mm_srli_epi64( temp0, 32 - 12 );
+	temp5 = _mm_srli_epi64( temp0, 40 - 15 );
+	temp6 = _mm_srli_epi64( temp0, 48 - 18 );
+	temp7 = _mm_srli_epi64( temp0, 56 - 21 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask0 );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask1 );
+	temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask2 );
+	temp3 = _mm_and_si128( temp3, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask3 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask4 );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask5 );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask6 );
+	temp7 = _mm_and_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_alpha_bit_mask7 );
+	temp0 = _mm_or_si128( temp0, temp1 );
+	temp2 = _mm_or_si128( temp2, temp3 );
+	temp4 = _mm_or_si128( temp4, temp5 );
+	temp6 = _mm_or_si128( temp6, temp7 );
+	temp0 = _mm_or_si128( temp0, temp2 );
+	temp4 = _mm_or_si128( temp4, temp6 );
+	temp0 = _mm_or_si128( temp0, temp4 );
 	
 	
-	int out = _mcvtsi128_si32( temp0 );
+	int out = _mm_cvtsi128_si32( temp0 );
 	EmitUInt( out );
 	outData--;
 	
-	temp1 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp1 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
 	
-	out = _mcvtsi128_si32( temp1 );
+	out = _mm_cvtsi128_si32( temp1 );
 	EmitUInt( out );
 	outData--;
 #else
@@ -2076,87 +2076,87 @@ ID_INLINE void idDxtEncoder::ScaleYCoCg_SSE2( byte* colorBlock, byte* minColor, 
 	__m128i block3 = *( ( __m128i* )( &colorBlock[48] ) );
 	
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	temp0 = _mcvtsi32_si128( *( int* )minColor );
-	temp1 = _mcvtsi32_si128( *( int* )maxColor );
+	temp0 = _mm_cvtsi32_si128( *( int* )minColor );
+	temp1 = _mm_cvtsi32_si128( *( int* )maxColor );
 	
-	temp0 = _munpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
-	temp1 = _munpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp0 = _mm_unpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp1 = _mm_unpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
 	
 	// TODO: Algorithm seems to be get the absolute difference
-	temp6 = _msub_epi16( ( const __m128i& )SIMD_SSE2_word_center_128, temp0 );
-	temp7 = _msub_epi16( ( const __m128i& )SIMD_SSE2_word_center_128, temp1 );
-	temp0 = _msub_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_center_128 );
-	temp1 = _msub_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_center_128 );
-	temp6 = _mmax_epi16( temp6, temp0 );
-	temp7 = _mmax_epi16( temp7, temp1 );
+	temp6 = _mm_sub_epi16( ( const __m128i& )SIMD_SSE2_word_center_128, temp0 );
+	temp7 = _mm_sub_epi16( ( const __m128i& )SIMD_SSE2_word_center_128, temp1 );
+	temp0 = _mm_sub_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_center_128 );
+	temp1 = _mm_sub_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_center_128 );
+	temp6 = _mm_max_epi16( temp6, temp0 );
+	temp7 = _mm_max_epi16( temp7, temp1 );
 	
-	temp6 = _mmax_epi16( temp6, temp7 );
-	temp7 = _mshufflelo_epi16( temp6, R_SHUFFLE_D( 1, 0, 1, 0 ) );
-	temp6 = _mmax_epi16( temp6, temp7 );
-	temp6 = _mshuffle_epi32( temp6, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp6 = _mm_max_epi16( temp6, temp7 );
+	temp7 = _mm_shufflelo_epi16( temp6, R_SHUFFLE_D( 1, 0, 1, 0 ) );
+	temp6 = _mm_max_epi16( temp6, temp7 );
+	temp6 = _mm_shuffle_epi32( temp6, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
 	temp7 = temp6;
-	temp6 = _mcmpgt_epi16( temp6, ( const __m128i& )SIMD_SSE2_word_63 );			// mask0
-	temp7 = _mcmpgt_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_31 );			// mask1
+	temp6 = _mm_cmpgt_epi16( temp6, ( const __m128i& )SIMD_SSE2_word_63 );			// mask0
+	temp7 = _mm_cmpgt_epi16( temp7, ( const __m128i& )SIMD_SSE2_word_31 );			// mask1
 	
-	temp7 = _mandnot_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_2 );
-	temp7 = _mor_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_1 );
-	temp6 = _mandnot_si128( temp6, temp7 );
+	temp7 = _mm_andnot_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_2 );
+	temp7 = _mm_or_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_1 );
+	temp6 = _mm_andnot_si128( temp6, temp7 );
 	temp3 = temp6;
 	temp7 = temp6;
-	temp7 = _mxor_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_not );
-	temp7 = _mor_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_scale_mask0 );		// 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00
-	temp6 = _madd_epi16( temp6, ( const __m128i& )SIMD_SSE2_byte_1 );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_byte_scale_mask1 );	// 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF
-	temp6 = _mor_si128( temp6, ( const __m128i& )SIMD_SSE2_byte_scale_mask2 );		// 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00
+	temp7 = _mm_xor_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_not );
+	temp7 = _mm_or_si128( temp7, ( const __m128i& )SIMD_SSE2_byte_scale_mask0 );		// 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00
+	temp6 = _mm_add_epi16( temp6, ( const __m128i& )SIMD_SSE2_byte_1 );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_byte_scale_mask1 );	// 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF
+	temp6 = _mm_or_si128( temp6, ( const __m128i& )SIMD_SSE2_byte_scale_mask2 );		// 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00
 	
 	// TODO: remove this second store
-	temp4 = _mcvtsi32_si128( *( int* )minColor );
-	temp5 = _mcvtsi32_si128( *( int* )maxColor );
+	temp4 = _mm_cvtsi32_si128( *( int* )minColor );
+	temp5 = _mm_cvtsi32_si128( *( int* )maxColor );
 	
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_byte_scale_mask3 );	// 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_byte_scale_mask3 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_byte_scale_mask3 );	// 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0xFF
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_byte_scale_mask3 );
 	
-	temp3 = _mslli_epi32( temp3, 3 );
-	temp3 = _mand_si128( temp3, ( const __m128i& )SIMD_SSE2_byte_scale_mask4 );	// 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00
+	temp3 = _mm_slli_epi32( temp3, 3 );
+	temp3 = _mm_and_si128( temp3, ( const __m128i& )SIMD_SSE2_byte_scale_mask4 );	// 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00
 	
-	temp4 = _mor_si128( temp4, temp3 );
-	temp5 = _mor_si128( temp5, temp3 );
+	temp4 = _mm_or_si128( temp4, temp3 );
+	temp5 = _mm_or_si128( temp5, temp3 );
 	
-	temp4 = _madd_epi8( temp4, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	temp5 = _madd_epi8( temp5, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp4 = _mm_add_epi8( temp4, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp5 = _mm_add_epi8( temp5, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
 	
-	temp4 = _mmullo_epi16( temp4, temp6 );
-	temp5 = _mmullo_epi16( temp5, temp6 );
+	temp4 = _mm_mullo_epi16( temp4, temp6 );
+	temp5 = _mm_mullo_epi16( temp5, temp6 );
 	
-	temp4 = _mand_si128( temp4, temp7 );
-	temp5 = _mand_si128( temp5, temp7 );
+	temp4 = _mm_and_si128( temp4, temp7 );
+	temp5 = _mm_and_si128( temp5, temp7 );
 	
-	temp4 = _msub_epi8( temp4, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	temp5 = _msub_epi8( temp5, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp4 = _mm_sub_epi8( temp4, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp5 = _mm_sub_epi8( temp5, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
 	
-	*( int* )minColor = _mcvtsi128_si32( temp4 );
-	*( int* )maxColor = _mcvtsi128_si32( temp5 );
+	*( int* )minColor = _mm_cvtsi128_si32( temp4 );
+	*( int* )maxColor = _mm_cvtsi128_si32( temp5 );
 	
-	temp0 = _madd_epi8( block0, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	temp1 = _madd_epi8( block1, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	temp2 = _madd_epi8( block2, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	temp3 = _madd_epi8( block3, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp0 = _mm_add_epi8( block0, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp1 = _mm_add_epi8( block1, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp2 = _mm_add_epi8( block2, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	temp3 = _mm_add_epi8( block3, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
 	
-	temp0 = _mmullo_epi16( temp0, temp6 );
-	temp1 = _mmullo_epi16( temp1, temp6 );
-	temp2 = _mmullo_epi16( temp2, temp6 );
-	temp3 = _mmullo_epi16( temp3, temp6 );
+	temp0 = _mm_mullo_epi16( temp0, temp6 );
+	temp1 = _mm_mullo_epi16( temp1, temp6 );
+	temp2 = _mm_mullo_epi16( temp2, temp6 );
+	temp3 = _mm_mullo_epi16( temp3, temp6 );
 	
-	temp0 = _mand_si128( temp0, temp7 );
-	temp1 = _mand_si128( temp1, temp7 );
-	temp2 = _mand_si128( temp2, temp7 );
-	temp3 = _mand_si128( temp3, temp7 );
+	temp0 = _mm_and_si128( temp0, temp7 );
+	temp1 = _mm_and_si128( temp1, temp7 );
+	temp2 = _mm_and_si128( temp2, temp7 );
+	temp3 = _mm_and_si128( temp3, temp7 );
 	
-	*( ( __m128i* )( &colorBlock[ 0] ) ) = _msub_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	*( ( __m128i* )( &colorBlock[16] ) ) = _msub_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	*( ( __m128i* )( &colorBlock[32] ) ) = _msub_epi8( temp2, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
-	*( ( __m128i* )( &colorBlock[48] ) ) = _msub_epi8( temp3, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	*( ( __m128i* )( &colorBlock[ 0] ) ) = _mm_sub_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	*( ( __m128i* )( &colorBlock[16] ) ) = _mm_sub_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	*( ( __m128i* )( &colorBlock[32] ) ) = _mm_sub_epi8( temp2, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
+	*( ( __m128i* )( &colorBlock[48] ) ) = _mm_sub_epi8( temp3, ( const __m128i& )SIMD_SSE2_byte_minus_128_0 );
 #else
 	assert( false );
 #endif
@@ -2206,34 +2206,34 @@ ID_INLINE void idDxtEncoder::InsetYCoCgBBox_SSE2( byte* minColor, byte* maxColor
 #elif defined ( ID_WIN_X86_SSE2_INTRIN )
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
-	temp0 = _mcvtsi32_si128( *( int* )minColor );
-	temp1 = _mcvtsi32_si128( *( int* )maxColor );
+	temp0 = _mm_cvtsi32_si128( *( int* )minColor );
+	temp1 = _mm_cvtsi32_si128( *( int* )maxColor );
 	
-	temp0 = _munpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
-	temp1 = _munpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp0 = _mm_unpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp1 = _mm_unpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
 	
-	temp2 = _msub_epi16( temp1, temp0 );
-	temp2 = _msub_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRound );
-	temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_insetYCoCgMask );
-	temp0 = _mmullo_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftUp );
-	temp1 = _mmullo_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftUp );
-	temp0 = _madd_epi16( temp0, temp2 );
-	temp1 = _msub_epi16( temp1, temp2 );
-	temp0 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftDown );
-	temp1 = _mmulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftDown );
-	temp0 = _mmax_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_0 );
-	temp1 = _mmax_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_0 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgQuantMask );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgQuantMask );
-	temp2 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRep );
-	temp3 = _mmulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRep );
-	temp0 = _mor_si128( temp0, temp2 );
-	temp1 = _mor_si128( temp1, temp3 );
-	temp0 = _mpackus_epi16( temp0, temp0 );
-	temp1 = _mpackus_epi16( temp1, temp1 );
+	temp2 = _mm_sub_epi16( temp1, temp0 );
+	temp2 = _mm_sub_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRound );
+	temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_insetYCoCgMask );
+	temp0 = _mm_mullo_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftUp );
+	temp1 = _mm_mullo_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftUp );
+	temp0 = _mm_add_epi16( temp0, temp2 );
+	temp1 = _mm_sub_epi16( temp1, temp2 );
+	temp0 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftDown );
+	temp1 = _mm_mulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgShiftDown );
+	temp0 = _mm_max_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_0 );
+	temp1 = _mm_max_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_0 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgQuantMask );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgQuantMask );
+	temp2 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRep );
+	temp3 = _mm_mulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetYCoCgRep );
+	temp0 = _mm_or_si128( temp0, temp2 );
+	temp1 = _mm_or_si128( temp1, temp3 );
+	temp0 = _mm_packus_epi16( temp0, temp0 );
+	temp1 = _mm_packus_epi16( temp1, temp1 );
 	
-	*( int* )minColor = _mcvtsi128_si32( temp0 );
-	*( int* )maxColor = _mcvtsi128_si32( temp1 );
+	*( int* )minColor = _mm_cvtsi128_si32( temp0 );
+	*( int* )maxColor = _mm_cvtsi128_si32( temp1 );
 #else
 	assert( false );
 #endif
@@ -2332,60 +2332,60 @@ ID_INLINE void idDxtEncoder::SelectYCoCgDiagonal_SSE2( const byte* colorBlock, b
 	__m128i block3 = *( ( __m128i* )( &colorBlock[48] ) );
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
-	temp0 = _mand_si128( block0, ( const __m128i& )SIMD_SSE2_dword_word_mask );
-	temp1 = _mand_si128( block1, ( const __m128i& )SIMD_SSE2_dword_word_mask );
-	temp2 = _mand_si128( block2, ( const __m128i& )SIMD_SSE2_dword_word_mask );
-	temp3 = _mand_si128( block3, ( const __m128i& )SIMD_SSE2_dword_word_mask );
+	temp0 = _mm_and_si128( block0, ( const __m128i& )SIMD_SSE2_dword_word_mask );
+	temp1 = _mm_and_si128( block1, ( const __m128i& )SIMD_SSE2_dword_word_mask );
+	temp2 = _mm_and_si128( block2, ( const __m128i& )SIMD_SSE2_dword_word_mask );
+	temp3 = _mm_and_si128( block3, ( const __m128i& )SIMD_SSE2_dword_word_mask );
 	
-	temp1 = _mslli_si128( temp1, 2 );
-	temp3 = _mslli_si128( temp3, 2 );
-	temp0 = _mor_si128( temp0, temp1 );
-	temp2 = _mor_si128( temp2, temp3 );
+	temp1 = _mm_slli_si128( temp1, 2 );
+	temp3 = _mm_slli_si128( temp3, 2 );
+	temp0 = _mm_or_si128( temp0, temp1 );
+	temp2 = _mm_or_si128( temp2, temp3 );
 	
-	temp6 = _mcvtsi32_si128( *( int* )minColor );
-	temp7 = _mcvtsi32_si128( *( int* )maxColor );
+	temp6 = _mm_cvtsi32_si128( *( int* )minColor );
+	temp7 = _mm_cvtsi32_si128( *( int* )maxColor );
 	
-	temp1 = _mavg_epu8( temp6, temp7 );
-	temp1 = _mshufflelo_epi16( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp1 = _mshuffle_epi32( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp1 = _mm_avg_epu8( temp6, temp7 );
+	temp1 = _mm_shufflelo_epi16( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp1 = _mm_shuffle_epi32( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp3 = _mmax_epu8( temp1, temp2 );
-	temp1 = _mmax_epu8( temp1, temp0 );
-	temp1 = _mcmpeq_epi8( temp1, temp0 );
-	temp3 = _mcmpeq_epi8( temp3, temp2 );
+	temp3 = _mm_max_epu8( temp1, temp2 );
+	temp1 = _mm_max_epu8( temp1, temp0 );
+	temp1 = _mm_cmpeq_epi8( temp1, temp0 );
+	temp3 = _mm_cmpeq_epi8( temp3, temp2 );
 	
-	temp0 = _msrli_si128( temp1, 1 );
-	temp2 = _msrli_si128( temp3, 1 );
+	temp0 = _mm_srli_si128( temp1, 1 );
+	temp2 = _mm_srli_si128( temp3, 1 );
 	
-	temp0 = _mxor_si128( temp0, temp1 );
-	temp2 = _mxor_si128( temp2, temp3 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_word_1 );
-	temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
+	temp0 = _mm_xor_si128( temp0, temp1 );
+	temp2 = _mm_xor_si128( temp2, temp3 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_word_1 );
+	temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_1 );
 	
-	temp0 = _madd_epi16( temp0, temp2 );
-	temp0 = _msad_epu8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
-	temp1 = _mshuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
+	temp0 = _mm_add_epi16( temp0, temp2 );
+	temp0 = _mm_sad_epu8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp1 = _mm_shuffle_epi32( temp0, R_SHUFFLE_D( 2, 3, 0, 1 ) );
 	
 #ifdef NVIDIA_7X_HARDWARE_BUG_FIX
-	temp1 = _madd_epi16( temp1, temp0 );
-	temp1 = _mcmpgt_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_8 );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_diagonalMask );
-	temp0 = _mcmpeq_epi8( temp6, temp7 );
-	temp0 = _mslli_si128( temp0, 1 );
-	temp0 = _mandnot_si128( temp0, temp1 );
+	temp1 = _mm_add_epi16( temp1, temp0 );
+	temp1 = _mm_cmpgt_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_8 );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_byte_diagonalMask );
+	temp0 = _mm_cmpeq_epi8( temp6, temp7 );
+	temp0 = _mm_slli_si128( temp0, 1 );
+	temp0 = _mm_andnot_si128( temp0, temp1 );
 #else
-	temp0 = _madd_epi16( temp0, temp1 );
-	temp0 = _mcmpgt_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_8 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_diagonalMask );
+	temp0 = _mm_add_epi16( temp0, temp1 );
+	temp0 = _mm_cmpgt_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_8 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_diagonalMask );
 #endif
 	
-	temp6 = _mxor_si128( temp6, temp7 );
-	temp0 = _mand_si128( temp0, temp6 );
-	temp7 = _mxor_si128( temp7, temp0 );
-	temp6 = _mxor_si128( temp6, temp7 );
+	temp6 = _mm_xor_si128( temp6, temp7 );
+	temp0 = _mm_and_si128( temp0, temp6 );
+	temp7 = _mm_xor_si128( temp7, temp0 );
+	temp6 = _mm_xor_si128( temp6, temp7 );
 	
-	*( int* )minColor = _mcvtsi128_si32( temp6 );
-	*( int* )maxColor = _mcvtsi128_si32( temp7 );
+	*( int* )minColor = _mm_cvtsi128_si32( temp6 );
+	*( int* )maxColor = _mm_cvtsi128_si32( temp7 );
 #else
 	assert( false );
 #endif
@@ -2586,95 +2586,95 @@ void idDxtEncoder::EmitGreenIndices_SSE2( const byte* block, const int channelBi
 	__m128i block3 = *( ( __m128i* )( &block[48] ) );
 	__m128c temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	
-	temp7 = _mcvtsi32_si128( channelBitOffset );
+	temp7 = _mm_cvtsi32_si128( channelBitOffset );
 	
-	temp0 = _msrl_epi32( block0, temp7 );
-	temp5 = _msrl_epi32( block1, temp7 );
-	temp6 = _msrl_epi32( block2, temp7 );
-	temp4 = _msrl_epi32( block3, temp7 );
+	temp0 = _mm_srl_epi32( block0, temp7 );
+	temp5 = _mm_srl_epi32( block1, temp7 );
+	temp6 = _mm_srl_epi32( block2, temp7 );
+	temp4 = _mm_srl_epi32( block3, temp7 );
 	
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_byte_mask );
 	
-	temp0 = _mpackus_epi16( temp0, temp5 );
-	temp6 = _mpackus_epi16( temp6, temp4 );
+	temp0 = _mm_packus_epi16( temp0, temp5 );
+	temp6 = _mm_packus_epi16( temp6, temp4 );
 	
 	//---------------------
 	
-	temp2 = _mcvtsi32_si128( maxGreen );
-	temp2 = _mshufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_cvtsi32_si128( maxGreen );
+	temp2 = _mm_shufflelo_epi16( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp3 = _mcvtsi32_si128( minGreen );
-	temp3 = _mshufflelo_epi16( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp3 = _mm_cvtsi32_si128( minGreen );
+	temp3 = _mm_shufflelo_epi16( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp2 = _mmullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_5_3_1 );
-	temp3 = _mmullo_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_scale_1_3_5 );
-	temp2 = _madd_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_3 );
-	temp3 = _madd_epi16( temp3, temp2 );
-	temp3 = _mmulhi_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_div_by_6 );
+	temp2 = _mm_mullo_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_scale_5_3_1 );
+	temp3 = _mm_mullo_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_scale_1_3_5 );
+	temp2 = _mm_add_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_3 );
+	temp3 = _mm_add_epi16( temp3, temp2 );
+	temp3 = _mm_mulhi_epi16( temp3, ( const __m128i& )SIMD_SSE2_word_div_by_6 );
 	
-	temp1 = _mshufflelo_epi16( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp2 = _mshufflelo_epi16( temp3, R_SHUFFLE_D( 1, 1, 1, 1 ) );
-	temp3 = _mshufflelo_epi16( temp3, R_SHUFFLE_D( 2, 2, 2, 2 ) );
+	temp1 = _mm_shufflelo_epi16( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_shufflelo_epi16( temp3, R_SHUFFLE_D( 1, 1, 1, 1 ) );
+	temp3 = _mm_shufflelo_epi16( temp3, R_SHUFFLE_D( 2, 2, 2, 2 ) );
 	
-	temp1 = _mshuffle_epi32( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp2 = _mshuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
-	temp3 = _mshuffle_epi32( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp1 = _mm_shuffle_epi32( temp1, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp2 = _mm_shuffle_epi32( temp2, R_SHUFFLE_D( 0, 0, 0, 0 ) );
+	temp3 = _mm_shuffle_epi32( temp3, R_SHUFFLE_D( 0, 0, 0, 0 ) );
 	
-	temp1 = _mpackus_epi16( temp1, temp1 );
-	temp2 = _mpackus_epi16( temp2, temp2 );
-	temp3 = _mpackus_epi16( temp3, temp3 );
+	temp1 = _mm_packus_epi16( temp1, temp1 );
+	temp2 = _mm_packus_epi16( temp2, temp2 );
+	temp3 = _mm_packus_epi16( temp3, temp3 );
 	
-	temp0 = _mpackus_epi16( temp0, temp6 );
+	temp0 = _mm_packus_epi16( temp0, temp6 );
 	
-	temp1 = _mmax_epu8( temp1, temp0 );
-	temp2 = _mmax_epu8( temp2, temp0 );
-	temp3 = _mmax_epu8( temp3, temp0 );
-	temp1 = _mcmpeq_epi8( temp1, temp0 );
-	temp2 = _mcmpeq_epi8( temp2, temp0 );
-	temp3 = _mcmpeq_epi8( temp3, temp0 );
+	temp1 = _mm_max_epu8( temp1, temp0 );
+	temp2 = _mm_max_epu8( temp2, temp0 );
+	temp3 = _mm_max_epu8( temp3, temp0 );
+	temp1 = _mm_cmpeq_epi8( temp1, temp0 );
+	temp2 = _mm_cmpeq_epi8( temp2, temp0 );
+	temp3 = _mm_cmpeq_epi8( temp3, temp0 );
 	temp0 = ( const __m128i& )SIMD_SSE2_byte_4;
 	
-	temp0 = _madds_epi8( temp0, temp1 );
-	temp2 = _madds_epi8( temp2, temp3 );
-	temp0 = _madds_epi8( temp0, temp2 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_3 );
+	temp0 = _mm_adds_epi8( temp0, temp1 );
+	temp2 = _mm_adds_epi8( temp2, temp3 );
+	temp0 = _mm_adds_epi8( temp0, temp2 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_byte_3 );
 	temp4 = ( const __m128i& )SIMD_SSE2_byte_2;
-	temp4 = _mcmpgt_epi8( temp4, temp0 );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_byte_1 );
+	temp4 = _mm_cmpgt_epi8( temp4, temp0 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_byte_1 );
 	
-	temp0 = _mxor_si128( temp0, temp4 );
-	temp4 = _msrli_epi64( temp0,  8 - 2 );
-	temp5 = _msrli_epi64( temp0, 16 - 4 );
-	temp6 = _msrli_epi64( temp0, 24 - 6 );
-	temp7 = _msrli_epi64( temp0, 32 - 8 );
+	temp0 = _mm_xor_si128( temp0, temp4 );
+	temp4 = _mm_srli_epi64( temp0,  8 - 2 );
+	temp5 = _mm_srli_epi64( temp0, 16 - 4 );
+	temp6 = _mm_srli_epi64( temp0, 24 - 6 );
+	temp7 = _mm_srli_epi64( temp0, 32 - 8 );
 	
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask1 );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask2 );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask3 );
-	temp7 = _mand_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask4 );
-	temp5 = _mor_si128( temp5, temp4 );
-	temp7 = _mor_si128( temp7, temp6 );
-	temp7 = _mor_si128( temp7, temp5 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask1 );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask2 );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask3 );
+	temp7 = _mm_and_si128( temp7, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask4 );
+	temp5 = _mm_or_si128( temp5, temp4 );
+	temp7 = _mm_or_si128( temp7, temp6 );
+	temp7 = _mm_or_si128( temp7, temp5 );
 	
-	temp4 = _msrli_epi64( temp0, 40 - 10 );
-	temp5 = _msrli_epi64( temp0, 48 - 12 );
-	temp6 = _msrli_epi64( temp0, 56 - 14 );
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask0 );
-	temp4 = _mand_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask5 );
-	temp5 = _mand_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask6 );
-	temp6 = _mand_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask7 );
-	temp4 = _mor_si128( temp4, temp5 );
-	temp0 = _mor_si128( temp0, temp6 );
-	temp7 = _mor_si128( temp7, temp4 );
-	temp7 = _mor_si128( temp7, temp0 );
+	temp4 = _mm_srli_epi64( temp0, 40 - 10 );
+	temp5 = _mm_srli_epi64( temp0, 48 - 12 );
+	temp6 = _mm_srli_epi64( temp0, 56 - 14 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask0 );
+	temp4 = _mm_and_si128( temp4, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask5 );
+	temp5 = _mm_and_si128( temp5, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask6 );
+	temp6 = _mm_and_si128( temp6, ( const __m128i& )SIMD_SSE2_dword_color_bit_mask7 );
+	temp4 = _mm_or_si128( temp4, temp5 );
+	temp0 = _mm_or_si128( temp0, temp6 );
+	temp7 = _mm_or_si128( temp7, temp4 );
+	temp7 = _mm_or_si128( temp7, temp0 );
 	
-	temp7 = _mshuffle_epi32( temp7, R_SHUFFLE_D( 0, 2, 1, 3 ) );
-	temp7 = _mshufflelo_epi16( temp7, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+	temp7 = _mm_shuffle_epi32( temp7, R_SHUFFLE_D( 0, 2, 1, 3 ) );
+	temp7 = _mm_shufflelo_epi16( temp7, R_SHUFFLE_D( 0, 2, 1, 3 ) );
 	
-	int result = _mcvtsi128_si32( temp7 );
+	int result = _mm_cvtsi128_si32( temp7 );
 	EmitUInt( result );
 #else
 	assert( false );
@@ -2731,40 +2731,40 @@ void idDxtEncoder::InsetNormalsBBoxDXT5_SSE2( byte* minNormal, byte* maxNormal )
 #elif defined ( ID_WIN_X86_SSE2_INTRIN )
 	__m128i temp0, temp1, temp2, temp3;
 	
-	temp0 = _mcvtsi32_si128( *( int* )minNormal );
-	temp1 = _mcvtsi32_si128( *( int* )maxNormal );
+	temp0 = _mm_cvtsi32_si128( *( int* )minNormal );
+	temp1 = _mm_cvtsi32_si128( *( int* )maxNormal );
 	
-	temp0 = _munpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
-	temp1 = _munpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp0 = _mm_unpacklo_epi8( temp0, ( const __m128i& )SIMD_SSE2_byte_0 );
+	temp1 = _mm_unpacklo_epi8( temp1, ( const __m128i& )SIMD_SSE2_byte_0 );
 	
-	temp2 = _msub_epi16( temp1, temp0 );
-	temp2 = _msub_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Round );
-	temp2 = _mand_si128( temp2, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Mask );		// xmm2 = inset (1 & 3)
+	temp2 = _mm_sub_epi16( temp1, temp0 );
+	temp2 = _mm_sub_epi16( temp2, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Round );
+	temp2 = _mm_and_si128( temp2, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Mask );		// xmm2 = inset (1 & 3)
 	
-	temp0 = _mmullo_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftUp );
-	temp1 = _mmullo_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftUp );
-	temp0 = _madd_epi16( temp0, temp2 );
-	temp1 = _msub_epi16( temp1, temp2 );
-	temp0 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftDown );	// xmm0 = mini
-	temp1 = _mmulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftDown );	// xmm1 = maxi
+	temp0 = _mm_mullo_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftUp );
+	temp1 = _mm_mullo_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftUp );
+	temp0 = _mm_add_epi16( temp0, temp2 );
+	temp1 = _mm_sub_epi16( temp1, temp2 );
+	temp0 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftDown );	// xmm0 = mini
+	temp1 = _mm_mulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5ShiftDown );	// xmm1 = maxi
 	
 	// mini and maxi must be >= 0 and <= 255
-	temp0 = _mmax_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_0 );
-	temp1 = _mmax_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_0 );
-	temp0 = _mmin_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_255 );
-	temp1 = _mmin_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_255 );
+	temp0 = _mm_max_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_0 );
+	temp1 = _mm_max_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_0 );
+	temp0 = _mm_min_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_255 );
+	temp1 = _mm_min_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_255 );
 	
-	temp0 = _mand_si128( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5QuantMask );
-	temp1 = _mand_si128( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5QuantMask );
-	temp2 = _mmulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Rep );
-	temp3 = _mmulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Rep );
-	temp0 = _mor_si128( temp0, temp2 );
-	temp1 = _mor_si128( temp1, temp3 );
-	temp0 = _mpackus_epi16( temp0, temp0 );
-	temp1 = _mpackus_epi16( temp1, temp1 );
+	temp0 = _mm_and_si128( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5QuantMask );
+	temp1 = _mm_and_si128( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5QuantMask );
+	temp2 = _mm_mulhi_epi16( temp0, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Rep );
+	temp3 = _mm_mulhi_epi16( temp1, ( const __m128i& )SIMD_SSE2_word_insetNormalDXT5Rep );
+	temp0 = _mm_or_si128( temp0, temp2 );
+	temp1 = _mm_or_si128( temp1, temp3 );
+	temp0 = _mm_packus_epi16( temp0, temp0 );
+	temp1 = _mm_packus_epi16( temp1, temp1 );
 	
-	*( int* )minNormal = _mcvtsi128_si32( temp0 );
-	*( int* )maxNormal = _mcvtsi128_si32( temp1 );
+	*( int* )minNormal = _mm_cvtsi128_si32( temp0 );
+	*( int* )maxNormal = _mm_cvtsi128_si32( temp1 );
 #else
 	assert( false );
 #endif

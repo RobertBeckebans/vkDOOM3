@@ -248,7 +248,7 @@ static void ASE_KeyMATERIAL_LIST( const char* token )
 	{
 		VERBOSE( ( "..material %d\n", ase.model->materials.Num() ) );
 		
-		ase.currentMaterial = ( aseMaterial_t* )MeAlloc( sizeof( aseMaterial_t ), TAG_MODEL );
+		ase.currentMaterial = ( aseMaterial_t* )Mem_Alloc( sizeof( aseMaterial_t ), TAG_MODEL );
 		memset( ase.currentMaterial, 0, sizeof( aseMaterial_t ) );
 		ase.currentMaterial->uTiling = 1;
 		ase.currentMaterial->vTiling = 1;
@@ -650,7 +650,7 @@ static void ASE_KeyMESH( const char* token )
 	}
 	else if( !strcmp( token, "*MESH_VERTEX_LIST" ) )
 	{
-		pMesh->vertexes = ( idVec3* )MeAlloc( sizeof( idVec3 ) * pMesh->numVertexes, TAG_MODEL );
+		pMesh->vertexes = ( idVec3* )Mem_Alloc( sizeof( idVec3 ) * pMesh->numVertexes, TAG_MODEL );
 		ase.currentVertex = 0;
 		VERBOSE( ( ".....parsing MESH_VERTEX_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_VERTEX_LIST );
@@ -658,20 +658,20 @@ static void ASE_KeyMESH( const char* token )
 	else if( !strcmp( token, "*MESH_TVERTLIST" ) )
 	{
 		ase.currentVertex = 0;
-		pMesh->tvertexes = ( idVec2* )MeAlloc( sizeof( idVec2 ) * pMesh->numTVertexes, TAG_MODEL );
+		pMesh->tvertexes = ( idVec2* )Mem_Alloc( sizeof( idVec2 ) * pMesh->numTVertexes, TAG_MODEL );
 		VERBOSE( ( ".....parsing MESH_TVERTLIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_TVERTLIST );
 	}
 	else if( !strcmp( token, "*MESH_CVERTLIST" ) )
 	{
 		ase.currentVertex = 0;
-		pMesh->cvertexes = ( idVec3* )MeAlloc( sizeof( idVec3 ) * pMesh->numCVertexes, TAG_MODEL );
+		pMesh->cvertexes = ( idVec3* )Mem_Alloc( sizeof( idVec3 ) * pMesh->numCVertexes, TAG_MODEL );
 		VERBOSE( ( ".....parsing MESH_CVERTLIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_CVERTLIST );
 	}
 	else if( !strcmp( token, "*MESH_FACE_LIST" ) )
 	{
-		pMesh->faces = ( aseFace_t* )MeAlloc( sizeof( aseFace_t ) * pMesh->numFaces, TAG_MODEL );
+		pMesh->faces = ( aseFace_t* )Mem_Alloc( sizeof( aseFace_t ) * pMesh->numFaces, TAG_MODEL );
 		ase.currentFace = 0;
 		VERBOSE( ( ".....parsing MESH_FACE_LIST\n" ) );
 		ASE_ParseBracedBlock( ASE_KeyMESH_FACE_LIST );
@@ -717,7 +717,7 @@ static void ASE_KeyMESH_ANIMATION( const char* token )
 	{
 		VERBOSE( ( "...found MESH\n" ) );
 		
-		mesh = ( aseMesh_t* )MeAlloc( sizeof( aseMesh_t ), TAG_MODEL );
+		mesh = ( aseMesh_t* )Mem_Alloc( sizeof( aseMesh_t ), TAG_MODEL );
 		memset( mesh, 0, sizeof( aseMesh_t ) );
 		ase.currentMesh = mesh;
 		
@@ -801,7 +801,7 @@ void ASE_ParseGeomObject()
 	
 	VERBOSE( ( "GEOMOBJECT" ) );
 	
-	object = ( aseObject_t* )MeAlloc( sizeof( aseObject_t ), TAG_MODEL );
+	object = ( aseObject_t* )Mem_Alloc( sizeof( aseObject_t ), TAG_MODEL );
 	memset( object, 0, sizeof( aseObject_t ) );
 	ase.model->objects.Append( object );
 	ase.currentObject = object;
@@ -933,21 +933,21 @@ void ASE_Free( aseModel_t* ase )
 			mesh = obj->frames[j];
 			if( mesh->vertexes )
 			{
-				MeFree( mesh->vertexes );
+				Mem_Free( mesh->vertexes );
 			}
 			if( mesh->tvertexes )
 			{
-				MeFree( mesh->tvertexes );
+				Mem_Free( mesh->tvertexes );
 			}
 			if( mesh->cvertexes )
 			{
-				MeFree( mesh->cvertexes );
+				Mem_Free( mesh->cvertexes );
 			}
 			if( mesh->faces )
 			{
-				MeFree( mesh->faces );
+				Mem_Free( mesh->faces );
 			}
-			MeFree( mesh );
+			Mem_Free( mesh );
 		}
 		
 		obj->frames.Clear();
@@ -956,28 +956,28 @@ void ASE_Free( aseModel_t* ase )
 		mesh = &obj->mesh;
 		if( mesh->vertexes )
 		{
-			MeFree( mesh->vertexes );
+			Mem_Free( mesh->vertexes );
 		}
 		if( mesh->tvertexes )
 		{
-			MeFree( mesh->tvertexes );
+			Mem_Free( mesh->tvertexes );
 		}
 		if( mesh->cvertexes )
 		{
-			MeFree( mesh->cvertexes );
+			Mem_Free( mesh->cvertexes );
 		}
 		if( mesh->faces )
 		{
-			MeFree( mesh->faces );
+			Mem_Free( mesh->faces );
 		}
-		MeFree( obj );
+		Mem_Free( obj );
 	}
 	ase->objects.Clear();
 	
 	for( i = 0; i < ase->materials.Num(); i++ )
 	{
 		material = ase->materials[i];
-		MeFree( material );
+		Mem_Free( material );
 	}
 	ase->materials.Clear();
 	

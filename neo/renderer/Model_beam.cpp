@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "GLMatrix.h"
 #include "Model_local.h"
 
@@ -45,7 +45,7 @@ two points that faces the view, like a dynamic deform tube.
 
 */
 
-static const char* beaSnapshotName = "_beaSnapshot_";
+static const char* beam_SnapshotName = "_beam_Snapshot_";
 
 /*
 ===============
@@ -94,7 +94,7 @@ idRenderModel* idRenderModelBeam::InstantiateDynamicModel( const renderEntity_t*
 	{
 	
 		assert( dynamic_cast<idRenderModelStatic*>( cachedModel ) != NULL );
-		assert( idStr::Icmp( cachedModel->Name(), beaSnapshotName ) == 0 );
+		assert( idStr::Icmp( cachedModel->Name(), beam_SnapshotName ) == 0 );
 		
 		staticModel = static_cast<idRenderModelStatic*>( cachedModel );
 		surf = *staticModel->Surface( 0 );
@@ -105,7 +105,7 @@ idRenderModel* idRenderModelBeam::InstantiateDynamicModel( const renderEntity_t*
 	{
 	
 		staticModel = new( TAG_MODEL ) idRenderModelStatic;
-		staticModel->InitEmpty( beaSnapshotName );
+		staticModel->InitEmpty( beam_SnapshotName );
 		
 		tri = R_AllocStaticTriSurf();
 		R_AllocStaticTriSurfVerts( tri, 4 );

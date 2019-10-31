@@ -197,13 +197,13 @@ int FindBoundsIntersectionsSimSIMD(
 
 idBoundsTrack::idBoundsTrack()
 {
-	boundsList = ( shortBounds_t* )MeAlloc( MAX_BOUNDS_TRACK_INDEXES * sizeof( *boundsList ), TAG_RENDER );
+	boundsList = ( shortBounds_t* )Mem_Alloc( MAX_BOUNDS_TRACK_INDEXES * sizeof( *boundsList ), TAG_RENDER );
 	ClearAll();
 }
 
 idBoundsTrack::~idBoundsTrack()
 {
-	MeFree( boundsList );
+	Mem_Free( boundsList );
 }
 
 void idBoundsTrack::ClearAll()

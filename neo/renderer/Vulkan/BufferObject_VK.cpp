@@ -120,11 +120,11 @@ bool idVertexBuffer::AllocBufferObject( const void* data, int allocSize, bufferU
 	vulkanMemoryUsage_t memUsage = ( usage == BU_STATIC ) ? VULKAN_MEMORY_USAGE_GPU_ONLY : VULKAN_MEMORY_USAGE_CPU_TO_GPU;
 	
 	allocation = vulkanAllocator.Allocate(
-					   memoryRequirements.size,
-					   memoryRequirements.alignment,
-					   memoryRequirements.memoryTypeBits,
-					   memUsage,
-					   VULKAN_ALLOCATION_TYPE_BUFFER );
+					 memoryRequirements.size,
+					 memoryRequirements.alignment,
+					 memoryRequirements.memoryTypeBits,
+					 memUsage,
+					 VULKAN_ALLOCATION_TYPE_BUFFER );
 	
 	ID_VK_CHECK( vkBindBufferMemory( vkcontext.device, apiObject, allocation.deviceMemory, allocation.offset ) );
 #endif
@@ -372,11 +372,11 @@ bool idIndexBuffer::AllocBufferObject( const void* data, int allocSize, bufferUs
 	vulkanMemoryUsage_t memUsage = ( usage == BU_STATIC ) ? VULKAN_MEMORY_USAGE_GPU_ONLY : VULKAN_MEMORY_USAGE_CPU_TO_GPU;
 	
 	allocation = vulkanAllocator.Allocate(
-					   memoryRequirements.size,
-					   memoryRequirements.alignment,
-					   memoryRequirements.memoryTypeBits,
-					   memUsage,
-					   VULKAN_ALLOCATION_TYPE_BUFFER );
+					 memoryRequirements.size,
+					 memoryRequirements.alignment,
+					 memoryRequirements.memoryTypeBits,
+					 memUsage,
+					 VULKAN_ALLOCATION_TYPE_BUFFER );
 	
 	ID_VK_CHECK( vkBindBufferMemory( vkcontext.device, apiObject, allocation.deviceMemory, allocation.offset ) );
 #endif
@@ -625,11 +625,11 @@ bool idUniformBuffer::AllocBufferObject( const void* data, int allocSize, buffer
 	vulkanMemoryUsage_t memUsage = ( usage == BU_STATIC ) ? VULKAN_MEMORY_USAGE_GPU_ONLY : VULKAN_MEMORY_USAGE_CPU_TO_GPU;
 	
 	allocation = vulkanAllocator.Allocate(
-					   memoryRequirements.size,
-					   memoryRequirements.alignment,
-					   memoryRequirements.memoryTypeBits,
-					   memUsage,
-					   VULKAN_ALLOCATION_TYPE_BUFFER );
+					 memoryRequirements.size,
+					 memoryRequirements.alignment,
+					 memoryRequirements.memoryTypeBits,
+					 memUsage,
+					 VULKAN_ALLOCATION_TYPE_BUFFER );
 	
 	ID_VK_CHECK( vkBindBufferMemory( vkcontext.device, apiObject, allocation.deviceMemory, allocation.offset ) );
 #endif

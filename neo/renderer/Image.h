@@ -315,9 +315,9 @@ private:
 private:
 	// parameters that define this image
 	idStr				imgName;				// game path, including extension (except for cube maps), may be an image program
-	cubeFiles_t			cubeFiles;			// If this is a cube map, and if so, what kind
+	cubeFiles_t			cubeFiles;				// If this is a cube map, and if so, what kind
 	void	( *generatorFunction )( idImage* image );	// NULL for files
-	textureUsage_t		usage;				// Used to determine the type of compression to use
+	textureUsage_t		usage;					// Used to determine the type of compression to use
 	idImageOpts			opts;					// Parameters that determine the storage method
 	
 	// Sampler settings

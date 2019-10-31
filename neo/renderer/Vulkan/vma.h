@@ -4145,7 +4145,7 @@ VmaAllocator_T::VmaAllocator_T( const VmaAllocatorCreateInfo* pCreateInfo ) :
 	hDevice( pCreateInfo->device ),
 	AllocationCallbacksSpecified( pCreateInfo->pAllocationCallbacks != VMA_NULL ),
 	AllocationCallbacks( pCreateInfo->pAllocationCallbacks ?
-						   * pCreateInfo->pAllocationCallbacks : VmaEmptyAllocationCallbacks ),
+						 * pCreateInfo->pAllocationCallbacks : VmaEmptyAllocationCallbacks ),
 	PreferredLargeHeapBlockSize( 0 ),
 	PreferredSmallHeapBlockSize( 0 ),
 	UnmapPersistentlyMappedMemoryCounter( 0 )
@@ -4167,10 +4167,10 @@ VmaAllocator_T::VmaAllocator_T( const VmaAllocatorCreateInfo* pCreateInfo ) :
 	}
 	
 	PreferredLargeHeapBlockSize = ( pCreateInfo->preferredLargeHeapBlockSize != 0 ) ?
-									pCreateInfo->preferredLargeHeapBlockSize : static_cast<VkDeviceSize>( VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE );
+								  pCreateInfo->preferredLargeHeapBlockSize : static_cast<VkDeviceSize>( VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE );
 	PreferredSmallHeapBlockSize = ( pCreateInfo->preferredSmallHeapBlockSize != 0 ) ?
-									pCreateInfo->preferredSmallHeapBlockSize : static_cast<VkDeviceSize>( VMA_DEFAULT_SMALL_HEAP_BLOCK_SIZE );
-									
+								  pCreateInfo->preferredSmallHeapBlockSize : static_cast<VkDeviceSize>( VMA_DEFAULT_SMALL_HEAP_BLOCK_SIZE );
+								  
 	vkGetPhysicalDeviceProperties( PhysicalDevice, &PhysicalDeviceProperties );
 	vkGetPhysicalDeviceMemoryProperties( PhysicalDevice, &MemProps );
 	

@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 #include "../framework/precompiled.h"
 #include "RenderBackend.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "jobs/prelightshadowvolume/PreLightShadowVolume.h"
 
 extern idCVar r_useAreasConnectedForShadowCulling;

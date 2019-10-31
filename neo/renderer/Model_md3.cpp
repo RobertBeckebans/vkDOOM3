@@ -88,7 +88,7 @@ void idRenderModelMD3::InitFromFile( const char* fileName )
 	
 	size = LittleLong( pinmodel->ofsEnd );
 	dataSize += size;
-	md3 = ( md3Header_t* )MeAlloc( size, TAG_MODEL );
+	md3 = ( md3Header_t* )Mem_Alloc( size, TAG_MODEL );
 	
 	memcpy( md3, buffer, LittleLong( pinmodel->ofsEnd ) );
 	

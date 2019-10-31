@@ -108,7 +108,7 @@ idMD5Mesh::~idMD5Mesh()
 {
 	if( meshJoints != NULL )
 	{
-		MeFree( meshJoints );
+		Mem_Free( meshJoints );
 		meshJoints = NULL;
 	}
 	if( deformInfo != NULL )
@@ -253,8 +253,8 @@ void idMD5Mesh::ParseMesh( idLexer& parser, int numJoints, const idJointMat* joi
 	}
 	
 	// create pre-scaled weights and an index for the vertex/joint lookup
-	idVec4* scaledWeights = ( idVec4* ) MeAlloc16( numWeights * sizeof( scaledWeights[0] ), TAG_MD5_WEIGHT );
-	int* weightIndex = ( int* ) MeAlloc16( numWeights * 2 * sizeof( weightIndex[0] ), TAG_MD5_INDEX );
+	idVec4* scaledWeights = ( idVec4* ) Mem_Alloc16( numWeights * sizeof( scaledWeights[0] ), TAG_MD5_WEIGHT );
+	int* weightIndex = ( int* ) Mem_Alloc16( numWeights * 2 * sizeof( weightIndex[0] ), TAG_MD5_INDEX );
 	memset( weightIndex, 0, numWeights * 2 * sizeof( weightIndex[0] ) );
 	
 	count = 0;
@@ -284,7 +284,7 @@ void idMD5Mesh::ParseMesh( idLexer& parser, int numJoints, const idJointMat* joi
 	//
 	// build a base pose that can be used for skinning
 	//
-	idDrawVert* basePose = ( idDrawVert* )MeClearedAlloc( texCoords.Num() * sizeof( *basePose ), TAG_MD5_BASE );
+	idDrawVert* basePose = ( idDrawVert* )Mem_ClearedAlloc( texCoords.Num() * sizeof( *basePose ), TAG_MD5_BASE );
 	for( int j = 0, i = 0; i < texCoords.Num(); i++ )
 	{
 		idVec3 v = ( *( idJointMat* )( ( byte* )joints + weightIndex[j * 2 + 0] ) ) * scaledWeights[j];
@@ -435,7 +435,7 @@ void idMD5Mesh::ParseMesh( idLexer& parser, int numJoints, const idJointMat* joi
 		}
 	}
 	
-	meshJoints = ( byte* ) MeAlloc( numMeshJoints * sizeof( meshJoints[0] ), TAG_MODEL );
+	meshJoints = ( byte* ) Mem_Alloc( numMeshJoints * sizeof( meshJoints[0] ), TAG_MODEL );
 	numMeshJoints = 0;
 	for( int i = 0; i < numJoints; i++ )
 	{
@@ -461,7 +461,7 @@ void idMD5Mesh::ParseMesh( idLexer& parser, int numJoints, const idJointMat* joi
 		}
 	}
 	
-	MeFree( basePose );
+	Mem_Free( basePose );
 }
 
 /*
@@ -594,29 +594,29 @@ void idMD5Mesh::CalculateBounds( const idJointMat* entJoints, idBounds& bounds )
 	for( int i = 0; i < numMeshJoints; i++ )
 	{
 		const idJointMat& joint = entJoints[meshJoints[i]];
-		__m128 x = _mload_ps( joint.ToFloatPtr() + 0 * 4 );
-		__m128 y = _mload_ps( joint.ToFloatPtr() + 1 * 4 );
-		__m128 z = _mload_ps( joint.ToFloatPtr() + 2 * 4 );
-		minX = _mmin_ps( minX, x );
-		minY = _mmin_ps( minY, y );
-		minZ = _mmin_ps( minZ, z );
-		maxX = _mmax_ps( maxX, x );
-		maxY = _mmax_ps( maxY, y );
-		maxZ = _mmax_ps( maxZ, z );
+		__m128 x = _mm_load_ps( joint.ToFloatPtr() + 0 * 4 );
+		__m128 y = _mm_load_ps( joint.ToFloatPtr() + 1 * 4 );
+		__m128 z = _mm_load_ps( joint.ToFloatPtr() + 2 * 4 );
+		minX = _mm_min_ps( minX, x );
+		minY = _mm_min_ps( minY, y );
+		minZ = _mm_min_ps( minZ, z );
+		maxX = _mm_max_ps( maxX, x );
+		maxY = _mm_max_ps( maxY, y );
+		maxZ = _mm_max_ps( maxZ, z );
 	}
-	__m128 expand = _msplat_ps( _mload_ss( & maxJointVertDist ), 0 );
-	minX = _msub_ps( minX, expand );
-	minY = _msub_ps( minY, expand );
-	minZ = _msub_ps( minZ, expand );
-	maxX = _madd_ps( maxX, expand );
-	maxY = _madd_ps( maxY, expand );
-	maxZ = _madd_ps( maxZ, expand );
-	_mstore_ss( bounds.ToFloatPtr() + 0, _msplat_ps( minX, 3 ) );
-	_mstore_ss( bounds.ToFloatPtr() + 1, _msplat_ps( minY, 3 ) );
-	_mstore_ss( bounds.ToFloatPtr() + 2, _msplat_ps( minZ, 3 ) );
-	_mstore_ss( bounds.ToFloatPtr() + 3, _msplat_ps( maxX, 3 ) );
-	_mstore_ss( bounds.ToFloatPtr() + 4, _msplat_ps( maxY, 3 ) );
-	_mstore_ss( bounds.ToFloatPtr() + 5, _msplat_ps( maxZ, 3 ) );
+	__m128 expand = _mm_splat_ps( _mm_load_ss( & maxJointVertDist ), 0 );
+	minX = _mm_sub_ps( minX, expand );
+	minY = _mm_sub_ps( minY, expand );
+	minZ = _mm_sub_ps( minZ, expand );
+	maxX = _mm_add_ps( maxX, expand );
+	maxY = _mm_add_ps( maxY, expand );
+	maxZ = _mm_add_ps( maxZ, expand );
+	_mm_store_ss( bounds.ToFloatPtr() + 0, _mm_splat_ps( minX, 3 ) );
+	_mm_store_ss( bounds.ToFloatPtr() + 1, _mm_splat_ps( minY, 3 ) );
+	_mm_store_ss( bounds.ToFloatPtr() + 2, _mm_splat_ps( minZ, 3 ) );
+	_mm_store_ss( bounds.ToFloatPtr() + 3, _mm_splat_ps( maxX, 3 ) );
+	_mm_store_ss( bounds.ToFloatPtr() + 4, _mm_splat_ps( maxY, 3 ) );
+	_mm_store_ss( bounds.ToFloatPtr() + 5, _mm_splat_ps( maxZ, 3 ) );
 	
 #else
 	
@@ -807,7 +807,7 @@ bool idRenderModelMD5::LoadBinaryModel( idFile* file, const ID_TIME_T sourceTime
 		file->ReadBig( meshes[i].numTris );
 		
 		file->ReadBig( meshes[i].numMeshJoints );
-		meshes[i].meshJoints = ( byte* ) MeAlloc( meshes[i].numMeshJoints * sizeof( meshes[i].meshJoints[0] ), TAG_MODEL );
+		meshes[i].meshJoints = ( byte* ) Mem_Alloc( meshes[i].numMeshJoints * sizeof( meshes[i].meshJoints[0] ), TAG_MODEL );
 		file->ReadBigArray( meshes[i].meshJoints, meshes[i].numMeshJoints );
 		file->ReadBig( meshes[i].maxJointVertDist );
 		
@@ -869,14 +869,14 @@ bool idRenderModelMD5::LoadBinaryModel( idFile* file, const ID_TIME_T sourceTime
 			}
 		}
 		
-		idShadowVertSkinned* shadowVerts = ( idShadowVertSkinned* ) MeAlloc( ALIGN( deform.numOutputVerts * 2 * sizeof( idShadowVertSkinned ), 16 ), TAG_MODEL );
+		idShadowVertSkinned* shadowVerts = ( idShadowVertSkinned* ) Mem_Alloc( ALIGN( deform.numOutputVerts * 2 * sizeof( idShadowVertSkinned ), 16 ), TAG_MODEL );
 		idShadowVertSkinned::CreateShadowCache( shadowVerts, deform.verts, deform.numOutputVerts );
 		
 		deform.staticAmbientCache = vertexCache.AllocStaticVertex( deform.verts, ALIGN( deform.numOutputVerts * sizeof( idDrawVert ), VERTEX_CACHE_ALIGN ) );
 		deform.staticIndexCache = vertexCache.AllocStaticIndex( deform.indexes, ALIGN( deform.numIndexes * sizeof( triIndex_t ), INDEX_CACHE_ALIGN ) );
 		deform.staticShadowCache = vertexCache.AllocStaticVertex( shadowVerts, ALIGN( deform.numOutputVerts * 2 * sizeof( idShadowVertSkinned ), VERTEX_CACHE_ALIGN ) );
 		
-		MeFree( shadowVerts );
+		Mem_Free( shadowVerts );
 		
 		file->ReadBig( meshes[i].surfaceNum );
 	}
@@ -1256,79 +1256,79 @@ static void TransformJoints( idJointMat* __restrict outJoints, const int numJoin
 	assert_16_byte_aligned( inFloats1 );
 	assert_16_byte_aligned( inFloats2 );
 	
-	const __m128 mask_keep_last = __m128c( _mset_epi32( 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000 ) );
+	const __m128 mask_keep_last = __m128c( _mm_set_epi32( 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000 ) );
 	
 	for( int i = 0; i < numJoints; i += 2, inFloats1 += 2 * 12, inFloats2 += 2 * 12, outFloats += 2 * 12 )
 	{
-		__m128 m1a0 = _mload_ps( inFloats1 + 0 * 12 + 0 );
-		__m128 m1b0 = _mload_ps( inFloats1 + 0 * 12 + 4 );
-		__m128 m1c0 = _mload_ps( inFloats1 + 0 * 12 + 8 );
-		__m128 m1a1 = _mload_ps( inFloats1 + 1 * 12 + 0 );
-		__m128 m1b1 = _mload_ps( inFloats1 + 1 * 12 + 4 );
-		__m128 m1c1 = _mload_ps( inFloats1 + 1 * 12 + 8 );
+		__m128 m1a0 = _mm_load_ps( inFloats1 + 0 * 12 + 0 );
+		__m128 m1b0 = _mm_load_ps( inFloats1 + 0 * 12 + 4 );
+		__m128 m1c0 = _mm_load_ps( inFloats1 + 0 * 12 + 8 );
+		__m128 m1a1 = _mm_load_ps( inFloats1 + 1 * 12 + 0 );
+		__m128 m1b1 = _mm_load_ps( inFloats1 + 1 * 12 + 4 );
+		__m128 m1c1 = _mm_load_ps( inFloats1 + 1 * 12 + 8 );
 		
-		__m128 m2a0 = _mload_ps( inFloats2 + 0 * 12 + 0 );
-		__m128 m2b0 = _mload_ps( inFloats2 + 0 * 12 + 4 );
-		__m128 m2c0 = _mload_ps( inFloats2 + 0 * 12 + 8 );
-		__m128 m2a1 = _mload_ps( inFloats2 + 1 * 12 + 0 );
-		__m128 m2b1 = _mload_ps( inFloats2 + 1 * 12 + 4 );
-		__m128 m2c1 = _mload_ps( inFloats2 + 1 * 12 + 8 );
+		__m128 m2a0 = _mm_load_ps( inFloats2 + 0 * 12 + 0 );
+		__m128 m2b0 = _mm_load_ps( inFloats2 + 0 * 12 + 4 );
+		__m128 m2c0 = _mm_load_ps( inFloats2 + 0 * 12 + 8 );
+		__m128 m2a1 = _mm_load_ps( inFloats2 + 1 * 12 + 0 );
+		__m128 m2b1 = _mm_load_ps( inFloats2 + 1 * 12 + 4 );
+		__m128 m2c1 = _mm_load_ps( inFloats2 + 1 * 12 + 8 );
 		
-		__m128 tj0 = _mand_ps( m1a0, mask_keep_last );
-		__m128 tk0 = _mand_ps( m1b0, mask_keep_last );
-		__m128 tl0 = _mand_ps( m1c0, mask_keep_last );
-		__m128 tj1 = _mand_ps( m1a1, mask_keep_last );
-		__m128 tk1 = _mand_ps( m1b1, mask_keep_last );
-		__m128 tl1 = _mand_ps( m1c1, mask_keep_last );
+		__m128 tj0 = _mm_and_ps( m1a0, mask_keep_last );
+		__m128 tk0 = _mm_and_ps( m1b0, mask_keep_last );
+		__m128 tl0 = _mm_and_ps( m1c0, mask_keep_last );
+		__m128 tj1 = _mm_and_ps( m1a1, mask_keep_last );
+		__m128 tk1 = _mm_and_ps( m1b1, mask_keep_last );
+		__m128 tl1 = _mm_and_ps( m1c1, mask_keep_last );
 		
-		__m128 ta0 = _msplat_ps( m1a0, 0 );
-		__m128 td0 = _msplat_ps( m1b0, 0 );
-		__m128 tg0 = _msplat_ps( m1c0, 0 );
-		__m128 ta1 = _msplat_ps( m1a1, 0 );
-		__m128 td1 = _msplat_ps( m1b1, 0 );
-		__m128 tg1 = _msplat_ps( m1c1, 0 );
+		__m128 ta0 = _mm_splat_ps( m1a0, 0 );
+		__m128 td0 = _mm_splat_ps( m1b0, 0 );
+		__m128 tg0 = _mm_splat_ps( m1c0, 0 );
+		__m128 ta1 = _mm_splat_ps( m1a1, 0 );
+		__m128 td1 = _mm_splat_ps( m1b1, 0 );
+		__m128 tg1 = _mm_splat_ps( m1c1, 0 );
 		
-		__m128 ra0 = _madd_ps( tj0, _mmul_ps( ta0, m2a0 ) );
-		__m128 rd0 = _madd_ps( tk0, _mmul_ps( td0, m2a0 ) );
-		__m128 rg0 = _madd_ps( tl0, _mmul_ps( tg0, m2a0 ) );
-		__m128 ra1 = _madd_ps( tj1, _mmul_ps( ta1, m2a1 ) );
-		__m128 rd1 = _madd_ps( tk1, _mmul_ps( td1, m2a1 ) );
-		__m128 rg1 = _madd_ps( tl1, _mmul_ps( tg1, m2a1 ) );
+		__m128 ra0 = _mm_add_ps( tj0, _mm_mul_ps( ta0, m2a0 ) );
+		__m128 rd0 = _mm_add_ps( tk0, _mm_mul_ps( td0, m2a0 ) );
+		__m128 rg0 = _mm_add_ps( tl0, _mm_mul_ps( tg0, m2a0 ) );
+		__m128 ra1 = _mm_add_ps( tj1, _mm_mul_ps( ta1, m2a1 ) );
+		__m128 rd1 = _mm_add_ps( tk1, _mm_mul_ps( td1, m2a1 ) );
+		__m128 rg1 = _mm_add_ps( tl1, _mm_mul_ps( tg1, m2a1 ) );
 		
-		__m128 tb0 = _msplat_ps( m1a0, 1 );
-		__m128 te0 = _msplat_ps( m1b0, 1 );
-		__m128 th0 = _msplat_ps( m1c0, 1 );
-		__m128 tb1 = _msplat_ps( m1a1, 1 );
-		__m128 te1 = _msplat_ps( m1b1, 1 );
-		__m128 th1 = _msplat_ps( m1c1, 1 );
+		__m128 tb0 = _mm_splat_ps( m1a0, 1 );
+		__m128 te0 = _mm_splat_ps( m1b0, 1 );
+		__m128 th0 = _mm_splat_ps( m1c0, 1 );
+		__m128 tb1 = _mm_splat_ps( m1a1, 1 );
+		__m128 te1 = _mm_splat_ps( m1b1, 1 );
+		__m128 th1 = _mm_splat_ps( m1c1, 1 );
 		
-		__m128 rb0 = _madd_ps( ra0, _mmul_ps( tb0, m2b0 ) );
-		__m128 re0 = _madd_ps( rd0, _mmul_ps( te0, m2b0 ) );
-		__m128 rh0 = _madd_ps( rg0, _mmul_ps( th0, m2b0 ) );
-		__m128 rb1 = _madd_ps( ra1, _mmul_ps( tb1, m2b1 ) );
-		__m128 re1 = _madd_ps( rd1, _mmul_ps( te1, m2b1 ) );
-		__m128 rh1 = _madd_ps( rg1, _mmul_ps( th1, m2b1 ) );
+		__m128 rb0 = _mm_add_ps( ra0, _mm_mul_ps( tb0, m2b0 ) );
+		__m128 re0 = _mm_add_ps( rd0, _mm_mul_ps( te0, m2b0 ) );
+		__m128 rh0 = _mm_add_ps( rg0, _mm_mul_ps( th0, m2b0 ) );
+		__m128 rb1 = _mm_add_ps( ra1, _mm_mul_ps( tb1, m2b1 ) );
+		__m128 re1 = _mm_add_ps( rd1, _mm_mul_ps( te1, m2b1 ) );
+		__m128 rh1 = _mm_add_ps( rg1, _mm_mul_ps( th1, m2b1 ) );
 		
-		__m128 tc0 = _msplat_ps( m1a0, 2 );
-		__m128 tf0 = _msplat_ps( m1b0, 2 );
-		__m128 ti0 = _msplat_ps( m1c0, 2 );
-		__m128 tf1 = _msplat_ps( m1b1, 2 );
-		__m128 ti1 = _msplat_ps( m1c1, 2 );
-		__m128 tc1 = _msplat_ps( m1a1, 2 );
+		__m128 tc0 = _mm_splat_ps( m1a0, 2 );
+		__m128 tf0 = _mm_splat_ps( m1b0, 2 );
+		__m128 ti0 = _mm_splat_ps( m1c0, 2 );
+		__m128 tf1 = _mm_splat_ps( m1b1, 2 );
+		__m128 ti1 = _mm_splat_ps( m1c1, 2 );
+		__m128 tc1 = _mm_splat_ps( m1a1, 2 );
 		
-		__m128 rc0 = _madd_ps( rb0, _mmul_ps( tc0, m2c0 ) );
-		__m128 rf0 = _madd_ps( re0, _mmul_ps( tf0, m2c0 ) );
-		__m128 ri0 = _madd_ps( rh0, _mmul_ps( ti0, m2c0 ) );
-		__m128 rc1 = _madd_ps( rb1, _mmul_ps( tc1, m2c1 ) );
-		__m128 rf1 = _madd_ps( re1, _mmul_ps( tf1, m2c1 ) );
-		__m128 ri1 = _madd_ps( rh1, _mmul_ps( ti1, m2c1 ) );
+		__m128 rc0 = _mm_add_ps( rb0, _mm_mul_ps( tc0, m2c0 ) );
+		__m128 rf0 = _mm_add_ps( re0, _mm_mul_ps( tf0, m2c0 ) );
+		__m128 ri0 = _mm_add_ps( rh0, _mm_mul_ps( ti0, m2c0 ) );
+		__m128 rc1 = _mm_add_ps( rb1, _mm_mul_ps( tc1, m2c1 ) );
+		__m128 rf1 = _mm_add_ps( re1, _mm_mul_ps( tf1, m2c1 ) );
+		__m128 ri1 = _mm_add_ps( rh1, _mm_mul_ps( ti1, m2c1 ) );
 		
-		_mstore_ps( outFloats + 0 * 12 + 0, rc0 );
-		_mstore_ps( outFloats + 0 * 12 + 4, rf0 );
-		_mstore_ps( outFloats + 0 * 12 + 8, ri0 );
-		_mstore_ps( outFloats + 1 * 12 + 0, rc1 );
-		_mstore_ps( outFloats + 1 * 12 + 4, rf1 );
-		_mstore_ps( outFloats + 1 * 12 + 8, ri1 );
+		_mm_store_ps( outFloats + 0 * 12 + 0, rc0 );
+		_mm_store_ps( outFloats + 0 * 12 + 4, rf0 );
+		_mm_store_ps( outFloats + 0 * 12 + 8, ri0 );
+		_mm_store_ps( outFloats + 1 * 12 + 0, rc1 );
+		_mm_store_ps( outFloats + 1 * 12 + 4, rf1 );
+		_mm_store_ps( outFloats + 1 * 12 + 8, ri1 );
 	}
 	
 #else
@@ -1412,7 +1412,7 @@ idRenderModel* idRenderModelMD5::InstantiateDynamicModel( const renderEntity_t* 
 	if( staticModel->jointsInverted == NULL )
 	{
 		staticModel->numInvertedJoints = numInvertedJoints;
-		staticModel->jointsInverted = ( idJointMat* )MeClearedAlloc( numInvertedJoints * sizeof( idJointMat ), TAG_JOINTMAT );
+		staticModel->jointsInverted = ( idJointMat* )Mem_ClearedAlloc( numInvertedJoints * sizeof( idJointMat ), TAG_JOINTMAT );
 		staticModel->jointsInvertedBuffer = 0;
 	}
 	else

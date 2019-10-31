@@ -124,7 +124,7 @@ const char* GLSLParmNames[ RENDERPARM_TOTAL ] =
 idRenderProgManager::GetRenderParm
 ========================
 */
-const idVec4& idRenderProgManager::GetRenderParm( renderPart rp )
+const idVec4& idRenderProgManager::GetRenderParm( renderParm_t rp )
 {
 	return uniforms[ rp ];
 }
@@ -134,7 +134,7 @@ const idVec4& idRenderProgManager::GetRenderParm( renderPart rp )
 idRenderProgManager::SetRenderParm
 ========================
 */
-void idRenderProgManager::SetRenderParm( renderPart rp, const float* value )
+void idRenderProgManager::SetRenderParm( renderParm_t rp, const float* value )
 {
 	for( int i = 0; i < 4; ++i )
 	{
@@ -147,11 +147,11 @@ void idRenderProgManager::SetRenderParm( renderPart rp, const float* value )
 idRenderProgManager::SetRenderParms
 ========================
 */
-void idRenderProgManager::SetRenderParms( renderPart rp, const float* value, int num )
+void idRenderProgManager::SetRenderParms( renderParm_t rp, const float* value, int num )
 {
 	for( int i = 0; i < num; ++i )
 	{
-		SetRenderParm( ( renderPart )( rp + i ), value + ( i * 4 ) );
+		SetRenderParm( ( renderParm_t )( rp + i ), value + ( i * 4 ) );
 	}
 }
 

@@ -62,7 +62,7 @@ enum vertexLayoutType_t
 // This enum list corresponds to the global constant register indecies as defined in global.inc for all
 // shaders.  We used a shared pool to keeps things simple.  If something changes here then it also
 // needs to change in global.inc and vice versa
-enum renderPart
+enum renderParm_t
 {
 	// For backwards compatibility, do not change the order of the first 17 items
 	RENDERPARM_SCREENCORRECTIONFACTOR = 0,
@@ -266,9 +266,9 @@ public:
 	
 	void	StartFrame();
 	
-	const idVec4& GetRenderParm( renderPart rp );
-	void	SetRenderParm( renderPart rp, const float* value );
-	void	SetRenderParms( renderPart rp, const float* values, int numValues );
+	const idVec4& GetRenderParm( renderParm_t rp );
+	void	SetRenderParm( renderParm_t rp, const float* value );
+	void	SetRenderParms( renderParm_t rp, const float* values, int numValues );
 	
 	const renderProg_t& GetCurrentRenderProg() const
 	{

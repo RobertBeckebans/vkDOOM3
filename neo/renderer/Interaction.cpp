@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "GLMatrix.h"
 #include "Interaction.h"
 #include "jobs/dynamicshadowvolume/DynamicShadowVolume.h"
@@ -609,7 +609,7 @@ void idInteraction::FreeSurfaces()
 		for( int i = 0; i < this->numSurfaces; i++ )
 		{
 			surfaceInteraction_t& srf = this->surfaces[i];
-			MeFree( srf.shadowIndexes );
+			Mem_Free( srf.shadowIndexes );
 			srf.shadowIndexes = NULL;
 		}
 		R_StaticFree( this->surfaces );

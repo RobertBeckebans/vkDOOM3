@@ -49,13 +49,13 @@ typedef struct
 	int						size;
 } maAttribHeader_t;
 
-typedef struct maTransfors
+typedef struct maTransform_s
 {
 	idVec3					translate;
 	idVec3					rotate;
 	idVec3					scale;
-	maTransfors*			parent;
-} maTransfort;
+	maTransform_s*			parent;
+} maTransform_t;
 
 typedef struct
 {
@@ -70,7 +70,7 @@ typedef struct
 {
 
 	//Transform to be applied
-	maTransfort*			transform;
+	maTransform_t*			transform;
 	
 	//Verts
 	int						numVertexes;
@@ -141,7 +141,7 @@ typedef struct maModel_s
 	ID_TIME_T						timeStamp;
 	idList<maMaterial_t*, TAG_MODEL>		materials;
 	idList<maObject_t*, TAG_MODEL>		objects;
-	idHashTable<maTransfort*> transforms;
+	idHashTable<maTransform_t*> transforms;
 	
 	//Material Resolution
 	idHashTable<maFileNode_t*>		fileNodes;

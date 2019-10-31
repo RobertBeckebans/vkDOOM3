@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 #include "../framework/precompiled.h"
 #include "Model_local.h"
-#include "RenderSystelocal.h"	// just for R_FreeWorldInteractions and R_CreateWorldInteractions
+#include "RenderSystem_local.h"	// just for R_FreeWorldInteractions and R_CreateWorldInteractions
 
 idCVar r_binaryLoadRenderModels( "r_binaryLoadRenderModels", "1", 0, "enable binary load/write of render models" );
 idCVar preload_MapModels( "preload_MapModels", "1", CVAR_SYSTEM | CVAR_BOOL, "preload models during begin or end levelload" );

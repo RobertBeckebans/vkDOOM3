@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "Interaction.h"
 
 srfTriangles_t* 	R_AllocStaticTriSurf();
@@ -472,8 +472,8 @@ void idRenderWorld::ParseInterAreaPortals( idLexer* src, idFile* fileOut )
 	}
 	
 	doublePortals = ( doublePortal_t* )R_ClearedStaticAlloc( numInterAreaPortals *
-					  sizeof( doublePortals [0] ) );
-					  
+					sizeof( doublePortals [0] ) );
+					
 	for( int i = 0; i < numInterAreaPortals; i++ )
 	{
 		int		numPoints, a1, a2;

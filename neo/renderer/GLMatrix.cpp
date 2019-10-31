@@ -80,40 +80,40 @@ void R_MatrixMultiply( const float a[16], const float b[16], float out[16] )
 {
 #ifdef ID_WIN_X86_SSE2_INTRIN
 
-	__m128 a0 = _mloadu_ps( a + 0 * 4 );
-	__m128 a1 = _mloadu_ps( a + 1 * 4 );
-	__m128 a2 = _mloadu_ps( a + 2 * 4 );
-	__m128 a3 = _mloadu_ps( a + 3 * 4 );
+	__m128 a0 = _mm_loadu_ps( a + 0 * 4 );
+	__m128 a1 = _mm_loadu_ps( a + 1 * 4 );
+	__m128 a2 = _mm_loadu_ps( a + 2 * 4 );
+	__m128 a3 = _mm_loadu_ps( a + 3 * 4 );
 	
-	__m128 b0 = _mloadu_ps( b + 0 * 4 );
-	__m128 b1 = _mloadu_ps( b + 1 * 4 );
-	__m128 b2 = _mloadu_ps( b + 2 * 4 );
-	__m128 b3 = _mloadu_ps( b + 3 * 4 );
+	__m128 b0 = _mm_loadu_ps( b + 0 * 4 );
+	__m128 b1 = _mm_loadu_ps( b + 1 * 4 );
+	__m128 b2 = _mm_loadu_ps( b + 2 * 4 );
+	__m128 b3 = _mm_loadu_ps( b + 3 * 4 );
 	
-	__m128 t0 = _mmul_ps( _msplat_ps( a0, 0 ), b0 );
-	__m128 t1 = _mmul_ps( _msplat_ps( a1, 0 ), b0 );
-	__m128 t2 = _mmul_ps( _msplat_ps( a2, 0 ), b0 );
-	__m128 t3 = _mmul_ps( _msplat_ps( a3, 0 ), b0 );
+	__m128 t0 = _mm_mul_ps( _mm_splat_ps( a0, 0 ), b0 );
+	__m128 t1 = _mm_mul_ps( _mm_splat_ps( a1, 0 ), b0 );
+	__m128 t2 = _mm_mul_ps( _mm_splat_ps( a2, 0 ), b0 );
+	__m128 t3 = _mm_mul_ps( _mm_splat_ps( a3, 0 ), b0 );
 	
-	t0 = _madd_ps( t0, _mmul_ps( _msplat_ps( a0, 1 ), b1 ) );
-	t1 = _madd_ps( t1, _mmul_ps( _msplat_ps( a1, 1 ), b1 ) );
-	t2 = _madd_ps( t2, _mmul_ps( _msplat_ps( a2, 1 ), b1 ) );
-	t3 = _madd_ps( t3, _mmul_ps( _msplat_ps( a3, 1 ), b1 ) );
+	t0 = _mm_add_ps( t0, _mm_mul_ps( _mm_splat_ps( a0, 1 ), b1 ) );
+	t1 = _mm_add_ps( t1, _mm_mul_ps( _mm_splat_ps( a1, 1 ), b1 ) );
+	t2 = _mm_add_ps( t2, _mm_mul_ps( _mm_splat_ps( a2, 1 ), b1 ) );
+	t3 = _mm_add_ps( t3, _mm_mul_ps( _mm_splat_ps( a3, 1 ), b1 ) );
 	
-	t0 = _madd_ps( t0, _mmul_ps( _msplat_ps( a0, 2 ), b2 ) );
-	t1 = _madd_ps( t1, _mmul_ps( _msplat_ps( a1, 2 ), b2 ) );
-	t2 = _madd_ps( t2, _mmul_ps( _msplat_ps( a2, 2 ), b2 ) );
-	t3 = _madd_ps( t3, _mmul_ps( _msplat_ps( a3, 2 ), b2 ) );
+	t0 = _mm_add_ps( t0, _mm_mul_ps( _mm_splat_ps( a0, 2 ), b2 ) );
+	t1 = _mm_add_ps( t1, _mm_mul_ps( _mm_splat_ps( a1, 2 ), b2 ) );
+	t2 = _mm_add_ps( t2, _mm_mul_ps( _mm_splat_ps( a2, 2 ), b2 ) );
+	t3 = _mm_add_ps( t3, _mm_mul_ps( _mm_splat_ps( a3, 2 ), b2 ) );
 	
-	t0 = _madd_ps( t0, _mmul_ps( _msplat_ps( a0, 3 ), b3 ) );
-	t1 = _madd_ps( t1, _mmul_ps( _msplat_ps( a1, 3 ), b3 ) );
-	t2 = _madd_ps( t2, _mmul_ps( _msplat_ps( a2, 3 ), b3 ) );
-	t3 = _madd_ps( t3, _mmul_ps( _msplat_ps( a3, 3 ), b3 ) );
+	t0 = _mm_add_ps( t0, _mm_mul_ps( _mm_splat_ps( a0, 3 ), b3 ) );
+	t1 = _mm_add_ps( t1, _mm_mul_ps( _mm_splat_ps( a1, 3 ), b3 ) );
+	t2 = _mm_add_ps( t2, _mm_mul_ps( _mm_splat_ps( a2, 3 ), b3 ) );
+	t3 = _mm_add_ps( t3, _mm_mul_ps( _mm_splat_ps( a3, 3 ), b3 ) );
 	
-	_mstoreu_ps( out + 0 * 4, t0 );
-	_mstoreu_ps( out + 1 * 4, t1 );
-	_mstoreu_ps( out + 2 * 4, t2 );
-	_mstoreu_ps( out + 3 * 4, t3 );
+	_mm_storeu_ps( out + 0 * 4, t0 );
+	_mm_storeu_ps( out + 1 * 4, t1 );
+	_mm_storeu_ps( out + 2 * 4, t2 );
+	_mm_storeu_ps( out + 3 * 4, t3 );
 	
 #else
 	

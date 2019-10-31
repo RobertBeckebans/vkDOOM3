@@ -30,7 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 #include "../framework/precompiled.h"
 #include "../framework/Common_local.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderBackend.h"
 #include "ResolutionScale.h"
 #include "Font.h"
@@ -199,18 +199,18 @@ R_MakeFullScreenTris
 static srfTriangles_t* R_MakeFullScreenTris()
 {
 	// copy verts and indexes
-	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	srfTriangles_t* tri = ( srfTriangles_t* )Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
 	
 	tri->numIndexes = 6;
 	tri->numVerts = 4;
 	
 	int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	tri->indexes = ( triIndex_t* )Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
 	
 	int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	tri->verts = ( idDrawVert* )Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
 	
 	idDrawVert* verts = tri->verts;
 	
@@ -248,18 +248,18 @@ R_MakeZeroOneCubeTris
 */
 static srfTriangles_t* R_MakeZeroOneCubeTris()
 {
-	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	srfTriangles_t* tri = ( srfTriangles_t* )Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
 	
 	tri->numVerts = 8;
 	tri->numIndexes = 36;
 	
 	const int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	const int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	tri->indexes = ( triIndex_t* )Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
 	
 	const int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	const int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	tri->verts = ( idDrawVert* )Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
 	
 	idDrawVert* verts = tri->verts;
 	
@@ -343,18 +343,18 @@ Initializes the Test Image Triangles
 */
 srfTriangles_t* R_MakeTestImageTriangles()
 {
-	srfTriangles_t* tri = ( srfTriangles_t* )MeClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
+	srfTriangles_t* tri = ( srfTriangles_t* )Mem_ClearedAlloc( sizeof( *tri ), TAG_RENDER_TOOLS );
 	
 	tri->numIndexes = 6;
 	tri->numVerts = 4;
 	
 	int indexSize = tri->numIndexes * sizeof( tri->indexes[0] );
 	int allocatedIndexBytes = ALIGN( indexSize, 16 );
-	tri->indexes = ( triIndex_t* )MeAlloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
+	tri->indexes = ( triIndex_t* )Mem_Alloc( allocatedIndexBytes, TAG_RENDER_TOOLS );
 	
 	int vertexSize = tri->numVerts * sizeof( tri->verts[0] );
 	int allocatedVertexBytes =  ALIGN( vertexSize, 16 );
-	tri->verts = ( idDrawVert* )MeClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
+	tri->verts = ( idDrawVert* )Mem_ClearedAlloc( allocatedVertexBytes, TAG_RENDER_TOOLS );
 	
 	ALIGNTYPE16 triIndex_t tempIndexes[6] = { 3, 0, 2, 2, 0, 1 };
 	memcpy( tri->indexes, tempIndexes, indexSize );
@@ -737,19 +737,19 @@ void idRenderSystemLocal::Clear()
 	
 	if( unitSquareTriangles != NULL )
 	{
-		MeFree( unitSquareTriangles );
+		Mem_Free( unitSquareTriangles );
 		unitSquareTriangles = NULL;
 	}
 	
 	if( zeroOneCubeTriangles != NULL )
 	{
-		MeFree( zeroOneCubeTriangles );
+		Mem_Free( zeroOneCubeTriangles );
 		zeroOneCubeTriangles = NULL;
 	}
 	
 	if( testImageTriangles != NULL )
 	{
-		MeFree( testImageTriangles );
+		Mem_Free( testImageTriangles );
 		testImageTriangles = NULL;
 	}
 	
@@ -972,7 +972,7 @@ void idRenderSystemLocal::InitFrameData()
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		smpFrameData[ i ].frameMemory = ( byte* ) MeAlloc16( MAX_FRAME_MEMORY, TAG_RENDER );
+		smpFrameData[ i ].frameMemory = ( byte* ) Mem_Alloc16( MAX_FRAME_MEMORY, TAG_RENDER );
 	}
 	
 	// must be set before ToggleSmpFrame()
@@ -991,7 +991,7 @@ void idRenderSystemLocal::ShutdownFrameData()
 	frameData = NULL;
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
-		MeFree16( smpFrameData[ i ].frameMemory );
+		Mem_Free16( smpFrameData[ i ].frameMemory );
 		smpFrameData[ i ].frameMemory = NULL;
 	}
 }

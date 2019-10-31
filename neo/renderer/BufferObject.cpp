@@ -67,27 +67,27 @@ void CopyBuffer( byte* dst, const byte* src, int numBytes )
 	int i = 0;
 	for( ; i + 128 <= numBytes; i += 128 )
 	{
-		__m128i d0 = _mload_si128( ( __m128i* )&src[i + 0 * 16] );
-		__m128i d1 = _mload_si128( ( __m128i* )&src[i + 1 * 16] );
-		__m128i d2 = _mload_si128( ( __m128i* )&src[i + 2 * 16] );
-		__m128i d3 = _mload_si128( ( __m128i* )&src[i + 3 * 16] );
-		__m128i d4 = _mload_si128( ( __m128i* )&src[i + 4 * 16] );
-		__m128i d5 = _mload_si128( ( __m128i* )&src[i + 5 * 16] );
-		__m128i d6 = _mload_si128( ( __m128i* )&src[i + 6 * 16] );
-		__m128i d7 = _mload_si128( ( __m128i* )&src[i + 7 * 16] );
-		_mstreasi128( ( __m128i* )&dst[i + 0 * 16], d0 );
-		_mstreasi128( ( __m128i* )&dst[i + 1 * 16], d1 );
-		_mstreasi128( ( __m128i* )&dst[i + 2 * 16], d2 );
-		_mstreasi128( ( __m128i* )&dst[i + 3 * 16], d3 );
-		_mstreasi128( ( __m128i* )&dst[i + 4 * 16], d4 );
-		_mstreasi128( ( __m128i* )&dst[i + 5 * 16], d5 );
-		_mstreasi128( ( __m128i* )&dst[i + 6 * 16], d6 );
-		_mstreasi128( ( __m128i* )&dst[i + 7 * 16], d7 );
+		__m128i d0 = _mm_load_si128( ( __m128i* )&src[i + 0 * 16] );
+		__m128i d1 = _mm_load_si128( ( __m128i* )&src[i + 1 * 16] );
+		__m128i d2 = _mm_load_si128( ( __m128i* )&src[i + 2 * 16] );
+		__m128i d3 = _mm_load_si128( ( __m128i* )&src[i + 3 * 16] );
+		__m128i d4 = _mm_load_si128( ( __m128i* )&src[i + 4 * 16] );
+		__m128i d5 = _mm_load_si128( ( __m128i* )&src[i + 5 * 16] );
+		__m128i d6 = _mm_load_si128( ( __m128i* )&src[i + 6 * 16] );
+		__m128i d7 = _mm_load_si128( ( __m128i* )&src[i + 7 * 16] );
+		_mm_stream_si128( ( __m128i* )&dst[i + 0 * 16], d0 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 1 * 16], d1 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 2 * 16], d2 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 3 * 16], d3 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 4 * 16], d4 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 5 * 16], d5 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 6 * 16], d6 );
+		_mm_stream_si128( ( __m128i* )&dst[i + 7 * 16], d7 );
 	}
 	for( ; i + 16 <= numBytes; i += 16 )
 	{
-		__m128i d = _mload_si128( ( __m128i* )&src[i] );
-		_mstreasi128( ( __m128i* )&dst[i], d );
+		__m128i d = _mm_load_si128( ( __m128i* )&src[i] );
+		_mm_stream_si128( ( __m128i* )&dst[i], d );
 	}
 	for( ; i + 4 <= numBytes; i += 4 )
 	{
@@ -97,7 +97,7 @@ void CopyBuffer( byte* dst, const byte* src, int numBytes )
 	{
 		dst[i] = src[i];
 	}
-	_msfence();
+	_mm_sfence();
 }
 
 #else

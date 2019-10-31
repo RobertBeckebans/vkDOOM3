@@ -99,9 +99,9 @@ EXTERN void jpeg_free_large JPP( ( j_common_ptr cinfo, void FAR* object,
  */
 
 EXTERN long jpeg_meavailable JPP( ( j_common_ptr cinfo,
-									  long min_bytes_needed,
-									  long max_bytes_needed,
-									  long already_allocated ) );
+									long min_bytes_needed,
+									long max_bytes_needed,
+									long already_allocated ) );
 
 
 /*

@@ -667,7 +667,7 @@ realize_virt_arrays( j_common_ptr cinfo )
 			space_per_minheight += ( long ) sptr->maxaccess *
 								   ( long ) sptr->samplesperrow * SIZEOF( JSAMPLE );
 			maximuspace += ( long ) sptr->rows_in_array *
-							 ( long ) sptr->samplesperrow * SIZEOF( JSAMPLE );
+						   ( long ) sptr->samplesperrow * SIZEOF( JSAMPLE );
 		}
 	}
 	for( bptr = mem->virt_barray_list; bptr != NULL; bptr = bptr->next )
@@ -677,7 +677,7 @@ realize_virt_arrays( j_common_ptr cinfo )
 			space_per_minheight += ( long ) bptr->maxaccess *
 								   ( long ) bptr->blocksperrow * SIZEOF( JBLOCK );
 			maximuspace += ( long ) bptr->rows_in_array *
-							 ( long ) bptr->blocksperrow * SIZEOF( JBLOCK );
+						   ( long ) bptr->blocksperrow * SIZEOF( JBLOCK );
 		}
 	}
 	
@@ -688,8 +688,8 @@ realize_virt_arrays( j_common_ptr cinfo )
 	
 	/* Determine amount of memory to actually use; this is system-dependent. */
 	avail_mem = jpeg_meavailable( cinfo, space_per_minheight, maximuspace,
-									mem->total_space_allocated );
-									
+								  mem->total_space_allocated );
+								  
 	/* If the maximum space needed is available, make all the buffers full
 	 * height; otherwise parcel it out with the same number of minheights
 	 * in each buffer.
@@ -733,7 +733,7 @@ realize_virt_arrays( j_common_ptr cinfo )
 				sptr->b_s_open = TRUE;
 			}
 			sptr->mebuffer = alloc_sarray( cinfo, JPOOL_IMAGE,
-											 sptr->samplesperrow, sptr->rows_in_mem );
+										   sptr->samplesperrow, sptr->rows_in_mem );
 			sptr->rowsperchunk = mem->last_rowsperchunk;
 			sptr->cur_start_row = 0;
 			sptr->first_undef_row = 0;
@@ -762,7 +762,7 @@ realize_virt_arrays( j_common_ptr cinfo )
 				bptr->b_s_open = TRUE;
 			}
 			bptr->mebuffer = alloc_barray( cinfo, JPOOL_IMAGE,
-											 bptr->blocksperrow, bptr->rows_in_mem );
+										   bptr->blocksperrow, bptr->rows_in_mem );
 			bptr->rowsperchunk = mem->last_rowsperchunk;
 			bptr->cur_start_row = 0;
 			bptr->first_undef_row = 0;

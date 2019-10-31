@@ -48,7 +48,7 @@ static void R_DefaultImage( idImage* image )
 	
 	memset( data, 0, sizeof( data ) );
 	
-	if( codeveloper.GetBool() )
+	if( com_developer.GetBool() )
 	{
 		// grey center
 		for( y = 0 ; y < DEFAULT_SIZE ; y++ )
@@ -138,7 +138,7 @@ static void R_RGBA8Image( idImage* image )
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
 	
-	byte* data = ( byte* )MeClearedAlloc( size, TAG_IMAGE );
+	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
 	
 	memset( data, 0, sizeof( data ) );
 	image->GenerateImage(
@@ -146,7 +146,7 @@ static void R_RGBA8Image( idImage* image )
 		width, height,
 		TF_DEFAULT, TR_REPEAT, TD_LOOKUP_TABLE_RGBA );
 		
-	MeFree( data );
+	Mem_Free( data );
 }
 
 static void R_DepthImage( idImage* image )
@@ -155,14 +155,14 @@ static void R_DepthImage( idImage* image )
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
 	
-	byte* data = ( byte* )MeClearedAlloc( size, TAG_IMAGE );
+	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
 	
 	image->GenerateImage(
 		( byte* )data,
 		width, height,
 		TF_NEAREST, TR_CLAMP, TD_DEPTH );
 		
-	MeFree( data );
+	Mem_Free( data );
 }
 
 static void R_AlphaNotchImage( idImage* image )

@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderLog.h"
 #include "Image.h"
 
@@ -98,7 +98,6 @@ idImage::DeriveOpts
 */
 ID_INLINE void idImage::DeriveOpts()
 {
-
 	if( opts.format == FMT_NONE )
 	{
 		opts.colorFormat = CFM_DEFAULT;
@@ -238,7 +237,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 		return;
 	}
 	
-	if( coproductionMode.GetInteger() != 0 )
+	if( com_productionMode.GetInteger() != 0 )
 	{
 		sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
 		if( cubeFiles != CF_2D )
@@ -320,7 +319,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 			&& ( header.colorFormat == opts.colorFormat )
 			&& ( header.format == opts.format )
 			&& ( header.textureType == opts.textureType )
-																							  ) )
+																							) )
 	{
 		opts.width = header.width;
 		opts.height = header.height;
@@ -360,7 +359,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 			{
 				if( pics[i] )
 				{
-					MeFree( pics[i] );
+					Mem_Free( pics[i] );
 				}
 			}
 		}
@@ -399,7 +398,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 			DeriveOpts();
 			im.Load2DFromMemory( opts.width, opts.height, pic, opts.numLevels, opts.format, opts.colorFormat, opts.gammaMips );
 			
-			MeFree( pic );
+			Mem_Free( pic );
 		}
 		binaryFileTime = im.WriteGeneratedFile( sourceFileTime );
 	}
@@ -590,19 +589,14 @@ void idImage::Reload( bool force )
 idImage::GenerateImage
 ==================
 */
-void idImage::GenerateImage(
-	const byte* pic,
-	int width, int height,
-	textureFilter_t filter,
-	textureRepeat_t repeat,
-	textureUsage_t usage )
+void idImage::GenerateImage( const byte* pic, int width, int height, textureFilter_t filterParm, textureRepeat_t repeatParm, textureUsage_t usageParm )
 {
 
 	PurgeImage();
 	
-	filter = filter;
-	repeat = repeat;
-	usage = usage;
+	filter = filterParm;
+	repeat = repeatParm;
+	usage = usageParm;
 	cubeFiles = CF_2D;
 	
 	opts.textureType = TT_2D;
@@ -634,18 +628,13 @@ void idImage::GenerateImage(
 idImage::GenerateCubeImage
 ==================
 */
-void idImage::GenerateCubeImage(
-	const byte* pic[6],
-	int size,
-	textureFilter_t filter,
-	textureUsage_t usage )
+void idImage::GenerateCubeImage( const byte* pic[6], int size, textureFilter_t filterParm, textureUsage_t usageParm )
 {
-
 	PurgeImage();
 	
-	filter = filter;
+	filter = filterParm;
 	repeat = TR_CLAMP;
-	usage = usage;
+	usage = usageParm;
 	cubeFiles = CF_NATIVE;
 	
 	opts.textureType = TT_CUBIC;
@@ -663,7 +652,7 @@ void idImage::GenerateCubeImage(
 		
 	AllocImage();
 	
-	for( int i = 0; i < im.NumImages(); ++i )
+	for( int i = 0; i < im.NumImages(); i++ )
 	{
 		const bimageImage_t& img = im.GetImageHeader( i );
 		const byte* data = im.GetImageData( i );
@@ -685,7 +674,7 @@ void idImage::UploadScratchImage( const byte* data, int cols, int rows )
 	{
 		rows /= 6;
 		const byte* pic[6];
-		for( int i = 0; i < 6; ++i )
+		for( int i = 0; i < 6; i++ )
 		{
 			pic[i] = data + cols * rows * 4 * i;
 		}
@@ -703,7 +692,7 @@ void idImage::UploadScratchImage( const byte* data, int cols, int rows )
 			AllocImage();
 		}
 		SetSamplerState( TF_LINEAR, TR_CLAMP );
-		for( int i = 0; i < 6; ++i )
+		for( int i = 0; i < 6; i++ )
 		{
 			SubImageUpload( 0, 0, 0, i, opts.width, opts.height, pic[i] );
 		}

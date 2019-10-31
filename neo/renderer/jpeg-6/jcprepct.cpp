@@ -107,7 +107,7 @@ start_pass_prep( j_compress_ptr cinfo, J_BUF_MODE pass_mode )
 
 LOCAL void
 expand_bottoedge( JSAMPARRAY image_data, JDIMENSION nucols,
-					int input_rows, int output_rows )
+				  int input_rows, int output_rows )
 {
 	register int row;
 	
@@ -161,7 +161,7 @@ pre_process_data( j_compress_ptr cinfo,
 			for( ci = 0; ci < cinfo->nucomponents; ci++ )
 			{
 				expand_bottoedge( prep->color_buf[ci], cinfo->image_width,
-									prep->next_buf_row, cinfo->max_v_samp_factor );
+								  prep->next_buf_row, cinfo->max_v_samp_factor );
 			}
 			prep->next_buf_row = cinfo->max_v_samp_factor;
 		}
@@ -184,9 +184,9 @@ pre_process_data( j_compress_ptr cinfo,
 					ci++, compptr++ )
 			{
 				expand_bottoedge( output_buf[ci],
-									compptr->width_in_blocks * DCTSIZE,
-									( int )( *out_row_group_ctr * compptr->v_samp_factor ),
-									( int )( out_row_groups_avail * compptr->v_samp_factor ) );
+								  compptr->width_in_blocks * DCTSIZE,
+								  ( int )( *out_row_group_ctr * compptr->v_samp_factor ),
+								  ( int )( out_row_groups_avail * compptr->v_samp_factor ) );
 			}
 			*out_row_group_ctr = out_row_groups_avail;
 			break;      /* can exit outer loop without test */
@@ -259,7 +259,7 @@ pre_process_context( j_compress_ptr cinfo,
 			for( ci = 0; ci < cinfo->nucomponents; ci++ )
 			{
 				expand_bottoedge( prep->color_buf[ci], cinfo->image_width,
-									prep->next_buf_row, prep->next_buf_stop );
+								  prep->next_buf_row, prep->next_buf_stop );
 			}
 			prep->next_buf_row = prep->next_buf_stop;
 		}
@@ -293,9 +293,9 @@ pre_process_context( j_compress_ptr cinfo,
 					ci++, compptr++ )
 			{
 				expand_bottoedge( output_buf[ci],
-									compptr->width_in_blocks * DCTSIZE,
-									( int )( *out_row_group_ctr * compptr->v_samp_factor ),
-									( int )( out_row_groups_avail * compptr->v_samp_factor ) );
+								  compptr->width_in_blocks * DCTSIZE,
+								  ( int )( *out_row_group_ctr * compptr->v_samp_factor ),
+								  ( int )( out_row_groups_avail * compptr->v_samp_factor ) );
 			}
 			*out_row_group_ctr = out_row_groups_avail;
 			break;      /* can exit outer loop without test */

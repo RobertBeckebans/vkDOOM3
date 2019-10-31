@@ -58,7 +58,7 @@ void idBinaryImage::Load2DFromMemory( int width, int height, const byte* pic_con
 	fileData.height = height;
 	fileData.numLevels = numLevels;
 	
-	byte* pic = ( byte* )MeAlloc( width * height * 4, TAG_TEMP );
+	byte* pic = ( byte* )Mem_Alloc( width * height * 4, TAG_TEMP );
 	memcpy( pic, pic_const, width * height * 4 );
 	
 	if( colorFormat == CFM_YCOCG_DXT5 )
@@ -108,7 +108,7 @@ void idBinaryImage::Load2DFromMemory( int width, int height, const byte* pic_con
 			{
 				dxtWidth = ( scaledWidth + 3 ) & ~3;
 				dxtHeight = ( scaledHeight + 3 ) & ~3;
-				dxtPic = ( byte* )MeClearedAlloc( dxtWidth * 4 * dxtHeight, TAG_IMAGE );
+				dxtPic = ( byte* )Mem_ClearedAlloc( dxtWidth * 4 * dxtHeight, TAG_IMAGE );
 				for( int i = 0; i < scaledHeight; i++ )
 				{
 					memcpy( dxtPic + i * dxtWidth * 4, pic + i * scaledWidth * 4, scaledWidth * 4 );
@@ -231,7 +231,7 @@ void idBinaryImage::Load2DFromMemory( int width, int height, const byte* pic_con
 		// if we had to pad to quads, free the padded version
 		if( pic != dxtPic )
 		{
-			MeFree( dxtPic );
+			Mem_Free( dxtPic );
 			dxtPic = NULL;
 		}
 		
@@ -245,14 +245,14 @@ void idBinaryImage::Load2DFromMemory( int width, int height, const byte* pic_con
 		{
 			shrunk = R_MipMap( pic, scaledWidth, scaledHeight );
 		}
-		MeFree( pic );
+		Mem_Free( pic );
 		pic = shrunk;
 		
 		scaledWidth = Max( 1, scaledWidth >> 1 );
 		scaledHeight = Max( 1, scaledHeight >> 1 );
 	}
 	
-	MeFree( pic );
+	Mem_Free( pic );
 }
 
 /*
@@ -360,7 +360,7 @@ void idBinaryImage::LoadCubeFromMemory( int width, const byte* pics[6], int numL
 			}
 			if( pic != orig )
 			{
-				MeFree( ( void* )pic );
+				Mem_Free( ( void* )pic );
 				pic = NULL;
 			}
 			pic = shrunk;
@@ -370,7 +370,7 @@ void idBinaryImage::LoadCubeFromMemory( int width, const byte* pics[6], int numL
 		if( pic != orig )
 		{
 			// free the down sampled version
-			MeFree( ( void* )pic );
+			Mem_Free( ( void* )pic );
 			pic = NULL;
 		}
 	}

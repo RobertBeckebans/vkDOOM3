@@ -1003,11 +1003,11 @@ void idRenderBackend::CreateRenderTargets()
 		vkGetImageMemoryRequirements( vkcontext.device, msaaImage, &memoryRequirements );
 		
 		msaaAllocation = vulkanAllocator.Allocate(
-							   memoryRequirements.size,
-							   memoryRequirements.alignment,
-							   memoryRequirements.memoryTypeBits,
-							   VULKAN_MEMORY_USAGE_GPU_ONLY,
-							   VULKAN_ALLOCATION_TYPE_IMAGE_OPTIMAL );
+							 memoryRequirements.size,
+							 memoryRequirements.alignment,
+							 memoryRequirements.memoryTypeBits,
+							 VULKAN_MEMORY_USAGE_GPU_ONLY,
+							 VULKAN_ALLOCATION_TYPE_IMAGE_OPTIMAL );
 		
 		ID_VK_CHECK( vkBindImageMemory( vkcontext.device, msaaImage, msaaAllocation.deviceMemory, msaaAllocation.offset ) );
 #endif

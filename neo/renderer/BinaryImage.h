@@ -105,7 +105,7 @@ private:
 		{
 			if( data != NULL )
 			{
-				MeFree( data );
+				Mem_Free( data );
 				data = NULL;
 				dataSize = 0;
 			}
@@ -114,7 +114,7 @@ private:
 		{
 			Free();
 			dataSize = size;
-			data = ( byte* )MeAlloc( size, TAG_CRAP );
+			data = ( byte* )Mem_Alloc( size, TAG_CRAP );
 		}
 	};
 	

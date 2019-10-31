@@ -32,7 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../framework/Common_local.h"
 #include "../sys/win32/win_local.h"
 #include "../sys/win32/rc/dooresource.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderBackend.h"
 #include "RenderLog.h"
 #include "RenderProgs.h"
@@ -2950,7 +2950,7 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 					parm[1] = regs[ newStage->vertexParms[j][1] ];
 					parm[2] = regs[ newStage->vertexParms[j][2] ];
 					parm[3] = regs[ newStage->vertexParms[j][3] ];
-					renderProgManager.SetRenderParm( ( renderPart )( RENDERPARM_USER0 + j ), parm );
+					renderProgManager.SetRenderParm( ( renderParm_t )( RENDERPARM_USER0 + j ), parm );
 				}
 				
 				const renderProg_t& prog = renderProgManager.GetCurrentRenderProg();

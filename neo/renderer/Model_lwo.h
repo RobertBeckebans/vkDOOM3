@@ -446,7 +446,7 @@ typedef struct st_lwRMap
 	lwTParam       val;
 	int            options;
 	int            cindex;
-	float          seaangle;
+	float          seam_angle;
 } lwRMap;
 
 typedef struct st_lwLine

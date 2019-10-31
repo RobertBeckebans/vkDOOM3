@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "GLMatrix.h"
 #include "GuiModel.h"
 
@@ -56,7 +56,7 @@ void* R_StaticAlloc( int bytes, const memTag_t tag )
 {
 	tr.pc.c_alloc++;
 	
-	void* buf = MeAlloc( bytes, tag );
+	void* buf = Mem_Alloc( bytes, tag );
 	
 	// don't exit on failure on zero length allocations since the old code didn't
 	if( buf == NULL && bytes != 0 )
@@ -86,7 +86,7 @@ R_StaticFree
 void R_StaticFree( void* data )
 {
 	tr.pc.c_free++;
-	MeFree( data );
+	Mem_Free( data );
 }
 
 /*

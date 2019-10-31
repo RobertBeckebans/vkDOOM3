@@ -27,7 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 #pragma hdrstop
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderLog.h"
 
 /*

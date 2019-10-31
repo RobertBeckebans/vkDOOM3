@@ -1252,8 +1252,8 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 	
 	ID_VK_CHECK( vkCreateShaderModule( vkcontext.device, &shaderModuleCreateInfo, NULL, &shader.module ) );
 	
-	MeFree( layoutBuffer );
-	MeFree( spirvBuffer );
+	Mem_Free( layoutBuffer );
+	Mem_Free( spirvBuffer );
 }
 
 CONSOLE_COMMAND( Vulkan_ClearPipelines, "Clear all existing pipelines, forcing them to be recreated.", 0 )

@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderLog.h"
 #include "Image.h"
 
@@ -617,7 +617,7 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 		{
 			for( int i = 0 ; i < side ; side++ )
 			{
-				MeFree( pics[side] );
+				Mem_Free( pics[side] );
 			}
 			break;
 		}
@@ -627,7 +627,7 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 		for( side = 0 ; side < 6 ; side++ )
 		{
 			memcpy( combined + width * height * 4 * side, pics[side], width * height * 4 );
-			MeFree( pics[side] );
+			Mem_Free( pics[side] );
 		}
 		sprintf( filename, "%sCM%04i.tga", baseName.c_str(), frameNum );
 		

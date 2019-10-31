@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderBackend.h"
 #include "Interaction.h"
 #include "Image.h"
@@ -722,7 +722,7 @@ CONSOLE_COMMAND( makeAmbientMap, "makes an ambient map", NULL )
 			idLib::Printf( "failed.\n" );
 			for( i-- ; i >= 0 ; i-- )
 			{
-				MeFree( buffers[i] );
+				Mem_Free( buffers[i] );
 			}
 			return;
 		}
@@ -803,7 +803,7 @@ CONSOLE_COMMAND( makeAmbientMap, "makes an ambient map", NULL )
 	{
 		if( buffers[i] )
 		{
-			MeFree( buffers[i] );
+			Mem_Free( buffers[i] );
 		}
 	}
 }

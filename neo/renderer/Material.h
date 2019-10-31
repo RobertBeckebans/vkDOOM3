@@ -78,7 +78,7 @@ typedef enum
 	DFRM_PARTICLE,
 	DFRM_PARTICLE2,
 	DFRM_TURB
-} defort;
+} deform_t;
 
 typedef enum
 {
@@ -284,7 +284,7 @@ typedef enum
 	MF_EDITOR_VISIBLE			= BIT( 6 )	// in use (visible) per editor
 } materialFlags_t;
 
-// contents flags, NOTE: make sure to keep the defines in doodefs.script up to date with these!
+// contents flags, NOTE: make sure to keep the defines in doom_defs.script up to date with these!
 typedef enum
 {
 	CONTENTS_SOLID				= BIT( 0 ),	// an eye is never valid in a solid
@@ -637,7 +637,7 @@ public:
 	};
 	
 	// DFRM_NONE, DFRM_SPRITE, etc
-	defort			Deform() const
+	deform_t			Deform() const
 	{
 		return deform;
 	}
@@ -818,7 +818,7 @@ private:
 	
 	
 	mutable	float		sort;				// lower numbered shaders draw before higher numbered
-	defort			deform;
+	deform_t			deform;
 	int					deformRegisters[4];		// numeric parameter for deforms
 	const idDecl*		deformDecl;			// for surface emitted particle deforms and tables
 	

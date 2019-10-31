@@ -383,11 +383,11 @@ void idImage::AllocImage()
 	vkGetImageMemoryRequirements( vkcontext.device, image, &memoryRequirements );
 	
 	allocation = vulkanAllocator.Allocate(
-					   memoryRequirements.size,
-					   memoryRequirements.alignment,
-					   memoryRequirements.memoryTypeBits,
-					   VULKAN_MEMORY_USAGE_GPU_ONLY,
-					   VULKAN_ALLOCATION_TYPE_IMAGE_OPTIMAL );
+					 memoryRequirements.size,
+					 memoryRequirements.alignment,
+					 memoryRequirements.memoryTypeBits,
+					 VULKAN_MEMORY_USAGE_GPU_ONLY,
+					 VULKAN_ALLOCATION_TYPE_IMAGE_OPTIMAL );
 	
 	ID_VK_CHECK( vkBindImageMemory( vkcontext.device, image, allocation.deviceMemory, allocation.offset ) );
 #endif

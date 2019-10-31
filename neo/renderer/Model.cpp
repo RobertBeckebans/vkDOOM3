@@ -1692,7 +1692,7 @@ bool idRenderModelStatic::ConvertLWOToModelSurfaces( const struct st_lwObject* l
 	
 	if( numTVertexes )
 	{
-		tvList = ( idVec2* )MeAlloc( numTVertexes * sizeof( tvList[0] ), TAG_MODEL );
+		tvList = ( idVec2* )Mem_Alloc( numTVertexes * sizeof( tvList[0] ), TAG_MODEL );
 		int offset = 0;
 		for( lwVMap* vm = layer->vmap; vm; vm = vm->next )
 		{
@@ -1712,7 +1712,7 @@ bool idRenderModelStatic::ConvertLWOToModelSurfaces( const struct st_lwObject* l
 	{
 		idLib::Warning( "ConvertLWOToModelSurfaces: model \'%s\' has bad or missing uv data", name.c_str() );
 		numTVertexes = 1;
-		tvList = ( idVec2* )MeClearedAlloc( numTVertexes * sizeof( tvList[0] ), TAG_MODEL );
+		tvList = ( idVec2* )Mem_ClearedAlloc( numTVertexes * sizeof( tvList[0] ), TAG_MODEL );
 	}
 	
 	// It seems like the tools our artists are using often generate
@@ -2006,7 +2006,7 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 	for( lwSurface* surf = obj->surf; surf; surf = surf->next )
 	{
 	
-		aseMaterial_t* mat = ( aseMaterial_t* )MeClearedAlloc( sizeof( *mat ), TAG_MODEL );
+		aseMaterial_t* mat = ( aseMaterial_t* )Mem_ClearedAlloc( sizeof( *mat ), TAG_MODEL );
 		strcpy( mat->name, surf->name );
 		mat->uTiling = mat->vTiling = 1;
 		mat->angle = mat->uOffset = mat->vOffset = 0;
@@ -2014,7 +2014,7 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 		
 		lwLayer* layer = obj->layer;
 		
-		aseObject_t* object = ( aseObject_t* )MeClearedAlloc( sizeof( *object ), TAG_MODEL );
+		aseObject_t* object = ( aseObject_t* )Mem_ClearedAlloc( sizeof( *object ), TAG_MODEL );
 		object->materialRef = materialRef++;
 		
 		aseMesh_t* mesh = &object->mesh;
@@ -2022,10 +2022,10 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 		
 		mesh->numFaces = layer->polygon.count;
 		mesh->numTVFaces = mesh->numFaces;
-		mesh->faces = ( aseFace_t* )MeAlloc( mesh->numFaces  * sizeof( mesh->faces[0] ), TAG_MODEL );
+		mesh->faces = ( aseFace_t* )Mem_Alloc( mesh->numFaces  * sizeof( mesh->faces[0] ), TAG_MODEL );
 		
 		mesh->numVertexes = layer->point.count;
-		mesh->vertexes = ( idVec3* )MeAlloc( mesh->numVertexes * sizeof( mesh->vertexes[0] ), TAG_MODEL );
+		mesh->vertexes = ( idVec3* )Mem_Alloc( mesh->numVertexes * sizeof( mesh->vertexes[0] ), TAG_MODEL );
 		
 		// vertex positions
 		if( layer->point.count <= 0 )
@@ -2056,7 +2056,7 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 		
 		if( mesh->numTVertexes )
 		{
-			mesh->tvertexes = ( idVec2* )MeAlloc( mesh->numTVertexes * sizeof( mesh->tvertexes[0] ), TAG_MODEL );
+			mesh->tvertexes = ( idVec2* )Mem_Alloc( mesh->numTVertexes * sizeof( mesh->tvertexes[0] ), TAG_MODEL );
 			int offset = 0;
 			for( lwVMap* vm = layer->vmap; vm; vm = vm->next )
 			{
@@ -2076,7 +2076,7 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 		{
 			idLib::Warning( "ConvertLWOToASE: model \'%s\' has bad or missing uv data", fileName );
 			mesh->numTVertexes = 1;
-			mesh->tvertexes = ( idVec2* )MeClearedAlloc( mesh->numTVertexes * sizeof( mesh->tvertexes[0] ), TAG_MODEL );
+			mesh->tvertexes = ( idVec2* )Mem_ClearedAlloc( mesh->numTVertexes * sizeof( mesh->tvertexes[0] ), TAG_MODEL );
 		}
 		
 		mesh->normalsParsed = true;
@@ -2165,9 +2165,9 @@ struct aseModel_s* idRenderModelStatic::ConvertLWOToASE( const struct st_lwObjec
 		mesh->numFaces = faceIndex;
 		mesh->numTVFaces = faceIndex;
 		
-		aseFace_t* newFaces = ( aseFace_t* )MeAlloc( mesh->numFaces * sizeof( mesh->faces[0] ), TAG_MODEL );
+		aseFace_t* newFaces = ( aseFace_t* )Mem_Alloc( mesh->numFaces * sizeof( mesh->faces[0] ), TAG_MODEL );
 		memcpy( newFaces, mesh->faces, sizeof( mesh->faces[0] ) * mesh->numFaces );
-		MeFree( mesh->faces );
+		Mem_Free( mesh->faces );
 		mesh->faces = newFaces;
 	}
 	
@@ -2654,7 +2654,7 @@ void idRenderModelStatic::PurgeModel()
 	
 	if( jointsInverted != NULL )
 	{
-		MeFree( jointsInverted );
+		Mem_Free( jointsInverted );
 		jointsInverted = NULL;
 	}
 	

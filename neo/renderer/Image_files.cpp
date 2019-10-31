@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "Image.h"
 
 /*
@@ -484,7 +484,7 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 			fileSystem->CloseFile( f );
 			return;	// just getting timestamp
 		}
-		fbuffer = ( byte* )MeClearedAlloc( len + 4096, TAG_JPG );
+		fbuffer = ( byte* )Mem_ClearedAlloc( len + 4096, TAG_JPG );
 		f->Read( fbuffer, len );
 		fileSystem->CloseFile( f );
 	}
@@ -596,7 +596,7 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 	 * so as to simplify the setjmp error logic above.  (Actually, I don't
 	 * think that jpeg_destroy can do an error exit, but why assume anything...)
 	 */
-	MeFree( fbuffer );
+	Mem_Free( fbuffer );
 	
 	/* At this point you may want to check to see whether any corrupt-data
 	 * warnings occurred (test whether jerr.pub.nuwarnings is nonzero).

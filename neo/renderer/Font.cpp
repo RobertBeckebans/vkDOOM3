@@ -219,8 +219,8 @@ bool idFont::LoadFont()
 	
 	fd->ReadBig( fontInfo->numGlyphs );
 	
-	fontInfo->glyphData = ( glyphInfo_t* )MeAlloc( sizeof( glyphInfo_t ) * fontInfo->numGlyphs, TAG_FONT );
-	fontInfo->charIndex = ( uint32* )MeAlloc( sizeof( uint32 ) * fontInfo->numGlyphs, TAG_FONT );
+	fontInfo->glyphData = ( glyphInfo_t* )Mem_Alloc( sizeof( glyphInfo_t ) * fontInfo->numGlyphs, TAG_FONT );
+	fontInfo->charIndex = ( uint32* )Mem_Alloc( sizeof( uint32 ) * fontInfo->numGlyphs, TAG_FONT );
 	
 	fd->Read( fontInfo->glyphData, fontInfo->numGlyphs * sizeof( glyphInfo_t ) );
 	

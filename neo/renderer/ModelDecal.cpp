@@ -309,49 +309,49 @@ static void R_DecalPointCullStatic( byte* cullBits, const idPlane* planes, const
 	idODSStreamedArray< idDrawVert, 16, SBT_DOUBLE, 4 > vertsODS( verts, numVerts );
 	
 	const __m128 vector_float_zero	= { 0.0f, 0.0f, 0.0f, 0.0f };
-	const __m128i vector_int_mask0	= _mset1_epi32( 1 << 0 );
-	const __m128i vector_int_mask1	= _mset1_epi32( 1 << 1 );
-	const __m128i vector_int_mask2	= _mset1_epi32( 1 << 2 );
-	const __m128i vector_int_mask3	= _mset1_epi32( 1 << 3 );
-	const __m128i vector_int_mask4	= _mset1_epi32( 1 << 4 );
-	const __m128i vector_int_mask5	= _mset1_epi32( 1 << 5 );
+	const __m128i vector_int_mask0	= _mm_set1_epi32( 1 << 0 );
+	const __m128i vector_int_mask1	= _mm_set1_epi32( 1 << 1 );
+	const __m128i vector_int_mask2	= _mm_set1_epi32( 1 << 2 );
+	const __m128i vector_int_mask3	= _mm_set1_epi32( 1 << 3 );
+	const __m128i vector_int_mask4	= _mm_set1_epi32( 1 << 4 );
+	const __m128i vector_int_mask5	= _mm_set1_epi32( 1 << 5 );
 	
-	const __m128 p0 = _mloadu_ps( planes[0].ToFloatPtr() );
-	const __m128 p1 = _mloadu_ps( planes[1].ToFloatPtr() );
-	const __m128 p2 = _mloadu_ps( planes[2].ToFloatPtr() );
-	const __m128 p3 = _mloadu_ps( planes[3].ToFloatPtr() );
-	const __m128 p4 = _mloadu_ps( planes[4].ToFloatPtr() );
-	const __m128 p5 = _mloadu_ps( planes[5].ToFloatPtr() );
+	const __m128 p0 = _mm_loadu_ps( planes[0].ToFloatPtr() );
+	const __m128 p1 = _mm_loadu_ps( planes[1].ToFloatPtr() );
+	const __m128 p2 = _mm_loadu_ps( planes[2].ToFloatPtr() );
+	const __m128 p3 = _mm_loadu_ps( planes[3].ToFloatPtr() );
+	const __m128 p4 = _mm_loadu_ps( planes[4].ToFloatPtr() );
+	const __m128 p5 = _mm_loadu_ps( planes[5].ToFloatPtr() );
 	
-	const __m128 p0X = _msplat_ps( p0, 0 );
-	const __m128 p0Y = _msplat_ps( p0, 1 );
-	const __m128 p0Z = _msplat_ps( p0, 2 );
-	const __m128 p0W = _msplat_ps( p0, 3 );
+	const __m128 p0X = _mm_splat_ps( p0, 0 );
+	const __m128 p0Y = _mm_splat_ps( p0, 1 );
+	const __m128 p0Z = _mm_splat_ps( p0, 2 );
+	const __m128 p0W = _mm_splat_ps( p0, 3 );
 	
-	const __m128 p1X = _msplat_ps( p1, 0 );
-	const __m128 p1Y = _msplat_ps( p1, 1 );
-	const __m128 p1Z = _msplat_ps( p1, 2 );
-	const __m128 p1W = _msplat_ps( p1, 3 );
+	const __m128 p1X = _mm_splat_ps( p1, 0 );
+	const __m128 p1Y = _mm_splat_ps( p1, 1 );
+	const __m128 p1Z = _mm_splat_ps( p1, 2 );
+	const __m128 p1W = _mm_splat_ps( p1, 3 );
 	
-	const __m128 p2X = _msplat_ps( p2, 0 );
-	const __m128 p2Y = _msplat_ps( p2, 1 );
-	const __m128 p2Z = _msplat_ps( p2, 2 );
-	const __m128 p2W = _msplat_ps( p2, 3 );
+	const __m128 p2X = _mm_splat_ps( p2, 0 );
+	const __m128 p2Y = _mm_splat_ps( p2, 1 );
+	const __m128 p2Z = _mm_splat_ps( p2, 2 );
+	const __m128 p2W = _mm_splat_ps( p2, 3 );
 	
-	const __m128 p3X = _msplat_ps( p3, 0 );
-	const __m128 p3Y = _msplat_ps( p3, 1 );
-	const __m128 p3Z = _msplat_ps( p3, 2 );
-	const __m128 p3W = _msplat_ps( p3, 3 );
+	const __m128 p3X = _mm_splat_ps( p3, 0 );
+	const __m128 p3Y = _mm_splat_ps( p3, 1 );
+	const __m128 p3Z = _mm_splat_ps( p3, 2 );
+	const __m128 p3W = _mm_splat_ps( p3, 3 );
 	
-	const __m128 p4X = _msplat_ps( p4, 0 );
-	const __m128 p4Y = _msplat_ps( p4, 1 );
-	const __m128 p4Z = _msplat_ps( p4, 2 );
-	const __m128 p4W = _msplat_ps( p4, 3 );
+	const __m128 p4X = _mm_splat_ps( p4, 0 );
+	const __m128 p4Y = _mm_splat_ps( p4, 1 );
+	const __m128 p4Z = _mm_splat_ps( p4, 2 );
+	const __m128 p4W = _mm_splat_ps( p4, 3 );
 	
-	const __m128 p5X = _msplat_ps( p5, 0 );
-	const __m128 p5Y = _msplat_ps( p5, 1 );
-	const __m128 p5Z = _msplat_ps( p5, 2 );
-	const __m128 p5W = _msplat_ps( p5, 3 );
+	const __m128 p5X = _mm_splat_ps( p5, 0 );
+	const __m128 p5Y = _mm_splat_ps( p5, 1 );
+	const __m128 p5Z = _mm_splat_ps( p5, 2 );
+	const __m128 p5W = _mm_splat_ps( p5, 3 );
 	
 	for( int i = 0; i < numVerts; )
 	{
@@ -360,52 +360,52 @@ static void R_DecalPointCullStatic( byte* cullBits, const idPlane* planes, const
 		
 		for( ; i <= nextNumVerts; i += 4 )
 		{
-			const __m128 v0 = _mload_ps( vertsODS[i + 0].xyz.ToFloatPtr() );
-			const __m128 v1 = _mload_ps( vertsODS[i + 1].xyz.ToFloatPtr() );
-			const __m128 v2 = _mload_ps( vertsODS[i + 2].xyz.ToFloatPtr() );
-			const __m128 v3 = _mload_ps( vertsODS[i + 3].xyz.ToFloatPtr() );
+			const __m128 v0 = _mm_load_ps( vertsODS[i + 0].xyz.ToFloatPtr() );
+			const __m128 v1 = _mm_load_ps( vertsODS[i + 1].xyz.ToFloatPtr() );
+			const __m128 v2 = _mm_load_ps( vertsODS[i + 2].xyz.ToFloatPtr() );
+			const __m128 v3 = _mm_load_ps( vertsODS[i + 3].xyz.ToFloatPtr() );
 			
-			const __m128 r0 = _munpacklo_ps( v0, v2 );	// v0.x, v2.x, v0.z, v2.z
-			const __m128 r1 = _munpackhi_ps( v0, v2 );	// v0.y, v2.y, v0.w, v2.w
-			const __m128 r2 = _munpacklo_ps( v1, v3 );	// v1.x, v3.x, v1.z, v3.z
-			const __m128 r3 = _munpackhi_ps( v1, v3 );	// v1.y, v3.y, v1.w, v3.w
+			const __m128 r0 = _mm_unpacklo_ps( v0, v2 );	// v0.x, v2.x, v0.z, v2.z
+			const __m128 r1 = _mm_unpackhi_ps( v0, v2 );	// v0.y, v2.y, v0.w, v2.w
+			const __m128 r2 = _mm_unpacklo_ps( v1, v3 );	// v1.x, v3.x, v1.z, v3.z
+			const __m128 r3 = _mm_unpackhi_ps( v1, v3 );	// v1.y, v3.y, v1.w, v3.w
 			
-			const __m128 vX = _munpacklo_ps( r0, r2 );	// v0.x, v1.x, v2.x, v3.x
-			const __m128 vY = _munpackhi_ps( r0, r2 );	// v0.y, v1.y, v2.y, v3.y
-			const __m128 vZ = _munpacklo_ps( r1, r3 );	// v0.z, v1.z, v2.z, v3.z
+			const __m128 vX = _mm_unpacklo_ps( r0, r2 );	// v0.x, v1.x, v2.x, v3.x
+			const __m128 vY = _mm_unpackhi_ps( r0, r2 );	// v0.y, v1.y, v2.y, v3.y
+			const __m128 vZ = _mm_unpacklo_ps( r1, r3 );	// v0.z, v1.z, v2.z, v3.z
 			
-			const __m128 d0 = _mmadd_ps( vX, p0X, _mmadd_ps( vY, p0Y, _mmadd_ps( vZ, p0Z, p0W ) ) );
-			const __m128 d1 = _mmadd_ps( vX, p1X, _mmadd_ps( vY, p1Y, _mmadd_ps( vZ, p1Z, p1W ) ) );
-			const __m128 d2 = _mmadd_ps( vX, p2X, _mmadd_ps( vY, p2Y, _mmadd_ps( vZ, p2Z, p2W ) ) );
-			const __m128 d3 = _mmadd_ps( vX, p3X, _mmadd_ps( vY, p3Y, _mmadd_ps( vZ, p3Z, p3W ) ) );
-			const __m128 d4 = _mmadd_ps( vX, p4X, _mmadd_ps( vY, p4Y, _mmadd_ps( vZ, p4Z, p4W ) ) );
-			const __m128 d5 = _mmadd_ps( vX, p5X, _mmadd_ps( vY, p5Y, _mmadd_ps( vZ, p5Z, p5W ) ) );
+			const __m128 d0 = _mm_madd_ps( vX, p0X, _mm_madd_ps( vY, p0Y, _mm_madd_ps( vZ, p0Z, p0W ) ) );
+			const __m128 d1 = _mm_madd_ps( vX, p1X, _mm_madd_ps( vY, p1Y, _mm_madd_ps( vZ, p1Z, p1W ) ) );
+			const __m128 d2 = _mm_madd_ps( vX, p2X, _mm_madd_ps( vY, p2Y, _mm_madd_ps( vZ, p2Z, p2W ) ) );
+			const __m128 d3 = _mm_madd_ps( vX, p3X, _mm_madd_ps( vY, p3Y, _mm_madd_ps( vZ, p3Z, p3W ) ) );
+			const __m128 d4 = _mm_madd_ps( vX, p4X, _mm_madd_ps( vY, p4Y, _mm_madd_ps( vZ, p4Z, p4W ) ) );
+			const __m128 d5 = _mm_madd_ps( vX, p5X, _mm_madd_ps( vY, p5Y, _mm_madd_ps( vZ, p5Z, p5W ) ) );
 			
-			__m128i c0 = __m128c( _mcmpgt_ps( d0, vector_float_zero ) );
-			__m128i c1 = __m128c( _mcmpgt_ps( d1, vector_float_zero ) );
-			__m128i c2 = __m128c( _mcmpgt_ps( d2, vector_float_zero ) );
-			__m128i c3 = __m128c( _mcmpgt_ps( d3, vector_float_zero ) );
-			__m128i c4 = __m128c( _mcmpgt_ps( d4, vector_float_zero ) );
-			__m128i c5 = __m128c( _mcmpgt_ps( d5, vector_float_zero ) );
+			__m128i c0 = __m128c( _mm_cmpgt_ps( d0, vector_float_zero ) );
+			__m128i c1 = __m128c( _mm_cmpgt_ps( d1, vector_float_zero ) );
+			__m128i c2 = __m128c( _mm_cmpgt_ps( d2, vector_float_zero ) );
+			__m128i c3 = __m128c( _mm_cmpgt_ps( d3, vector_float_zero ) );
+			__m128i c4 = __m128c( _mm_cmpgt_ps( d4, vector_float_zero ) );
+			__m128i c5 = __m128c( _mm_cmpgt_ps( d5, vector_float_zero ) );
 			
-			c0 = _mand_si128( c0, vector_int_mask0 );
-			c1 = _mand_si128( c1, vector_int_mask1 );
-			c2 = _mand_si128( c2, vector_int_mask2 );
-			c3 = _mand_si128( c3, vector_int_mask3 );
-			c4 = _mand_si128( c4, vector_int_mask4 );
-			c5 = _mand_si128( c5, vector_int_mask5 );
+			c0 = _mm_and_si128( c0, vector_int_mask0 );
+			c1 = _mm_and_si128( c1, vector_int_mask1 );
+			c2 = _mm_and_si128( c2, vector_int_mask2 );
+			c3 = _mm_and_si128( c3, vector_int_mask3 );
+			c4 = _mm_and_si128( c4, vector_int_mask4 );
+			c5 = _mm_and_si128( c5, vector_int_mask5 );
 			
-			c0 = _mor_si128( c0, c1 );
-			c2 = _mor_si128( c2, c3 );
-			c4 = _mor_si128( c4, c5 );
+			c0 = _mm_or_si128( c0, c1 );
+			c2 = _mm_or_si128( c2, c3 );
+			c4 = _mm_or_si128( c4, c5 );
 			
-			c0 = _mor_si128( c0, c2 );
-			c0 = _mor_si128( c0, c4 );
+			c0 = _mm_or_si128( c0, c2 );
+			c0 = _mm_or_si128( c0, c4 );
 			
-			__m128i s0 = _mpacks_epi32( c0, c0 );
-			__m128i b0 = _mpackus_epi16( s0, s0 );
+			__m128i s0 = _mm_packs_epi32( c0, c0 );
+			__m128i b0 = _mm_packus_epi16( s0, s0 );
 			
-			*( unsigned int* )&cullBits[i] = _mcvtsi128_si32( b0 );
+			*( unsigned int* )&cullBits[i] = _mm_cvtsi128_si32( b0 );
 		}
 	}
 	
@@ -675,10 +675,10 @@ static void R_CopyDecalSurface( idDrawVert* verts, int numVerts, triIndex_t* ind
 	
 #ifdef ID_WIN_X86_SSE2_INTRIN
 	
-	const __m128i vector_int_nuverts = _mshuffle_epi32( _mcvtsi32_si128( numVerts ), 0 );
-	const __m128i vector_short_nuverts = _mpacks_epi32( vector_int_nuverts, vector_int_nuverts );
-	const __m128 vector_fade_color = _mload_ps( fadeColor );
-	const __m128i vector_color_mask = _mset_epi32( 0, -1, 0, 0 );
+	const __m128i vector_int_num_verts = _mm_shuffle_epi32( _mm_cvtsi32_si128( numVerts ), 0 );
+	const __m128i vector_short_num_verts = _mm_packs_epi32( vector_int_num_verts, vector_int_num_verts );
+	const __m128 vector_fade_color = _mm_load_ps( fadeColor );
+	const __m128i vector_color_mask = _mm_set_epi32( 0, -1, 0, 0 );
 	
 	// copy vertices and apply depth/time based fading
 	assert_offsetof( idDrawVert, color, 6 * 4 );
@@ -687,18 +687,18 @@ static void R_CopyDecalSurface( idDrawVert* verts, int numVerts, triIndex_t* ind
 		const idDrawVert& srcVert = decal->verts[i];
 		idDrawVert& dstVert = verts[numVerts + i];
 		
-		__m128i v0 = _mload_si128( ( const __m128i* )( ( byte* )&srcVert +  0 ) );
-		__m128i v1 = _mload_si128( ( const __m128i* )( ( byte* )&srcVert + 16 ) );
-		__m128 depthFade = _msplat_ps( _mload_ss( decal->vertDepthFade + i ), 0 );
+		__m128i v0 = _mm_load_si128( ( const __m128i* )( ( byte* )&srcVert +  0 ) );
+		__m128i v1 = _mm_load_si128( ( const __m128i* )( ( byte* )&srcVert + 16 ) );
+		__m128 depthFade = _mm_splat_ps( _mm_load_ss( decal->vertDepthFade + i ), 0 );
 		
-		__m128 timeDepthFade = _mmul_ps( depthFade, vector_fade_color );
-		__m128i colorInt = _mcvtps_epi32( timeDepthFade );
-		__m128i colorShort = _mpacks_epi32( colorInt, colorInt );
-		__m128i colorByte = _mpackus_epi16( colorShort, colorShort );
-		v1 = _mor_si128( v1, _mand_si128( colorByte, vector_color_mask ) );
+		__m128 timeDepthFade = _mm_mul_ps( depthFade, vector_fade_color );
+		__m128i colorInt = _mm_cvtps_epi32( timeDepthFade );
+		__m128i colorShort = _mm_packs_epi32( colorInt, colorInt );
+		__m128i colorByte = _mm_packus_epi16( colorShort, colorShort );
+		v1 = _mm_or_si128( v1, _mm_and_si128( colorByte, vector_color_mask ) );
 		
-		_mstreasi128( ( __m128i* )( ( byte* )&dstVert +  0 ), v0 );
-		_mstreasi128( ( __m128i* )( ( byte* )&dstVert + 16 ), v1 );
+		_mm_stream_si128( ( __m128i* )( ( byte* )&dstVert +  0 ), v0 );
+		_mm_stream_si128( ( __m128i* )( ( byte* )&dstVert + 16 ), v1 );
 	}
 	
 	// copy indexes
@@ -706,14 +706,14 @@ static void R_CopyDecalSurface( idDrawVert* verts, int numVerts, triIndex_t* ind
 	assert( sizeof( triIndex_t ) == 2 );
 	for( int i = 0; i < decal->numIndexes; i += 8 )
 	{
-		__m128i vi = _mload_si128( ( const __m128i* )&decal->indexes[i] );
+		__m128i vi = _mm_load_si128( ( const __m128i* )&decal->indexes[i] );
 		
-		vi = _madd_epi16( vi, vector_short_nuverts );
+		vi = _mm_add_epi16( vi, vector_short_num_verts );
 		
-		_mstreasi128( ( __m128i* )&indexes[numIndexes + i], vi );
+		_mm_stream_si128( ( __m128i* )&indexes[numIndexes + i], vi );
 	}
 	
-	_msfence();
+	_mm_sfence();
 	
 #else
 	

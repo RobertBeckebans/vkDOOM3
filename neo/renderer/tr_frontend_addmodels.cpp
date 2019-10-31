@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "RenderBackend.h"
 #include "GLMatrix.h"
 #include "Model_local.h"
@@ -721,7 +721,7 @@ void R_AddSingleModel( viewEntity_t* vEntity )
 			R_SetupDrawSurfShader( baseDrawSurf, shader, renderEntity );
 			
 			// Check for deformations (eyeballs, flares, etc)
-			const defort shaderDeform = shader->Deform();
+			const deform_t shaderDeform = shader->Deform();
 			if( shaderDeform != DFRM_NONE )
 			{
 				drawSurf_t* deformDrawSurf = R_DeformDrawSurf( baseDrawSurf );

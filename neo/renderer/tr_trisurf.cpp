@@ -29,7 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #pragma hdrstop
 #include "../framework/precompiled.h"
-#include "RenderSystelocal.h"
+#include "RenderSystem_local.h"
 #include "jobs/dynamicshadowvolume/DynamicShadowVolume.h"
 
 extern idCVar r_useSilRemap;
@@ -216,7 +216,7 @@ void R_FreeStaticTriSurf( srfTriangles_t* tri )
 			// R_CreateLightTris points tri->verts at the verts of the ambient surface
 			if( tri->ambientSurface == NULL || tri->verts != tri->ambientSurface->verts )
 			{
-				MeFree( tri->verts );
+				Mem_Free( tri->verts );
 			}
 		}
 	}
@@ -228,44 +228,44 @@ void R_FreeStaticTriSurf( srfTriangles_t* tri )
 			// if a surface is completely inside a light volume R_CreateLightTris points tri->indexes at the indexes of the ambient surface
 			if( tri->ambientSurface == NULL || tri->indexes != tri->ambientSurface->indexes )
 			{
-				MeFree( tri->indexes );
+				Mem_Free( tri->indexes );
 			}
 		}
 		if( tri->silIndexes != NULL )
 		{
-			MeFree( tri->silIndexes );
+			Mem_Free( tri->silIndexes );
 		}
 		if( tri->silEdges != NULL )
 		{
-			MeFree( tri->silEdges );
+			Mem_Free( tri->silEdges );
 		}
 		if( tri->dominantTris != NULL )
 		{
-			MeFree( tri->dominantTris );
+			Mem_Free( tri->dominantTris );
 		}
 		if( tri->mirroredVerts != NULL )
 		{
-			MeFree( tri->mirroredVerts );
+			Mem_Free( tri->mirroredVerts );
 		}
 		if( tri->dupVerts != NULL )
 		{
-			MeFree( tri->dupVerts );
+			Mem_Free( tri->dupVerts );
 		}
 	}
 	
 	if( tri->preLightShadowVertexes != NULL )
 	{
-		MeFree( tri->preLightShadowVertexes );
+		Mem_Free( tri->preLightShadowVertexes );
 	}
 	if( tri->staticShadowVertexes != NULL )
 	{
-		MeFree( tri->staticShadowVertexes );
+		Mem_Free( tri->staticShadowVertexes );
 	}
 	
 	// clear the tri out so we don't retain stale data
 	memset( tri, 0, sizeof( srfTriangles_t ) );
 	
-	MeFree( tri );
+	Mem_Free( tri );
 }
 
 /*
@@ -284,7 +284,7 @@ void R_FreeStaticTriSurfVerts( srfTriangles_t* tri )
 		// R_CreateLightTris points tri->verts at the verts of the ambient surface
 		if( tri->ambientSurface == NULL || tri->verts != tri->ambientSurface->verts )
 		{
-			MeFree( tri->verts );
+			Mem_Free( tri->verts );
 		}
 	}
 }
@@ -296,7 +296,7 @@ R_AllocStaticTriSurf
 */
 srfTriangles_t* R_AllocStaticTriSurf()
 {
-	srfTriangles_t* tris = ( srfTriangles_t* )MeClearedAlloc( sizeof( srfTriangles_t ), TAG_SRFTRIS );
+	srfTriangles_t* tris = ( srfTriangles_t* )Mem_ClearedAlloc( sizeof( srfTriangles_t ), TAG_SRFTRIS );
 	return tris;
 }
 
@@ -308,7 +308,7 @@ R_AllocStaticTriSurfVerts
 void R_AllocStaticTriSurfVerts( srfTriangles_t* tri, int numVerts )
 {
 	assert( tri->verts == NULL );
-	tri->verts = ( idDrawVert* )MeAlloc16( numVerts * sizeof( idDrawVert ), TAG_TRI_VERTS );
+	tri->verts = ( idDrawVert* )Mem_Alloc16( numVerts * sizeof( idDrawVert ), TAG_TRI_VERTS );
 }
 
 /*
@@ -319,7 +319,7 @@ R_AllocStaticTriSurfIndexes
 void R_AllocStaticTriSurfIndexes( srfTriangles_t* tri, int numIndexes )
 {
 	assert( tri->indexes == NULL );
-	tri->indexes = ( triIndex_t* )MeAlloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_INDEXES );
+	tri->indexes = ( triIndex_t* )Mem_Alloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_INDEXES );
 }
 
 /*
@@ -352,7 +352,7 @@ R_AllocStaticTriSurfSilIndexes
 void R_AllocStaticTriSurfSilIndexes( srfTriangles_t* tri, int numIndexes )
 {
 	assert( tri->silIndexes == NULL );
-	tri->silIndexes = ( triIndex_t* )MeAlloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_SIL_INDEXES );
+	tri->silIndexes = ( triIndex_t* )Mem_Alloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_SIL_INDEXES );
 }
 
 /*
@@ -363,7 +363,7 @@ R_AllocStaticTriSurfDominantTris
 void R_AllocStaticTriSurfDominantTris( srfTriangles_t* tri, int numVerts )
 {
 	assert( tri->dominantTris == NULL );
-	tri->dominantTris = ( dominantTri_t* )MeAlloc16( numVerts * sizeof( dominantTri_t ), TAG_TRI_DOMINANT_TRIS );
+	tri->dominantTris = ( dominantTri_t* )Mem_Alloc16( numVerts * sizeof( dominantTri_t ), TAG_TRI_DOMINANT_TRIS );
 }
 
 /*
@@ -374,7 +374,7 @@ R_AllocStaticTriSurfMirroredVerts
 void R_AllocStaticTriSurfMirroredVerts( srfTriangles_t* tri, int numMirroredVerts )
 {
 	assert( tri->mirroredVerts == NULL );
-	tri->mirroredVerts = ( int* )MeAlloc16( numMirroredVerts * sizeof( *tri->mirroredVerts ), TAG_TRI_MIR_VERT );
+	tri->mirroredVerts = ( int* )Mem_Alloc16( numMirroredVerts * sizeof( *tri->mirroredVerts ), TAG_TRI_MIR_VERT );
 }
 
 /*
@@ -385,7 +385,7 @@ R_AllocStaticTriSurfDupVerts
 void R_AllocStaticTriSurfDupVerts( srfTriangles_t* tri, int numDupVerts )
 {
 	assert( tri->dupVerts == NULL );
-	tri->dupVerts = ( int* )MeAlloc16( numDupVerts * 2 * sizeof( *tri->dupVerts ), TAG_TRI_DUP_VERT );
+	tri->dupVerts = ( int* )Mem_Alloc16( numDupVerts * 2 * sizeof( *tri->dupVerts ), TAG_TRI_DUP_VERT );
 }
 
 /*
@@ -396,7 +396,7 @@ R_AllocStaticTriSurfSilEdges
 void R_AllocStaticTriSurfSilEdges( srfTriangles_t* tri, int numSilEdges )
 {
 	assert( tri->silEdges == NULL );
-	tri->silEdges = ( silEdge_t* )MeAlloc16( numSilEdges * sizeof( silEdge_t ), TAG_TRI_SIL_EDGE );
+	tri->silEdges = ( silEdge_t* )Mem_Alloc16( numSilEdges * sizeof( silEdge_t ), TAG_TRI_SIL_EDGE );
 }
 
 /*
@@ -407,7 +407,7 @@ R_AllocStaticTriSurfPreLightShadowVerts
 void R_AllocStaticTriSurfPreLightShadowVerts( srfTriangles_t* tri, int numVerts )
 {
 	assert( tri->preLightShadowVertexes == NULL );
-	tri->preLightShadowVertexes = ( idShadowVert* )MeAlloc16( numVerts * sizeof( idShadowVert ), TAG_TRI_SHADOW );
+	tri->preLightShadowVertexes = ( idShadowVert* )Mem_Alloc16( numVerts * sizeof( idShadowVert ), TAG_TRI_SHADOW );
 }
 
 /*
@@ -417,10 +417,10 @@ R_ResizeStaticTriSurfVerts
 */
 void R_ResizeStaticTriSurfVerts( srfTriangles_t* tri, int numVerts )
 {
-	idDrawVert* newVerts = ( idDrawVert* )MeAlloc16( numVerts * sizeof( idDrawVert ), TAG_TRI_VERTS );
+	idDrawVert* newVerts = ( idDrawVert* )Mem_Alloc16( numVerts * sizeof( idDrawVert ), TAG_TRI_VERTS );
 	const int copy = std::min( numVerts, tri->numVerts );
 	memcpy( newVerts, tri->verts, copy * sizeof( idDrawVert ) );
-	MeFree( tri->verts );
+	Mem_Free( tri->verts );
 	tri->verts = newVerts;
 }
 
@@ -431,10 +431,10 @@ R_ResizeStaticTriSurfIndexes
 */
 void R_ResizeStaticTriSurfIndexes( srfTriangles_t* tri, int numIndexes )
 {
-	triIndex_t* newIndexes = ( triIndex_t* )MeAlloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_INDEXES );
+	triIndex_t* newIndexes = ( triIndex_t* )Mem_Alloc16( numIndexes * sizeof( triIndex_t ), TAG_TRI_INDEXES );
 	const int copy = std::min( numIndexes, tri->numIndexes );
 	memcpy( newIndexes, tri->indexes, copy * sizeof( triIndex_t ) );
-	MeFree( tri->indexes );
+	Mem_Free( tri->indexes );
 	tri->indexes = newIndexes;
 }
 
@@ -465,7 +465,7 @@ R_FreeStaticTriSurfSilIndexes
 */
 void R_FreeStaticTriSurfSilIndexes( srfTriangles_t* tri )
 {
-	MeFree( tri->silIndexes );
+	Mem_Free( tri->silIndexes );
 	tri->silIndexes = NULL;
 }
 
@@ -597,7 +597,7 @@ void R_CreateSilIndexes( srfTriangles_t* tri )
 	
 	if( tri->silIndexes )
 	{
-		MeFree( tri->silIndexes );
+		Mem_Free( tri->silIndexes );
 		tri->silIndexes = NULL;
 	}
 	
@@ -2027,18 +2027,18 @@ deformInfo_t* R_BuildDeformInfo( int numVerts, const idDrawVert* verts, int numI
 	
 	if( tri.dominantTris != NULL )
 	{
-		MeFree( tri.dominantTris );
+		Mem_Free( tri.dominantTris );
 		tri.dominantTris = NULL;
 	}
 	
-	idShadowVertSkinned* shadowVerts = ( idShadowVertSkinned* ) MeAlloc16( ALIGN( deform->numOutputVerts * 2 * sizeof( idShadowVertSkinned ), 16 ), TAG_MODEL );
+	idShadowVertSkinned* shadowVerts = ( idShadowVertSkinned* ) Mem_Alloc16( ALIGN( deform->numOutputVerts * 2 * sizeof( idShadowVertSkinned ), 16 ), TAG_MODEL );
 	idShadowVertSkinned::CreateShadowCache( shadowVerts, deform->verts, deform->numOutputVerts );
 	
 	deform->staticAmbientCache = vertexCache.AllocStaticVertex( deform->verts, ALIGN( deform->numOutputVerts * sizeof( idDrawVert ), VERTEX_CACHE_ALIGN ) );
 	deform->staticIndexCache = vertexCache.AllocStaticIndex( deform->indexes, ALIGN( deform->numIndexes * sizeof( triIndex_t ), INDEX_CACHE_ALIGN ) );
 	deform->staticShadowCache = vertexCache.AllocStaticVertex( shadowVerts, ALIGN( deform->numOutputVerts * 2 * sizeof( idShadowVertSkinned ), VERTEX_CACHE_ALIGN ) );
 	
-	MeFree( shadowVerts );
+	Mem_Free( shadowVerts );
 	
 	return deform;
 }
@@ -2052,27 +2052,27 @@ void R_FreeDeformInfo( deformInfo_t* deformInfo )
 {
 	if( deformInfo->verts != NULL )
 	{
-		MeFree( deformInfo->verts );
+		Mem_Free( deformInfo->verts );
 	}
 	if( deformInfo->indexes != NULL )
 	{
-		MeFree( deformInfo->indexes );
+		Mem_Free( deformInfo->indexes );
 	}
 	if( deformInfo->silIndexes != NULL )
 	{
-		MeFree( deformInfo->silIndexes );
+		Mem_Free( deformInfo->silIndexes );
 	}
 	if( deformInfo->silEdges != NULL )
 	{
-		MeFree( deformInfo->silEdges );
+		Mem_Free( deformInfo->silEdges );
 	}
 	if( deformInfo->mirroredVerts != NULL )
 	{
-		MeFree( deformInfo->mirroredVerts );
+		Mem_Free( deformInfo->mirroredVerts );
 	}
 	if( deformInfo->dupVerts != NULL )
 	{
-		MeFree( deformInfo->dupVerts );
+		Mem_Free( deformInfo->dupVerts );
 	}
 	R_StaticFree( deformInfo );
 }
@@ -2204,13 +2204,13 @@ void R_CreateStaticBuffersForTri( srfTriangles_t& tri )
 		const int shadowSize = ALIGN( tri.numVerts * 2 * sizeof( idShadowVert ), VERTEX_CACHE_ALIGN );
 		if( tri.staticShadowVertexes == NULL )
 		{
-			tri.staticShadowVertexes = ( idShadowVert* ) MeAlloc16( shadowSize, TAG_TEMP );
+			tri.staticShadowVertexes = ( idShadowVert* ) Mem_Alloc16( shadowSize, TAG_TEMP );
 			idShadowVert::CreateShadowCache( tri.staticShadowVertexes, tri.verts, tri.numVerts );
 		}
 		tri.shadowCache = vertexCache.AllocStaticVertex( tri.staticShadowVertexes, shadowSize );
 		
 #if !defined( KEEP_INTERACTION_CPU_DATA )
-		MeFree( tri.staticShadowVertexes );
+		Mem_Free( tri.staticShadowVertexes );
 		tri.staticShadowVertexes = NULL;
 #endif
 	}
