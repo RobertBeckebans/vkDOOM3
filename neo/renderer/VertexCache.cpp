@@ -116,12 +116,12 @@ static void AllocGeoBufferSet( geoBufferSet_t& gbs, const int vertexBytes, const
 idVertexCache::Init
 ==============
 */
-void idVertexCache::Init( int uniformBufferOffsetAlignment )
+void idVertexCache::Init( int _uniformBufferOffsetAlignment )
 {
 	currentFrame = 0;
 	listNum = 0;
 	
-	uniformBufferOffsetAlignment = uniformBufferOffsetAlignment;
+	uniformBufferOffsetAlignment = _uniformBufferOffsetAlignment;
 	
 	mostUsedVertex = 0;
 	mostUsedIndex = 0;
