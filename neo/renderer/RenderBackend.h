@@ -178,7 +178,7 @@ struct vulkanContext_t
 	uint32							currentSwapIndex;
 	VkImage							msaaImage;
 	VkImageView						msaaImageView;
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	VmaAllocation					msaaVmaAllocation;
 	VmaAllocationInfo				msaaAllocation;
 #else

@@ -1105,7 +1105,7 @@ static void CreateRenderTargets()
 		
 		ID_VK_CHECK( vkCreateImage( vkcontext.device, &createInfo, NULL, &vkcontext.msaaImage ) );
 		
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 		VmaMemoryRequirements vmaReq = {};
 		vmaReq.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 		
@@ -1147,7 +1147,8 @@ DestroyRenderTargets
 static void DestroyRenderTargets()
 {
 	vkDestroyImageView( vkcontext.device, vkcontext.msaaImageView, NULL );
-#if defined( ID_USE_AMD_ALLOCATOR )
+	
+#if defined( USE_AMD_ALLOCATOR )
 	vmaDestroyImage( vmaAllocator, vkcontext.msaaImage, vkcontext.msaaVmaAllocation );
 	vkcontext.msaaAllocation = VmaAllocationInfo();
 	vkcontext.msaaVmaAllocation = NULL;
@@ -1422,7 +1423,7 @@ void idRenderBackend::Init()
 	CreateCommandBuffer();
 	
 	// Setup the allocator
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	extern idCVar r_vkHostVisibleMemoryMB;
 	extern idCVar r_vkDeviceLocalMemoryMB;
 	
@@ -1472,6 +1473,7 @@ void idRenderBackend::Shutdown()
 	// Shutdown input
 	Sys_ShutdownInput();
 	
+	// Destroy Shaders
 	renderProgManager.Shutdown();
 	
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
@@ -1521,7 +1523,7 @@ void idRenderBackend::Shutdown()
 	}
 	
 	// Dump all our memory
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	vmaDestroyAllocator( vmaAllocator );
 #else
 	vulkanAllocator.Shutdown();
@@ -1573,7 +1575,7 @@ void idRenderBackend::ResizeImages()
 	// Destroy Current Surface
 	vkDestroySurfaceKHR( vkcontext.instance, vkcontext.surface, NULL );
 	
-#if !defined( ID_USE_AMD_ALLOCATOR )
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
 	
@@ -1601,42 +1603,7 @@ void idRenderBackend::ResizeImages()
 	CreateFrameBuffers();
 }
 
-/*
-====================
-idRenderBackend::BlockingSwapBuffers
-====================
-*/
-void idRenderBackend::BlockingSwapBuffers()
-{
-	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
-	
-	if( vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] == false )
-	{
-		return;
-	}
-	
-	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ], VK_TRUE, UINT64_MAX ) );
-	
-	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ] ) );
-	vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] = false;
-	
-	VkSemaphore* finished = &vkcontext.renderCompleteSemaphores[ vkcontext.currentFrameData ];
-	
-	VkPresentInfoKHR presentInfo = {};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = finished;
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = &vkcontext.swapchain;
-	presentInfo.pImageIndices = &vkcontext.currentSwapIndex;
-	
-	ID_VK_CHECK( vkQueuePresentKHR( vkcontext.presentQueue, &presentInfo ) );
-	
-	vkcontext.counter++;
-	vkcontext.currentFrameData = vkcontext.counter % NUM_FRAME_DATA;
-	
-	//vkDeviceWaitIdle( vkcontext.device );
-}
+
 
 /*
 ==================
@@ -1763,7 +1730,7 @@ void idRenderBackend::GL_StartFrame()
 	ID_VK_CHECK( vkAcquireNextImageKHR( vkcontext.device, vkcontext.swapchain, UINT64_MAX, vkcontext.acquireSemaphores[ vkcontext.currentFrameData ], VK_NULL_HANDLE, &vkcontext.currentSwapIndex ) );
 	
 	idImage::EmptyGarbage();
-#if !defined( ID_USE_AMD_ALLOCATOR )
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
 	stagingManager.Flush();
@@ -1842,6 +1809,46 @@ void idRenderBackend::GL_EndFrame()
 	submitInfo.pWaitDstStageMask = &dstStageMask;
 	
 	ID_VK_CHECK( vkQueueSubmit( vkcontext.graphicsQueue, 1, &submitInfo, vkcontext.commandBufferFences[ vkcontext.currentFrameData ] ) );
+}
+
+
+/*
+=============
+GL_BlockingSwapBuffers
+
+We want to exit this with the GPU idle, right at vsync
+=============
+*/
+void idRenderBackend::BlockingSwapBuffers()
+{
+	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
+	
+	if( vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] == false )
+	{
+		return;
+	}
+	
+	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ], VK_TRUE, UINT64_MAX ) );
+	
+	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ] ) );
+	vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] = false;
+	
+	VkSemaphore* finished = &vkcontext.renderCompleteSemaphores[ vkcontext.currentFrameData ];
+	
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = finished;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &vkcontext.swapchain;
+	presentInfo.pImageIndices = &vkcontext.currentSwapIndex;
+	
+	ID_VK_CHECK( vkQueuePresentKHR( vkcontext.presentQueue, &presentInfo ) );
+	
+	vkcontext.counter++;
+	vkcontext.currentFrameData = vkcontext.counter % NUM_FRAME_DATA;
+	
+	//vkDeviceWaitIdle( vkcontext.device );
 }
 
 /*
