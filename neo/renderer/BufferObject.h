@@ -110,7 +110,7 @@ protected:
 	bufferUsageType_t	usage;
 	
 	VkBuffer			apiObject;
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	VmaAllocation		vmaAllocation;
 	VmaAllocationInfo	allocation;
 #else

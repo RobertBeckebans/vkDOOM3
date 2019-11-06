@@ -149,16 +149,38 @@ static VkDebugReportCallbackEXT debugReportCallback = VK_NULL_HANDLE;
 DebugCallback
 =============
 */
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-	VkDebugReportFlagsEXT flags,
-	VkDebugReportObjectTypeEXT objType,
-	uint64 obj, size_t location, int32 code,
-	const char* layerPrefix, const char* msg, void* userData )
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback( VkDebugReportFlagsEXT msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
+		size_t location, int32_t msgCode, const char* layerPrefix, const char* msg,
+		void* userData )
 {
-
-	idLib::Printf( "VK_DEBUG::%s: %s flags=%d, objType=%d, obj=%llu, location=%lld, code=%d\n",
-				   layerPrefix, msg, flags, objType, obj, location, code );
-				   
+	if( msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] ERROR: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] PERFORMANCE WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] INFO: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] DEBUG: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	
+	/*
+	 * false indicates that layer should not bail-out of an
+	 * API call that had validation failures. This may mean that the
+	 * app dies inside the driver due to invalid parameter(s).
+	 * That's what would happen without validation layers, so we'll
+	 * keep that behavior here.
+	 */
 	return VK_FALSE;
 }
 
@@ -220,6 +242,12 @@ static void ValidateValidationLayers()
 		{
 			idLib::FatalError( "Cannot find validation layer: %s.\n", g_validationLayers[ i ] );
 		}
+	}
+	
+	// RB
+	for( uint32 j = 0; j < instanceLayerCount; ++j )
+	{
+		idLib::Printf( "Found instance validation layer: '%s' specVersion='%i' implVersion='%i'\n", instanceLayers[j].layerName, instanceLayers[j].specVersion, instanceLayers[j].implementationVersion );
 	}
 }
 
@@ -993,7 +1021,7 @@ void idRenderBackend::CreateRenderTargets()
 		
 		ID_VK_CHECK( vkCreateImage( vkcontext.device, &createInfo, NULL, &msaaImage ) );
 		
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 		VmaMemoryRequirements vmaReq = {};
 		vmaReq.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 		
@@ -1035,7 +1063,7 @@ idRenderBackend::DestroyRenderTargets
 void idRenderBackend::DestroyRenderTargets()
 {
 	vkDestroyImageView( vkcontext.device, msaaImageView, NULL );
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	vmaDestroyImage( vmaAllocator, msaaImage, msaaVmaAllocation );
 	msaaAllocation = VmaAllocationInfo();
 	msaaVmaAllocation = NULL;
@@ -1321,7 +1349,7 @@ void idRenderBackend::Init()
 	CreateCommandBuffer();
 	
 	// Setup the allocator
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	extern idCVar r_vkHostVisibleMemoryMB;
 	extern idCVar r_vkDeviceLocalMemoryMB;
 	
@@ -1426,7 +1454,7 @@ void idRenderBackend::Shutdown()
 	}
 	
 	// Dump all our memory
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	vmaDestroyAllocator( vmaAllocator );
 #else
 	vulkanAllocator.Shutdown();
@@ -1472,7 +1500,7 @@ void idRenderBackend::Restart()
 	// Destroy Current Surface
 	vkDestroySurfaceKHR( instance, surface, NULL );
 	
-#if !defined( ID_USE_AMD_ALLOCATOR )
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
 	
@@ -1648,7 +1676,7 @@ void idRenderBackend::GL_StartFrame()
 	ID_VK_CHECK( vkAcquireNextImageKHR( vkcontext.device, swapchain, UINT64_MAX, acquireSemaphores[ currentFrameData ], VK_NULL_HANDLE, &currentSwapIndex ) );
 	
 	idImage::EmptyGarbage();
-#if !defined( ID_USE_AMD_ALLOCATOR )
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
 	stagingManager.Flush();

@@ -522,7 +522,7 @@ idVulkanAllocator
 ================================================================================================
 */
 
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 VmaAllocator vmaAllocator;
 #else
 idVulkanAllocator vulkanAllocator;
@@ -755,7 +755,7 @@ CONSOLE_COMMAND( Vulkan_PrintHeapInfo, "Print out the heap information for this 
 
 CONSOLE_COMMAND( Vulkan_PrintAllocations, "Print out all the current allocations.", 0 )
 {
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	// TODO
 #else
 	vulkanAllocator.Print();

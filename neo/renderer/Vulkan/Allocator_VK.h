@@ -166,7 +166,7 @@ private:
 	idList<vulkanAllocation_t>	garbage[ NUM_FRAME_DATA ];
 };
 
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 extern VmaAllocator vmaAllocator;
 #else
 extern idVulkanAllocator vulkanAllocator;
