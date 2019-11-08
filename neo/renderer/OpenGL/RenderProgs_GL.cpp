@@ -38,7 +38,7 @@ If you have questions concerning this license or the applicable additional terms
 idCVar r_alwaysExportGLSL( "r_alwaysExportGLSL", "1", CVAR_BOOL, "" );
 idCVar r_displayGLSLCompilerMessages( "r_displayGLSLCompilerMessages", "1", CVAR_BOOL | CVAR_ARCHIVE, "Show info messages the GPU driver outputs when compiling the shaders" );
 
-void RpPrintState( uint64 stateBits, uint64* stencilBits );
+void RpPrintState( uint64 stateBits );
 
 static const int AT_VS_IN  = BIT( 1 );
 static const int AT_VS_OUT = BIT( 2 );
@@ -1744,7 +1744,7 @@ CONSOLE_COMMAND( OpenGL_PrintRenderProgStates, "Print the GLState bits associate
 		{
 			idLib::Printf( "%s: %llu\n", prog.name.c_str(), prog.states[ j ] );
 			idLib::Printf( "------------------------------------------\n" );
-			RpPrintState( prog.states[ j ], glcontext.stencilOperations );
+			RpPrintState( prog.states[ j ] );
 			idLib::Printf( "\n" );
 		}
 	}

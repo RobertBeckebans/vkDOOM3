@@ -139,7 +139,6 @@ struct vulkanContext_t
 	uint32							currentFrameData;
 	
 	vertCacheHandle_t				jointCacheHandle;
-	uint64							stencilOperations[ STENCIL_FACE_NUM ];
 	
 	VkInstance						instance;
 	VkPhysicalDevice				physicalDevice;
@@ -206,7 +205,6 @@ struct glContext_t
 	float		maxTextureAnisotropy;
 	
 	tmu_t		tmu[ MAX_MULTITEXTURE_UNITS ];
-	uint64		stencilOperations[ STENCIL_FACE_NUM ];
 };
 
 extern glContext_t glcontext;
@@ -276,7 +274,6 @@ private:
 	uint64				GL_GetCurrentStateMinusStencil() const;
 	void				GL_SetDefaultState();
 	void				GL_State( uint64 stateBits, bool forceGlState = false );
-	void				GL_SeparateStencil( stencilFace_t face, uint64 stencilBits );
 	
 	void				GL_SelectTexture( int unit );
 	void				GL_BindTexture( idImage* image );

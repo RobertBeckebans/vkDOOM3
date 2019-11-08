@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../RenderLog.h"
 #include "../Image.h"
 
-void RpPrintState( uint64 stateBits, uint64* stencilBits );
+void RpPrintState( uint64 stateBits );
 
 struct vertexLayout_t
 {
@@ -591,20 +591,20 @@ static VkPipeline CreateGraphicsPipeline(
 		depthStencilState.depthBoundsTestEnable = ( stateBits & GLS_DEPTH_TEST_MASK ) != 0;
 		depthStencilState.minDepthBounds = 0.0f;
 		depthStencilState.maxDepthBounds = 1.0f;
-		depthStencilState.stencilTestEnable = ( stateBits & ( GLS_STENCIL_FUNC_BITS | GLS_STENCIL_OP_BITS | GLS_SEPARATE_STENCIL ) ) != 0;
+		depthStencilState.stencilTestEnable = ( stateBits & ( GLS_STENCIL_FUNC_BITS | GLS_STENCIL_OP_BITS ) ) != 0;
 		
 		uint32 ref = uint32( ( stateBits & GLS_STENCIL_FUNC_REF_BITS ) >> GLS_STENCIL_FUNC_REF_SHIFT );
 		uint32 mask = uint32( ( stateBits & GLS_STENCIL_FUNC_MASK_BITS ) >> GLS_STENCIL_FUNC_MASK_SHIFT );
 		
 		if( stateBits & GLS_SEPARATE_STENCIL )
 		{
-			depthStencilState.front = GetStencilOpState( vkcontext.stencilOperations[ STENCIL_FACE_FRONT ] );
+			depthStencilState.front = GetStencilOpState( stateBits & GLS_STENCIL_FRONT_OPS );
 			depthStencilState.front.writeMask = 0xFFFFFFFF;
 			depthStencilState.front.compareOp = stencilCompareOp;
 			depthStencilState.front.compareMask = mask;
 			depthStencilState.front.reference = ref;
 			
-			depthStencilState.back = GetStencilOpState( vkcontext.stencilOperations[ STENCIL_FACE_BACK ] );
+			depthStencilState.back = GetStencilOpState( ( stateBits & GLS_STENCIL_BACK_OPS ) >> 12 );
 			depthStencilState.back.writeMask = 0xFFFFFFFF;
 			depthStencilState.back.compareOp = stencilCompareOp;
 			depthStencilState.back.compareMask = mask;
@@ -655,7 +655,7 @@ static VkPipeline CreateGraphicsPipeline(
 	dynamic.Append( VK_DYNAMIC_STATE_SCISSOR );
 	dynamic.Append( VK_DYNAMIC_STATE_VIEWPORT );
 	
-	if( stateBits & GLS_POLYGON_OFFSET )
+	//if( stateBits & GLS_POLYGON_OFFSET )
 	{
 		dynamic.Append( VK_DYNAMIC_STATE_DEPTH_BIAS );
 	}
@@ -708,25 +708,10 @@ VkPipeline renderProg_t::GetPipeline( uint64 stateBits, VkShaderModule vertexSha
 {
 	for( int i = 0; i < pipelines.Num(); ++i )
 	{
-		pipelineState_t& pipelineState = pipelines[ i ];
-		if( stateBits != pipelineState.stateBits )
+		if( stateBits == pipelines[ i ].stateBits )
 		{
-			continue;
+			return pipelines[ i ].pipeline;
 		}
-		
-		if( stateBits & GLS_SEPARATE_STENCIL )
-		{
-			if( vkcontext.stencilOperations[ STENCIL_FACE_FRONT ] != pipelineState.stencilOperations[ STENCIL_FACE_FRONT ] )
-			{
-				continue;
-			}
-			if( vkcontext.stencilOperations[ STENCIL_FACE_BACK ] != pipelineState.stencilOperations[ STENCIL_FACE_BACK ] )
-			{
-				continue;
-			}
-		}
-		
-		return pipelineState.pipeline;
 	}
 	
 	VkPipeline pipeline = CreateGraphicsPipeline( vertexLayoutType, vertexShader, fragmentShader, pipelineLayout, stateBits );
@@ -734,10 +719,6 @@ VkPipeline renderProg_t::GetPipeline( uint64 stateBits, VkShaderModule vertexSha
 	pipelineState_t pipelineState;
 	pipelineState.pipeline = pipeline;
 	pipelineState.stateBits = stateBits;
-	if( stateBits & GLS_SEPARATE_STENCIL )
-	{
-		memcpy( pipelineState.stencilOperations, vkcontext.stencilOperations, sizeof( pipelineState.stencilOperations ) );
-	}
 	pipelines.Append( pipelineState );
 	
 	return pipeline;
@@ -1302,6 +1283,19 @@ CONSOLE_COMMAND( Vulkan_ClearPipelines, "Clear all existing pipelines, forcing t
 	}
 }
 
+CONSOLE_COMMAND( Vulkan_PrintNumPipelines, "Print the number of pipelines available.", 0 )
+{
+	int totalPipelines = 0;
+	for( int i = 0; i < renderProgManager.renderProgs.Num(); ++i )
+	{
+		renderProg_t& prog = renderProgManager.renderProgs[ i ];
+		int progPipelines = prog.pipelines.Num();
+		totalPipelines += progPipelines;
+		idLib::Printf( "%s: %d\n", prog.name.c_str(), progPipelines );
+	}
+	idLib::Printf( "TOTAL: %d\n", totalPipelines );
+}
+
 CONSOLE_COMMAND( Vulkan_PrintPipelineStates, "Print the GLState bits associated with each pipeline.", 0 )
 {
 	for( int i = 0; i < renderProgManager.renderProgs.Num(); ++i )
@@ -1311,7 +1305,7 @@ CONSOLE_COMMAND( Vulkan_PrintPipelineStates, "Print the GLState bits associated 
 		{
 			idLib::Printf( "%s: %llu\n", prog.name.c_str(), prog.pipelines[ j ].stateBits );
 			idLib::Printf( "------------------------------------------\n" );
-			RpPrintState( prog.pipelines[ j ].stateBits, vkcontext.stencilOperations );
+			RpPrintState( prog.pipelines[ j ].stateBits );
 			idLib::Printf( "\n" );
 		}
 	}

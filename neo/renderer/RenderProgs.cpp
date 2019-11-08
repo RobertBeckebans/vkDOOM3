@@ -187,7 +187,7 @@ int idRenderProgManager::FindShader( const char* name, rpStage_t stage )
 RpPrintState
 ========================
 */
-void RpPrintState( uint64 stateBits, uint64* stencilBits )
+void RpPrintState( uint64 stateBits )
 {
 
 	// culling
@@ -463,8 +463,8 @@ void RpPrintState( uint64 stateBits, uint64* stencilBits )
 	uint32 ref = uint32( ( stateBits & GLS_STENCIL_FUNC_REF_BITS ) >> GLS_STENCIL_FUNC_REF_SHIFT );
 	if( stateBits & GLS_SEPARATE_STENCIL )
 	{
-		printStencil( STENCIL_FACE_FRONT, stencilBits[ 0 ], mask, ref );
-		printStencil( STENCIL_FACE_BACK, stencilBits[ 1 ], mask, ref );
+		printStencil( STENCIL_FACE_FRONT, ( stateBits & GLS_STENCIL_FRONT_OPS ), mask, ref );
+		printStencil( STENCIL_FACE_BACK, ( ( stateBits & GLS_STENCIL_BACK_OPS ) >> 12 ), mask, ref );
 	}
 	else
 	{

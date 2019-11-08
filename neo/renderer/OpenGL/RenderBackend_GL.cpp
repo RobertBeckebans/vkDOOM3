@@ -87,7 +87,7 @@ extern idCVar r_useTrilinearFiltering;
 extern idCVar r_skipShaderPasses;
 extern idCVar r_skipShadows;
 
-void PrintState( uint64 stateBits, uint64* stencilBits );
+void PrintState( uint64 stateBits );
 
 static int		swapIndex;		// 0 or 1 into renderSync
 static GLsync	renderSync[2];
@@ -1231,7 +1231,6 @@ idRenderBackend::idRenderBackend()
 	glcontext.bTextureLODBiasAvailable = false;
 	
 	memset( glcontext.tmu, 0, sizeof( glcontext.tmu ) );
-	memset( glcontext.stencilOperations, 0, sizeof( glcontext.stencilOperations ) );
 }
 
 /*
@@ -1820,7 +1819,7 @@ void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
 		currentVertexBuffer = vertexBuffer->GetAPIObject();
 	}
 	
-	PrintState( glStateBits, glcontext.stencilOperations );
+	PrintState( glStateBits );
 	renderProgManager.CommitCurrent( glStateBits );
 	
 	//idLib::Printf( "GL: indices=%d, index_offset=%d, vert_offset=%d\n", surf->numIndexes, indexOffset, vertOffset );
@@ -2291,6 +2290,7 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
 idRenderBackend::GL_SeparateStencil
 ====================
 */
+#if 0
 void idRenderBackend::GL_SeparateStencil( stencilFace_t face, uint64 stencilBits )
 {
 	GLenum glface = 0;
@@ -2394,6 +2394,7 @@ void idRenderBackend::GL_SeparateStencil( stencilFace_t face, uint64 stencilBits
 	qglStencilOpSeparate( glface, sFail, zFail, pass );
 	glcontext.stencilOperations[ face ] = stencilBits;
 }
+#endif
 
 /*
 ====================
@@ -2616,14 +2617,14 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	if( renderZPass )
 	{
 		// Z-pass
-		GL_SeparateStencil( STENCIL_FACE_FRONT, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR );
-		GL_SeparateStencil( STENCIL_FACE_BACK, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_DECR );
+		qglStencilOpSeparate( GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR );
+		qglStencilOpSeparate( GL_BACK, GL_KEEP, GL_KEEP, GL_DECR );
 	}
 	else if( r_useStencilShadowPreload.GetBool() )
 	{
 		// preload + Z-pass
-		GL_SeparateStencil( STENCIL_FACE_FRONT, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_DECR | GLS_STENCIL_OP_PASS_DECR );
-		GL_SeparateStencil( STENCIL_FACE_BACK, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_INCR | GLS_STENCIL_OP_PASS_INCR );
+		qglStencilOpSeparate( GL_FRONT, GL_KEEP, GL_DECR, GL_DECR );
+		qglStencilOpSeparate( GL_BACK, GL_KEEP, GL_INCR, GL_INCR );
 	}
 	else
 	{
@@ -2697,7 +2698,7 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 		currentVertexBuffer = vertexBuffer->GetAPIObject();
 	}
 	
-	PrintState( glStateBits, glcontext.stencilOperations );
+	PrintState( glStateBits );
 	renderProgManager.CommitCurrent( glStateBits );
 	
 	const int baseVertex = vertOffset / ( drawSurf->jointCache ? sizeof( idShadowVertSkinned ) : sizeof( idShadowVert ) );
@@ -2712,8 +2713,8 @@ void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const b
 	if( !renderZPass && r_useStencilShadowPreload.GetBool() )
 	{
 		// render again with Z-pass
-		GL_SeparateStencil( STENCIL_FACE_FRONT, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR );
-		GL_SeparateStencil( STENCIL_FACE_BACK, GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_DECR );
+		qglStencilOpSeparate( GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR );
+		qglStencilOpSeparate( GL_BACK, GL_KEEP, GL_KEEP, GL_DECR );
 		
 		qglDrawElementsBaseVertex(
 			GL_TRIANGLES,
