@@ -469,7 +469,7 @@ void idPlayerView::SingleView( const renderView_t* view, idMenuHandler_HUD* hudM
 	//	portalView.vieworg = gameLocal.portalSkyEnt.GetEntity()->GetPhysics()->GetOrigin();
 	//	renderSystem->RenderScene( gameRenderWorld, &portalView );
 	//	renderSystem->CaptureRenderToImage( "_currentRender" );
-		
+	
 	//	hackedView.forceUpdate = true;				// FIX: for smoke particles not drawing when portalSky present
 	//}
 	

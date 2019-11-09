@@ -89,79 +89,80 @@ extern idCVar r_shadowPolygonOffset;
 extern idCVar r_useShadowDepthBounds;
 extern idCVar r_singleTriangle;
 
-// For GLSL we need to have the names for the renderparms so we can look up 
+// For GLSL we need to have the names for the renderparms so we can look up
 // their run time indices within the renderprograms
-const char * GLSLParmNames[ RENDERPARM_TOTAL ] = {
+const char* GLSLParmNames[ RENDERPARM_TOTAL ] =
+{
 	"rpScreenCorrectionFactor",
 	"rpWindowCoord",
 	"rpDiffuseModifier",
 	"rpSpecularModifier",
-
+	
 	"rpLocalLightOrigin",
 	"rpLocalViewOrigin",
-
+	
 	"rpLightProjectionS",
 	"rpLightProjectionT",
 	"rpLightProjectionQ",
 	"rpLightFalloffS",
-
+	
 	"rpBumpMatrixS",
 	"rpBumpMatrixT",
-
+	
 	"rpDiffuseMatrixS",
 	"rpDiffuseMatrixT",
-
+	
 	"rpSpecularMatrixS",
 	"rpSpecularMatrixT",
-
+	
 	"rpVertexColorModulate",
 	"rpVertexColorAdd",
-
+	
 	"rpColor",
 	"rpViewOrigin",
 	"rpGlobalEyePos",
-
+	
 	"rpMVPmatrixX",
 	"rpMVPmatrixY",
 	"rpMVPmatrixZ",
 	"rpMVPmatrixW",
-
+	
 	"rpModelMatrixX",
 	"rpModelMatrixY",
 	"rpModelMatrixZ",
 	"rpModelMatrixW",
-
+	
 	"rpProjectionMatrixX",
 	"rpProjectionMatrixY",
 	"rpProjectionMatrixZ",
 	"rpProjectionMatrixW",
-
+	
 	"rpModelViewMatrixX",
 	"rpModelViewMatrixY",
 	"rpModelViewMatrixZ",
 	"rpModelViewMatrixW",
-
+	
 	"rpTextureMatrixS",
 	"rpTextureMatrixT",
-
+	
 	"rpTexGen0S",
 	"rpTexGen0T",
 	"rpTexGen0Q",
 	"rpTexGen0Enabled",
-
+	
 	"rpTexGen1S",
 	"rpTexGen1T",
 	"rpTexGen1Q",
 	"rpTexGen1Enabled",
-
+	
 	"rpWobbleSkyX",
 	"rpWobbleSkyY",
 	"rpWobbleSkyZ",
-
+	
 	"rpOverbright",
 	"rpEnableSkinning",
 	"rpAlphaTest",
-
+	
 	"rpUser0",
 	"rpUser1",
 	"rpUser2",
@@ -177,21 +178,31 @@ const char * GLSLParmNames[ RENDERPARM_TOTAL ] = {
 RpPrintState
 ========================
 */
-void RpPrintState( uint64 stateBits ) {
+void RpPrintState( uint64 stateBits )
+{
 
 	// culling
 	idLib::Printf( "Culling: " );
-	switch ( stateBits & GLS_CULL_BITS ) {
-		case GLS_CULL_FRONTSIDED:	idLib::Printf( "FRONTSIDED -> BACK" ); break;
-		case GLS_CULL_BACKSIDED:	idLib::Printf( "BACKSIDED -> FRONT" ); break;
-		case GLS_CULL_TWOSIDED:		idLib::Printf( "TWOSIDED" ); break;
-		default:					idLib::Printf( "NA" ); break;
+	switch( stateBits & GLS_CULL_BITS )
+	{
+		case GLS_CULL_FRONTSIDED:
+			idLib::Printf( "FRONTSIDED -> BACK" );
+			break;
+		case GLS_CULL_BACKSIDED:
+			idLib::Printf( "BACKSIDED -> FRONT" );
+			break;
+		case GLS_CULL_TWOSIDED:
+			idLib::Printf( "TWOSIDED" );
+			break;
+		default:
+			idLib::Printf( "NA" );
+			break;
 	}
 	idLib::Printf( "\n" );
-
+	
 	// polygon mode
 	idLib::Printf( "PolygonMode: %s\n", ( stateBits & GLS_POLYMODE_LINE ) ? "LINE" : "FILL" );
-
+	
 	// color mask
 	idLib::Printf( "ColorMask: " );
 	idLib::Printf( ( stateBits & GLS_REDMASK ) ? "_" : "R" );
@@ -202,117 +213,252 @@ void RpPrintState( uint64 stateBits ) {
 	
 	// blend
 	idLib::Printf( "Blend: src=" );
-	switch ( stateBits & GLS_SRCBLEND_BITS ) {
-		case GLS_SRCBLEND_ZERO:					idLib::Printf( "ZERO" ); break;
-		case GLS_SRCBLEND_ONE:					idLib::Printf( "ONE" ); break;
-		case GLS_SRCBLEND_DST_COLOR:			idLib::Printf( "DST_COLOR" ); break;
-		case GLS_SRCBLEND_ONE_MINUS_DST_COLOR:	idLib::Printf( "ONE_MINUS_DST_COLOR" ); break;
-		case GLS_SRCBLEND_SRC_ALPHA:			idLib::Printf( "SRC_ALPHA" ); break;
-		case GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA:	idLib::Printf( "ONE_MINUS_SRC_ALPHA" ); break;
-		case GLS_SRCBLEND_DST_ALPHA:			idLib::Printf( "DST_ALPHA" ); break;
-		case GLS_SRCBLEND_ONE_MINUS_DST_ALPHA:	idLib::Printf( "ONE_MINUS_DST_ALPHA" ); break;
-		default:								idLib::Printf( "NA" ); break;
+	switch( stateBits & GLS_SRCBLEND_BITS )
+	{
+		case GLS_SRCBLEND_ZERO:
+			idLib::Printf( "ZERO" );
+			break;
+		case GLS_SRCBLEND_ONE:
+			idLib::Printf( "ONE" );
+			break;
+		case GLS_SRCBLEND_DST_COLOR:
+			idLib::Printf( "DST_COLOR" );
+			break;
+		case GLS_SRCBLEND_ONE_MINUS_DST_COLOR:
+			idLib::Printf( "ONE_MINUS_DST_COLOR" );
+			break;
+		case GLS_SRCBLEND_SRC_ALPHA:
+			idLib::Printf( "SRC_ALPHA" );
+			break;
+		case GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA:
+			idLib::Printf( "ONE_MINUS_SRC_ALPHA" );
+			break;
+		case GLS_SRCBLEND_DST_ALPHA:
+			idLib::Printf( "DST_ALPHA" );
+			break;
+		case GLS_SRCBLEND_ONE_MINUS_DST_ALPHA:
+			idLib::Printf( "ONE_MINUS_DST_ALPHA" );
+			break;
+		default:
+			idLib::Printf( "NA" );
+			break;
 	}
 	idLib::Printf( ", dst=" );
-	switch ( stateBits & GLS_DSTBLEND_BITS ) {
-		case GLS_DSTBLEND_ZERO:					idLib::Printf( "ZERO" ); break;
-		case GLS_DSTBLEND_ONE:					idLib::Printf( "ONE" ); break;
-		case GLS_DSTBLEND_SRC_COLOR:			idLib::Printf( "SRC_COLOR" ); break;
-		case GLS_DSTBLEND_ONE_MINUS_SRC_COLOR:	idLib::Printf( "ONE_MINUS_SRC_COLOR" ); break;
-		case GLS_DSTBLEND_SRC_ALPHA:			idLib::Printf( "SRC_ALPHA" ); break;
-		case GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA:	idLib::Printf( "ONE_MINUS_SRC_ALPHA" ); break;
-		case GLS_DSTBLEND_DST_ALPHA:			idLib::Printf( "DST_ALPHA" ); break;
-		case GLS_DSTBLEND_ONE_MINUS_DST_ALPHA:	idLib::Printf( "ONE_MINUS_DST_ALPHA" ); break;
-		default:								idLib::Printf( "NA" );
+	switch( stateBits & GLS_DSTBLEND_BITS )
+	{
+		case GLS_DSTBLEND_ZERO:
+			idLib::Printf( "ZERO" );
+			break;
+		case GLS_DSTBLEND_ONE:
+			idLib::Printf( "ONE" );
+			break;
+		case GLS_DSTBLEND_SRC_COLOR:
+			idLib::Printf( "SRC_COLOR" );
+			break;
+		case GLS_DSTBLEND_ONE_MINUS_SRC_COLOR:
+			idLib::Printf( "ONE_MINUS_SRC_COLOR" );
+			break;
+		case GLS_DSTBLEND_SRC_ALPHA:
+			idLib::Printf( "SRC_ALPHA" );
+			break;
+		case GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA:
+			idLib::Printf( "ONE_MINUS_SRC_ALPHA" );
+			break;
+		case GLS_DSTBLEND_DST_ALPHA:
+			idLib::Printf( "DST_ALPHA" );
+			break;
+		case GLS_DSTBLEND_ONE_MINUS_DST_ALPHA:
+			idLib::Printf( "ONE_MINUS_DST_ALPHA" );
+			break;
+		default:
+			idLib::Printf( "NA" );
 	}
 	idLib::Printf( "\n" );
 	
 	// depth func
 	idLib::Printf( "DepthFunc: " );
-	switch ( stateBits & GLS_DEPTHFUNC_BITS ) {
-		case GLS_DEPTHFUNC_EQUAL:	idLib::Printf( "EQUAL" ); break;
-		case GLS_DEPTHFUNC_ALWAYS:	idLib::Printf( "ALWAYS" ); break;
-		case GLS_DEPTHFUNC_LESS:	idLib::Printf( "LEQUAL" ); break;
-		case GLS_DEPTHFUNC_GREATER: idLib::Printf( "GEQUAL" ); break;
-		default:					idLib::Printf( "NA" ); break;
+	switch( stateBits & GLS_DEPTHFUNC_BITS )
+	{
+		case GLS_DEPTHFUNC_EQUAL:
+			idLib::Printf( "EQUAL" );
+			break;
+		case GLS_DEPTHFUNC_ALWAYS:
+			idLib::Printf( "ALWAYS" );
+			break;
+		case GLS_DEPTHFUNC_LESS:
+			idLib::Printf( "LEQUAL" );
+			break;
+		case GLS_DEPTHFUNC_GREATER:
+			idLib::Printf( "GEQUAL" );
+			break;
+		default:
+			idLib::Printf( "NA" );
+			break;
 	}
 	idLib::Printf( "\n" );
 	
 	// depth mask
 	idLib::Printf( "DepthWrite: %s\n", ( stateBits & GLS_DEPTHMASK ) ? "FALSE" : "TRUE" );
-
+	
 	// depth bounds
 	idLib::Printf( "DepthBounds: %s\n", ( stateBits & GLS_DEPTH_TEST_MASK ) ? "TRUE" : "FALSE" );
-
+	
 	// depth bias
 	idLib::Printf( "DepthBias: %s\n", ( stateBits & GLS_POLYGON_OFFSET ) ? "TRUE" : "FALSE" );
-
+	
 	// stencil
-	auto printStencil = [&] ( stencilFace_t face, uint64 bits, uint64 mask, uint64 ref ) {
+	auto printStencil = [&]( stencilFace_t face, uint64 bits, uint64 mask, uint64 ref )
+	{
 		idLib::Printf( "Stencil: %s, ", ( bits & ( GLS_STENCIL_FUNC_BITS | GLS_STENCIL_OP_BITS ) ) ? "ON" : "OFF" );
 		idLib::Printf( "Face=" );
-		switch ( face ) {
-			case STENCIL_FACE_FRONT: idLib::Printf( "FRONT" ); break;
-			case STENCIL_FACE_BACK: idLib::Printf( "BACK" ); break;
-		default: idLib::Printf( "BOTH" ); break;
+		switch( face )
+		{
+			case STENCIL_FACE_FRONT:
+				idLib::Printf( "FRONT" );
+				break;
+			case STENCIL_FACE_BACK:
+				idLib::Printf( "BACK" );
+				break;
+			default:
+				idLib::Printf( "BOTH" );
+				break;
 		}
 		idLib::Printf( ", Func=" );
-		switch ( bits & GLS_STENCIL_FUNC_BITS ) {
-			case GLS_STENCIL_FUNC_NEVER:	idLib::Printf( "NEVER" ); break;
-			case GLS_STENCIL_FUNC_LESS:		idLib::Printf( "LESS" ); break;
-			case GLS_STENCIL_FUNC_EQUAL:	idLib::Printf( "EQUAL" ); break;
-			case GLS_STENCIL_FUNC_LEQUAL:	idLib::Printf( "LEQUAL" ); break;
-			case GLS_STENCIL_FUNC_GREATER:	idLib::Printf( "GREATER" ); break;
-			case GLS_STENCIL_FUNC_NOTEQUAL: idLib::Printf( "NOTEQUAL" ); break;
-			case GLS_STENCIL_FUNC_GEQUAL:	idLib::Printf( "GEQUAL" ); break;
-			case GLS_STENCIL_FUNC_ALWAYS:	idLib::Printf( "ALWAYS" ); break;
-			default:						idLib::Printf( "NA" ); break;
+		switch( bits & GLS_STENCIL_FUNC_BITS )
+		{
+			case GLS_STENCIL_FUNC_NEVER:
+				idLib::Printf( "NEVER" );
+				break;
+			case GLS_STENCIL_FUNC_LESS:
+				idLib::Printf( "LESS" );
+				break;
+			case GLS_STENCIL_FUNC_EQUAL:
+				idLib::Printf( "EQUAL" );
+				break;
+			case GLS_STENCIL_FUNC_LEQUAL:
+				idLib::Printf( "LEQUAL" );
+				break;
+			case GLS_STENCIL_FUNC_GREATER:
+				idLib::Printf( "GREATER" );
+				break;
+			case GLS_STENCIL_FUNC_NOTEQUAL:
+				idLib::Printf( "NOTEQUAL" );
+				break;
+			case GLS_STENCIL_FUNC_GEQUAL:
+				idLib::Printf( "GEQUAL" );
+				break;
+			case GLS_STENCIL_FUNC_ALWAYS:
+				idLib::Printf( "ALWAYS" );
+				break;
+			default:
+				idLib::Printf( "NA" );
+				break;
 		}
 		idLib::Printf( ", OpFail=" );
-		switch( bits & GLS_STENCIL_OP_FAIL_BITS ) {
-			case GLS_STENCIL_OP_FAIL_KEEP:		idLib::Printf( "KEEP" ); break;
-			case GLS_STENCIL_OP_FAIL_ZERO:		idLib::Printf( "ZERO" ); break;
-			case GLS_STENCIL_OP_FAIL_REPLACE:	idLib::Printf( "REPLACE" ); break;
-			case GLS_STENCIL_OP_FAIL_INCR:		idLib::Printf( "INCR" ); break;
-			case GLS_STENCIL_OP_FAIL_DECR:		idLib::Printf( "DECR" ); break;
-			case GLS_STENCIL_OP_FAIL_INVERT:	idLib::Printf( "INVERT" ); break;
-			case GLS_STENCIL_OP_FAIL_INCR_WRAP: idLib::Printf( "INCR_WRAP" ); break;
-			case GLS_STENCIL_OP_FAIL_DECR_WRAP: idLib::Printf( "DECR_WRAP" ); break;
-			default:							idLib::Printf( "NA" ); break;
+		switch( bits & GLS_STENCIL_OP_FAIL_BITS )
+		{
+			case GLS_STENCIL_OP_FAIL_KEEP:
+				idLib::Printf( "KEEP" );
+				break;
+			case GLS_STENCIL_OP_FAIL_ZERO:
+				idLib::Printf( "ZERO" );
+				break;
+			case GLS_STENCIL_OP_FAIL_REPLACE:
+				idLib::Printf( "REPLACE" );
+				break;
+			case GLS_STENCIL_OP_FAIL_INCR:
+				idLib::Printf( "INCR" );
+				break;
+			case GLS_STENCIL_OP_FAIL_DECR:
+				idLib::Printf( "DECR" );
+				break;
+			case GLS_STENCIL_OP_FAIL_INVERT:
+				idLib::Printf( "INVERT" );
+				break;
+			case GLS_STENCIL_OP_FAIL_INCR_WRAP:
+				idLib::Printf( "INCR_WRAP" );
+				break;
+			case GLS_STENCIL_OP_FAIL_DECR_WRAP:
+				idLib::Printf( "DECR_WRAP" );
+				break;
+			default:
+				idLib::Printf( "NA" );
+				break;
 		}
 		idLib::Printf( ", ZFail=" );
-		switch( bits & GLS_STENCIL_OP_ZFAIL_BITS ) {
-			case GLS_STENCIL_OP_ZFAIL_KEEP:			idLib::Printf( "KEEP" ); break;
-			case GLS_STENCIL_OP_ZFAIL_ZERO:			idLib::Printf( "ZERO" ); break;
-			case GLS_STENCIL_OP_ZFAIL_REPLACE:		idLib::Printf( "REPLACE" ); break;
-			case GLS_STENCIL_OP_ZFAIL_INCR:			idLib::Printf( "INCR" ); break;
-			case GLS_STENCIL_OP_ZFAIL_DECR:			idLib::Printf( "DECR" ); break;
-			case GLS_STENCIL_OP_ZFAIL_INVERT:		idLib::Printf( "INVERT" ); break;
-			case GLS_STENCIL_OP_ZFAIL_INCR_WRAP:	idLib::Printf( "INCR_WRAP" ); break;
-			case GLS_STENCIL_OP_ZFAIL_DECR_WRAP:	idLib::Printf( "DECR_WRAP" ); break;
-			default:								idLib::Printf( "NA" ); break;
+		switch( bits & GLS_STENCIL_OP_ZFAIL_BITS )
+		{
+			case GLS_STENCIL_OP_ZFAIL_KEEP:
+				idLib::Printf( "KEEP" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_ZERO:
+				idLib::Printf( "ZERO" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_REPLACE:
+				idLib::Printf( "REPLACE" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_INCR:
+				idLib::Printf( "INCR" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_DECR:
+				idLib::Printf( "DECR" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_INVERT:
+				idLib::Printf( "INVERT" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_INCR_WRAP:
+				idLib::Printf( "INCR_WRAP" );
+				break;
+			case GLS_STENCIL_OP_ZFAIL_DECR_WRAP:
+				idLib::Printf( "DECR_WRAP" );
+				break;
+			default:
+				idLib::Printf( "NA" );
+				break;
 		}
 		idLib::Printf( ", OpPass=" );
-		switch( bits & GLS_STENCIL_OP_PASS_BITS ) {
-			case GLS_STENCIL_OP_PASS_KEEP:			idLib::Printf( "KEEP" ); break;
-			case GLS_STENCIL_OP_PASS_ZERO:			idLib::Printf( "ZERO" ); break;
-			case GLS_STENCIL_OP_PASS_REPLACE:		idLib::Printf( "REPLACE" ); break;
-			case GLS_STENCIL_OP_PASS_INCR:			idLib::Printf( "INCR" ); break;
-			case GLS_STENCIL_OP_PASS_DECR:			idLib::Printf( "DECR" ); break;
-			case GLS_STENCIL_OP_PASS_INVERT:		idLib::Printf( "INVERT" ); break;
-			case GLS_STENCIL_OP_PASS_INCR_WRAP:		idLib::Printf( "INCR_WRAP" ); break;
-			case GLS_STENCIL_OP_PASS_DECR_WRAP:		idLib::Printf( "DECR_WRAP" ); break;
-			default:								idLib::Printf( "NA" ); break;
+		switch( bits & GLS_STENCIL_OP_PASS_BITS )
+		{
+			case GLS_STENCIL_OP_PASS_KEEP:
+				idLib::Printf( "KEEP" );
+				break;
+			case GLS_STENCIL_OP_PASS_ZERO:
+				idLib::Printf( "ZERO" );
+				break;
+			case GLS_STENCIL_OP_PASS_REPLACE:
+				idLib::Printf( "REPLACE" );
+				break;
+			case GLS_STENCIL_OP_PASS_INCR:
+				idLib::Printf( "INCR" );
+				break;
+			case GLS_STENCIL_OP_PASS_DECR:
+				idLib::Printf( "DECR" );
+				break;
+			case GLS_STENCIL_OP_PASS_INVERT:
+				idLib::Printf( "INVERT" );
+				break;
+			case GLS_STENCIL_OP_PASS_INCR_WRAP:
+				idLib::Printf( "INCR_WRAP" );
+				break;
+			case GLS_STENCIL_OP_PASS_DECR_WRAP:
+				idLib::Printf( "DECR_WRAP" );
+				break;
+			default:
+				idLib::Printf( "NA" );
+				break;
 		}
 		idLib::Printf( ", mask=%llu, ref=%llu\n", mask, ref );
 	};
-
+	
 	uint32 mask = uint32( ( stateBits & GLS_STENCIL_FUNC_MASK_BITS ) >> GLS_STENCIL_FUNC_MASK_SHIFT );
 	uint32 ref = uint32( ( stateBits & GLS_STENCIL_FUNC_REF_BITS ) >> GLS_STENCIL_FUNC_REF_SHIFT );
-	if ( stateBits & GLS_SEPARATE_STENCIL ) {
+	if( stateBits & GLS_SEPARATE_STENCIL )
+	{
 		printStencil( STENCIL_FACE_FRONT, ( stateBits & GLS_STENCIL_FRONT_OPS ), mask, ref );
 		printStencil( STENCIL_FACE_BACK, ( ( stateBits & GLS_STENCIL_BACK_OPS ) >> 12 ), mask, ref );
-	} else {
+	}
+	else
+	{
 		printStencil( STENCIL_FACE_NUM, stateBits, mask, ref );
 	}
 }
@@ -1366,48 +1512,54 @@ bool CreateGameWindow( gfxImpParms_t parms )
 CreateWindowClasses
 ====================
 */
-void CreateWindowClasses() {
+/*
+void CreateWindowClasses()
+{
 	WNDCLASS wc;
 
 	//
 	// register the window class if necessary
 	//
-	if ( win32.windowClassRegistered ) {
+	if( win32.windowClassRegistered )
+	{
 		return;
 	}
 
 	memset( &wc, 0, sizeof( wc ) );
 
 	wc.style         = 0;
-	wc.lpfnWndProc   = (WNDPROC) MainWndProc;
+	wc.lpfnWndProc   = ( WNDPROC ) MainWndProc;
 	wc.cbClsExtra    = 0;
 	wc.cbWndExtra    = 0;
 	wc.hInstance     = win32.hInstance;
-	wc.hIcon         = LoadIcon( win32.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wc.hIcon         = LoadIcon( win32.hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
 	wc.hCursor       = NULL;
-	wc.hbrBackground = (struct HBRUSH__ *)COLOR_GRAYTEXT;
+	wc.hbrBackground = ( struct HBRUSH__* )COLOR_GRAYTEXT;
 	wc.lpszMenuName  = 0;
 	wc.lpszClassName = WIN32_WINDOW_CLASS_NAME;
 
-	if ( !RegisterClass( &wc ) ) {
+	if( !RegisterClass( &wc ) )
+	{
 		idLib::FatalError( "CreateGameWindow: could not register window class" );
 	}
 	idLib::Printf( "...registered window class\n" );
 
 	win32.windowClassRegistered = true;
 }
+*/
 
 /*
 =============
 idRenderBackend::OpenWindow
 =============
 */
-bool idRenderBackend::OpenWindow() {
+bool idRenderBackend::OpenWindow()
+{
 	gfxImpParms_t parms = R_GetModeParms();
-
-	idLib::Printf( "Initializing window with multisamples:%d fullscreen:%d\n", 
-		parms.multiSamples, parms.fullScreen );
-
+	
+	idLib::Printf( "Initializing window with multisamples:%d fullscreen:%d\n",
+				   parms.multiSamples, parms.fullScreen );
+				   
 	// check our desktop attributes
 	{
 		HDC handle = GetDC( GetDesktopWindow() );
@@ -1416,13 +1568,14 @@ bool idRenderBackend::OpenWindow() {
 		win32.desktopHeight = GetDeviceCaps( handle, VERTRES );
 		ReleaseDC( GetDesktopWindow(), handle );
 	}
-
+	
 	// we can't run in a window unless it is 32 bpp
-	if ( win32.desktopBitsPixel < 32 && parms.fullScreen <= 0 ) {
+	if( win32.desktopBitsPixel < 32 && parms.fullScreen <= 0 )
+	{
 		idLib::Printf( "^3Windowed mode requires 32 bit desktop depth^0\n" );
 		return false;
 	}
-
+	
 	// save the hardware gamma so it can be
 	// restored on exit
 	{
@@ -1431,28 +1584,30 @@ bool idRenderBackend::OpenWindow() {
 		idLib::Printf( "...getting default gamma ramp: %s\n", success ? "success" : "failed" );
 		ReleaseDC( GetDesktopWindow(), handle );
 	}
-
+	
 	// create our window classes if we haven't already
 	CreateWindowClasses();
-
+	
 	// Optionally ChangeDisplaySettings to get a different fullscreen resolution.
-	if ( !ChangeDisplaySettingsIfNeeded( parms ) ) {
+	if( !ChangeDisplaySettingsIfNeeded( parms ) )
+	{
 		// XXX error? shutdown?
 		return false;
 	}
-
+	
 	// try to create a window with the correct pixel format
-	if ( !CreateGameWindow( parms ) ) {
+	if( !CreateGameWindow( parms ) )
+	{
 		// XXX error? shutdown?
 		return false;
 	}
-
+	
 	win32.isFullscreen = parms.fullScreen;
 	win32.nativeScreenWidth = parms.width;
 	win32.nativeScreenHeight = parms.height;
-	win32.multisamples = parms.multiSamples;
+	//win32.multisamples = parms.multiSamples;
 	win32.pixelAspect = 1.0f;
-
+	
 	return true;
 }
 
@@ -1461,42 +1616,40 @@ bool idRenderBackend::OpenWindow() {
 idRenderBackend::CloseWindow
 =============
 */
-void idRenderBackend::CloseWindow() {
-	const char * success[] = { "failed", "success" };
+void idRenderBackend::CloseWindow()
+{
+	const char* success[] = { "failed", "success" };
 	int retVal;
-
+	
 	// release DC
-	if ( win32.hDC ) {
+	if( win32.hDC )
+	{
 		retVal = ReleaseDC( win32.hWnd, win32.hDC ) != 0;
 		idLib::Printf( "...releasing DC: %s\n", success[ retVal ] );
 		win32.hDC = NULL;
 	}
-
+	
 	// destroy window
-	if ( win32.hWnd ) {
+	if( win32.hWnd )
+	{
 		idLib::Printf( "...destroying window\n" );
 		ShowWindow( win32.hWnd, SW_HIDE );
 		DestroyWindow( win32.hWnd );
 		win32.hWnd = NULL;
 	}
-
+	
 	// reset display settings
-	if ( win32.cdsFullscreen ) {
+	if( win32.cdsFullscreen )
+	{
 		idLib::Printf( "...resetting display\n" );
 		ChangeDisplaySettings( 0, 0 );
 		win32.cdsFullscreen = 0;
 	}
-
-	// close the thread so the handle doesn't dangle
-	if ( win32.renderThreadHandle ) {
-		idLib::Printf( "...closing smp thread\n" );
-		CloseHandle( win32.renderThreadHandle );
-		win32.renderThreadHandle = NULL;
-	}
-
+	
 	// restore gamma
 	// if we never read in a reasonable looking table, don't write it out
-	if ( win32.oldHardwareGamma[ 0 ][ 255 ] != 0 ) {
+	if( win32.oldHardwareGamma[ 0 ][ 255 ] != 0 )
+	{
 		HDC hDC = GetDC( GetDesktopWindow() );
 		retVal = SetDeviceGammaRamp( hDC, win32.oldHardwareGamma );
 		idLib::Printf( "...restoring hardware gamma: %s\n", success[ retVal ] );
@@ -1586,13 +1739,16 @@ Render Progs
 idRenderProgManager::FindShader
 ========================
 */
-int idRenderBackend::FindShader( const char * name, rpStage_t stage ) {
+int idRenderBackend::FindShader( const char* name, rpStage_t stage )
+{
 	idStr shaderName( name );
 	shaderName.StripFileExtension();
-
-	for ( int i = 0; i < m_shaders.Num(); i++ ) {
-		shader_t & shader = m_shaders[ i ];
-		if ( shader.name.Icmp( shaderName.c_str() ) == 0 && shader.stage == stage ) {
+	
+	for( int i = 0; i < shaders.Num(); i++ )
+	{
+		shader_t& shader = shaders[ i ];
+		if( shader.name.Icmp( shaderName.c_str() ) == 0 && shader.stage == stage )
+		{
 			LoadShader( i );
 			return i;
 		}
@@ -1600,7 +1756,7 @@ int idRenderBackend::FindShader( const char * name, rpStage_t stage ) {
 	shader_t shader;
 	shader.name = shaderName;
 	shader.stage = stage;
-	int index = m_shaders.Append( shader );
+	int index = shaders.Append( shader );
 	LoadShader( index );
 	return index;
 }
@@ -1610,8 +1766,9 @@ int idRenderBackend::FindShader( const char * name, rpStage_t stage ) {
 idRenderBackend::GetRenderParm
 ========================
 */
-const idVec4 & idRenderBackend::GetRenderParm( renderParm_t rp ) {
-	return m_uniforms[ rp ];
+const idVec4& idRenderBackend::GetRenderParm( renderParm_t rp )
+{
+	return uniforms[ rp ];
 }
 
 /*
@@ -1619,9 +1776,11 @@ const idVec4 & idRenderBackend::GetRenderParm( renderParm_t rp ) {
 idRenderBackend::SetRenderParm
 ========================
 */
-void idRenderBackend::SetRenderParm( renderParm_t rp, const float * value ) {
-	for ( int i = 0; i < 4; ++i ) {
-		m_uniforms[rp][i] = value[i];
+void idRenderBackend::SetRenderParm( renderParm_t rp, const float* value )
+{
+	for( int i = 0; i < 4; ++i )
+	{
+		uniforms[rp][i] = value[i];
 	}
 }
 
@@ -1630,9 +1789,11 @@ void idRenderBackend::SetRenderParm( renderParm_t rp, const float * value ) {
 idRenderBackend::SetRenderParms
 ========================
 */
-void idRenderBackend::SetRenderParms( renderParm_t rp, const float * value, int num ) {
-	for ( int i = 0; i < num; ++i ) {
-		SetRenderParm( (renderParm_t)(rp + i), value + ( i * 4 ) );
+void idRenderBackend::SetRenderParms( renderParm_t rp, const float* value, int num )
+{
+	for( int i = 0; i < num; ++i )
+	{
+		SetRenderParm( ( renderParm_t )( rp + i ), value + ( i * 4 ) );
 	}
 }
 
@@ -1644,8 +1805,10 @@ idRenderBackend::SetVertexColorParms
 static const float zero[4] = { 0, 0, 0, 0 };
 static const float one[4] = { 1, 1, 1, 1 };
 static const float negOne[4] = { -1, -1, -1, -1 };
-void idRenderBackend::SetVertexColorParms( stageVertexColor_t svc ) {
-	switch ( svc ) {
+void idRenderBackend::SetVertexColorParms( stageVertexColor_t svc )
+{
+	switch( svc )
+	{
 		case SVC_IGNORE:
 			SetRenderParm( RENDERPARM_VERTEXCOLOR_MODULATE, zero );
 			SetRenderParm( RENDERPARM_VERTEXCOLOR_ADD, one );
@@ -1666,30 +1829,32 @@ void idRenderBackend::SetVertexColorParms( stageVertexColor_t svc ) {
 idRenderBackend::LoadShaderTextureMatrix
 ======================
 */
-void idRenderBackend::LoadShaderTextureMatrix( const float *shaderRegisters, const textureStage_t *texture ) {	
+void idRenderBackend::LoadShaderTextureMatrix( const float* shaderRegisters, const textureStage_t* texture )
+{
 	float texS[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
 	float texT[4] = { 0.0f, 1.0f, 0.0f, 0.0f };
-
-	if ( texture->hasMatrix ) {
+	
+	if( texture->hasMatrix )
+	{
 		float matrix[16];
 		RB_GetShaderTextureMatrix( shaderRegisters, texture, matrix );
-		texS[0] = matrix[0*4+0];
-		texS[1] = matrix[1*4+0];
-		texS[2] = matrix[2*4+0];
-		texS[3] = matrix[3*4+0];
-	
-		texT[0] = matrix[0*4+1];
-		texT[1] = matrix[1*4+1];
-		texT[2] = matrix[2*4+1];
-		texT[3] = matrix[3*4+1];
-
-		RENDERLOG_PRINTF( "Setting Texture Matrix\n");
+		texS[0] = matrix[0 * 4 + 0];
+		texS[1] = matrix[1 * 4 + 0];
+		texS[2] = matrix[2 * 4 + 0];
+		texS[3] = matrix[3 * 4 + 0];
+		
+		texT[0] = matrix[0 * 4 + 1];
+		texT[1] = matrix[1 * 4 + 1];
+		texT[2] = matrix[2 * 4 + 1];
+		texT[3] = matrix[3 * 4 + 1];
+		
+		RENDERLOG_PRINTF( "Setting Texture Matrix\n" );
 		renderLog.Indent();
 		RENDERLOG_PRINTF( "Texture Matrix S : %4.3f, %4.3f, %4.3f, %4.3f\n", texS[0], texS[1], texS[2], texS[3] );
 		RENDERLOG_PRINTF( "Texture Matrix T : %4.3f, %4.3f, %4.3f, %4.3f\n", texT[0], texT[1], texT[2], texT[3] );
 		renderLog.Outdent();
-	} 
-
+	}
+	
 	SetRenderParm( RENDERPARM_TEXTUREMATRIX_S, texS );
 	SetRenderParm( RENDERPARM_TEXTUREMATRIX_T, texT );
 }
@@ -1731,7 +1896,8 @@ void idRenderBackend::Execute( const int numCmds, const idArray< renderCommand_t
 	
 	for( int i = 0; i < numCmds; ++i )
 	{
-		if ( renderCommands[ i ].viewDef == NULL ) {
+		if( renderCommands[ i ].viewDef == NULL )
+		{
 			continue;
 		}
 		DrawView( renderCommands[ i ] );
@@ -1774,7 +1940,7 @@ void idRenderBackend::DrawView( const renderCommand_t& cmd )
 	pc.c_surfaces += viewDef->numDrawSurfs;
 	
 	GL_StartRenderPass();
-
+	
 	DBG_ShowOverdraw();
 	
 	// render the scene
@@ -1944,7 +2110,7 @@ void idRenderBackend::DrawView( const renderCommand_t& cmd )
 		
 		renderLog.CloseBlock();
 	}
-
+	
 	GL_EndRenderPass();
 }
 
@@ -2049,28 +2215,39 @@ void idRenderBackend::PrepareStageTexturing( const shaderStage_t* pStage,  const
 			
 			RENDERLOG_PRINTF( "TexGen: TG_REFLECT_CUBE: Bumpy Environment\n" );
 			if( surf->jointCache )
-				BindProgram( BUILTIN_BUMPY_ENVIRONMENT_SKINNED );
-			} else {
-				BindProgram( BUILTIN_BUMPY_ENVIRONMENT );
 			{
+				BindProgram( BUILTIN_BUMPY_ENVIRONMENT_SKINNED );
 			}
-		} else {
+			else
+			{
+				BindProgram( BUILTIN_BUMPY_ENVIRONMENT );
+			}
+		}
+		else
+		{
 			RENDERLOG_PRINTF( "TexGen: TG_REFLECT_CUBE: Environment\n" );
-			if ( surf->jointCache ) {
+			if( surf->jointCache )
+			{
 				BindProgram( BUILTIN_ENVIRONMENT_SKINNED );
-			} else {
+			}
+			else
+			{
 				BindProgram( BUILTIN_ENVIRONMENT );
 			}
 		}
-
-	} else if ( pStage->texture.texgen == TG_SKYBOX_CUBE ) {
-
+		
+	}
+	else if( pStage->texture.texgen == TG_SKYBOX_CUBE )
+	{
+	
 		BindProgram( BUILTIN_SKYBOX );
-
-	} else if ( pStage->texture.texgen == TG_WOBBLESKY_CUBE ) {
-
-		const int * parms = surf->material->GetTexGenRegisters();
-
+		
+	}
+	else if( pStage->texture.texgen == TG_WOBBLESKY_CUBE )
+	{
+	
+		const int* parms = surf->material->GetTexGenRegisters();
+		
 		float wobbleDegrees = surf->shaderRegisters[ parms[0] ] * ( idMath::PI / 180.0f );
 		float wobbleSpeed = surf->shaderRegisters[ parms[1] ] * ( 2.0f * idMath::PI / 60.0f );
 		float rotateSpeed = surf->shaderRegisters[ parms[2] ] * ( 2.0f * idMath::PI / 60.0f );
@@ -2157,7 +2334,7 @@ void idRenderBackend::PrepareStageTexturing( const shaderStage_t* pStage,  const
 		plane[1] = mat[1 * 4 + 3];
 		plane[2] = mat[2 * 4 + 3];
 		plane[3] = mat[3 * 4 + 3];
-		SetRenderParm( RENDERPARM_TEXGEN_0_Q, plane );	
+		SetRenderParm( RENDERPARM_TEXGEN_0_Q, plane );
 		RENDERLOG_PRINTF( "TEXGEN_Q = %4.3f, %4.3f, %4.3f, %4.3f\n",  plane[0], plane[1], plane[2], plane[3] );
 		
 		renderLog.Outdent();
@@ -2228,6 +2405,7 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 		
 		// change the matrix if needed
 		if( drawSurf->space != currentSpace )
+		{
 			SetRenderParms( RENDERPARM_MVPMATRIX_X, drawSurf->space->mvp[ 0 ], 4 );
 			
 			currentSpace = drawSurf->space;
@@ -2320,11 +2498,14 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 				SetRenderParm( RENDERPARM_ALPHA_TEST, alphaTestValue.ToFloatPtr() );
 				
 				if( drawSurf->jointCache )
+				{
 					BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED );
-				} else {
+				}
+				else
+				{
 					BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR );
 				}
-
+				
 				SetVertexColorParms( SVC_IGNORE );
 				
 				// bind the texture
@@ -2355,14 +2536,20 @@ void idRenderBackend::FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs
 		// draw the entire surface solid
 		if( drawSolid )
 		{
-				BindProgram( BUILTIN_COLOR );
+			if( shader->GetSort() == SS_SUBVIEW )
 			{
+				BindProgram( BUILTIN_COLOR );
 				GL_Color( color );
 				GL_State( surfGLState );
-			} else {
-				if ( drawSurf->jointCache ) {
+			}
+			else
+			{
+				if( drawSurf->jointCache )
+				{
 					BindProgram( BUILTIN_DEPTH_SKINNED );
-				} else {
+				}
+				else
+				{
 					BindProgram( BUILTIN_DEPTH );
 				}
 				GL_State( surfGLState | GLS_ALPHAMASK );
@@ -2462,6 +2649,7 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 		
 		// set mvp matrix
 		if( surf->space != currentSpace )
+		{
 			SetRenderParms( RENDERPARM_MVPMATRIX_X, surf->space->mvp[0], 4 );
 			currentSpace = surf->space;
 		}
@@ -2469,8 +2657,11 @@ void idRenderBackend::FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSu
 		renderLog.OpenBlock( shader->GetName() );
 		
 		if( surf->jointCache )
+		{
 			BindProgram( BUILTIN_DEPTH_SKINNED );
-		} else {
+		}
+		else
+		{
 			BindProgram( BUILTIN_DEPTH );
 		}
 		
@@ -2757,21 +2948,21 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 		{
 			const idVec4 sMatrix( 1, 0, 0, 0 );
 			const idVec4 tMatrix( 0, 1, 0, 0 );
-
+			
 			// bump matrix
 			SetRenderParm( RENDERPARM_BUMPMATRIX_S, sMatrix.ToFloatPtr() );
 			SetRenderParm( RENDERPARM_BUMPMATRIX_T, tMatrix.ToFloatPtr() );
-
+			
 			// diffuse matrix
 			SetRenderParm( RENDERPARM_DIFFUSEMATRIX_S, sMatrix.ToFloatPtr() );
 			SetRenderParm( RENDERPARM_DIFFUSEMATRIX_T, tMatrix.ToFloatPtr() );
-
+			
 			// specular matrix
 			SetRenderParm( RENDERPARM_SPECULARMATRIX_S, sMatrix.ToFloatPtr() );
 			SetRenderParm( RENDERPARM_SPECULARMATRIX_T, tMatrix.ToFloatPtr() );
-
+			
 			SetVertexColorParms( SVC_IGNORE );
-
+			
 			SetRenderParm( RENDERPARM_DIFFUSEMODIFIER, diffuseColor.ToFloatPtr() );
 			SetRenderParm( RENDERPARM_SPECULARMODIFIER, specularColor.ToFloatPtr() );
 		}
@@ -2786,14 +2977,23 @@ void idRenderBackend::RenderInteractions( const drawSurf_t* surfList, const view
 			// select the render prog
 			if( lightShader->IsAmbientLight() )
 			{
+				if( surf->jointCache )
+				{
 					BindProgram( BUILTIN_INTERACTION_AMBIENT_SKINNED );
-				} else {
+				}
+				else
+				{
 					BindProgram( BUILTIN_INTERACTION_AMBIENT );
 				}
-			} else {
-				if ( surf->jointCache ) {
+			}
+			else
+			{
+				if( surf->jointCache )
+				{
 					BindProgram( BUILTIN_INTERACTION_SKINNED );
-				} else {
+				}
+				else
+				{
 					BindProgram( BUILTIN_INTERACTION );
 				}
 			}
@@ -3151,7 +3351,7 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 	
 	RENDERLOG_PRINTF( "---------- RB_StencilShadowPass ----------\n" );
 	
-	renderProgManager.BindProgram( BUILTIN_SHADOW );
+	BindProgram( BUILTIN_SHADOW );
 	
 	uint64 glState = 0;
 	
@@ -3159,7 +3359,8 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 	if( r_showShadows.GetInteger() )
 	{
 		// set the debug shadow color
-		renderProgManager.SetRenderParm( RENDERPARM_COLOR, colorMagenta.ToFloatPtr() );
+		SetRenderParm( RENDERPARM_COLOR, colorMagenta.ToFloatPtr() );
+		
 		if( r_showShadows.GetInteger() == 2 )
 		{
 			// draw filled in
@@ -3233,12 +3434,12 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 		if( drawSurf->space != currentSpace )
 		{
 			// change the matrix
-			RB_SetMVP( drawSurf->space->mvp );
+			SetRenderParms( RENDERPARM_MVPMATRIX_X, drawSurf->space->mvp[0], 4 );
 			
 			// set the local light position to allow the vertex program to project the shadow volume end cap to infinity
 			idVec4 localLight( 0.0f );
 			R_GlobalPointToLocal( drawSurf->space->modelMatrix, vLight->globalLightOrigin, localLight.ToVec3() );
-			renderProgManager.SetRenderParm( RENDERPARM_LOCALLIGHTORIGIN, localLight.ToFloatPtr() );
+			SetRenderParm( RENDERPARM_LOCALLIGHTORIGIN, localLight.ToFloatPtr() );
 			
 			currentSpace = drawSurf->space;
 		}
@@ -3247,22 +3448,22 @@ void idRenderBackend::StencilShadowPass( const drawSurf_t* drawSurfs, const view
 		{
 			if( drawSurf->jointCache )
 			{
-				renderProgManager.BindProgram( BUILTIN_SHADOW_SKINNED );
+				BindProgram( BUILTIN_SHADOW_SKINNED );
 			}
 			else
 			{
-				renderProgManager.BindProgram( BUILTIN_SHADOW );
+				BindProgram( BUILTIN_SHADOW );
 			}
 		}
 		else
 		{
 			if( drawSurf->jointCache )
 			{
-				renderProgManager.BindProgram( BUILTIN_SHADOW_DEBUG_SKINNED );
+				BindProgram( BUILTIN_SHADOW_DEBUG_SKINNED );
 			}
 			else
 			{
-				renderProgManager.BindProgram( BUILTIN_SHADOW_DEBUG );
+				BindProgram( BUILTIN_SHADOW_DEBUG );
 			}
 		}
 		
@@ -3356,12 +3557,12 @@ void idRenderBackend::StencilSelectLight( const viewLight_t* vLight )
 		GLS_STENCIL_MAKE_REF( STENCIL_SHADOW_TEST_VALUE ) |
 		GLS_STENCIL_MAKE_MASK( STENCIL_SHADOW_MASK_VALUE ) );
 		
-	renderProgManager.BindProgram( BUILTIN_DEPTH );
+	BindProgram( BUILTIN_DEPTH );
 	
 	// set the matrix for deforming the 'zeroOneCubeModel' into the frustum to exactly cover the light volume
 	idRenderMatrix invProjectMVPMatrix;
 	idRenderMatrix::Multiply( viewDef->worldSpace.mvp, vLight->inverseBaseLightProject, invProjectMVPMatrix );
-	RB_SetMVP( invProjectMVPMatrix );
+	SetRenderParms( RENDERPARM_MVPMATRIX_X, invProjectMVPMatrix[0], 4 );
 	
 	DrawElementsWithCounters( &zeroOneCubeSurface );
 	
@@ -3571,10 +3772,10 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 					parm[1] = regs[ newStage->vertexParms[j][1] ];
 					parm[2] = regs[ newStage->vertexParms[j][2] ];
 					parm[3] = regs[ newStage->vertexParms[j][3] ];
-					SetRenderParm( (renderParm_t)( RENDERPARM_USER0 + j ), parm );
+					SetRenderParm( ( renderParm_t )( RENDERPARM_USER0 + j ), parm );
 				}
 				
-				const renderProg_t & prog = m_renderProgs[ m_currentRp ];
+				const renderProg_t& prog = renderProgs[ currentRp ];
 				
 				// set rpEnableSkinning if the shader has optional support for skinning
 				if( surf->jointCache && prog.optionalSkinning )
@@ -3652,7 +3853,9 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 						// This is a hack... Only SWF Guis set GLS_OVERRIDE
 						// Old style guis do not, and we don't want them to use the new GUI renederProg
 						BindProgram( BUILTIN_BINK_GUI );
-					} else {
+					}
+					else
+					{
 						BindProgram( BUILTIN_BINK );
 					}
 				}
@@ -3665,23 +3868,36 @@ int idRenderBackend::DrawShaderPasses( const drawSurf_t* const* const drawSurfs,
 						BindProgram( BUILTIN_GUI );
 					}
 					else
-							BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED );
-						} else {
-							BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR );
+					{
+						if( surf->jointCache )
 						{
+							BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED );
+						}
+						else
+						{
+							BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR );
+							
 						}
 					}
 				}
-			} else if ( ( pStage->texture.texgen == TG_SCREEN ) || ( pStage->texture.texgen == TG_SCREEN2 ) ) {
+			}
+			else if( ( pStage->texture.texgen == TG_SCREEN ) || ( pStage->texture.texgen == TG_SCREEN2 ) )
+			{
 				BindProgram( BUILTIN_TEXTURE_TEXGEN_VERTEXCOLOR );
-			} else if ( pStage->texture.cinematic ) {
+			}
+			else if( pStage->texture.cinematic )
+			{
 				BindProgram( BUILTIN_BINK );
-			} else {
-				if ( surf->jointCache ) {
+			}
+			else
+			{
+				if( surf->jointCache )
+				{
 					BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED );
 				}
-					BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR );
+				else
 				{
+					BindProgram( BUILTIN_TEXTURE_VERTEXCOLOR );
 				}
 			}
 			
@@ -3824,8 +4040,9 @@ void idRenderBackend::BlendLight( const drawSurf_t* drawSurfs, const drawSurf_t*
 		GL_State( GLS_DEPTHMASK | stage->drawStateBits | GLS_DEPTHFUNC_EQUAL );
 		
 		GL_BindTexture( 0, stage->texture.image );
-
-		if ( stage->texture.hasMatrix ) {
+		
+		if( stage->texture.hasMatrix )
+		{
 			LoadShaderTextureMatrix( regs, &stage->texture );
 		}
 		
@@ -3882,7 +4099,8 @@ void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fog
 		if( drawSurf->space != currentSpace )
 		{
 			idPlane localFogPlanes[4];
-			if ( inverseBaseLightProject == NULL ) {
+			if( inverseBaseLightProject == NULL )
+			{
 				SetRenderParms( RENDERPARM_MVPMATRIX_X, drawSurf->space->mvp[0], 4 );
 				for( int i = 0; i < 4; i++ )
 				{
@@ -3911,9 +4129,10 @@ void idRenderBackend::T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fog
 		if( drawSurf->jointCache )
 		{
 			BindProgram( BUILTIN_FOG_SKINNED );
-		} else {
-			BindProgram( BUILTIN_FOG );
+		}
+		else
 		{
+			BindProgram( BUILTIN_FOG );
 		}
 		
 		DrawElementsWithCounters( drawSurf );

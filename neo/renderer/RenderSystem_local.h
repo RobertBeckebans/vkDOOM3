@@ -108,9 +108,9 @@ public:
 	virtual void			DrawBigChar( int x, int y, int ch );
 	virtual void			DrawBigStringExt( int x, int y, const char* string, const idVec4& setColor, bool forceColor );
 	
-	virtual int				GetProgram( const char * name, const int vIndex, const int fIndex );
-	virtual int				GetShader( const char * name, const rpStage_t pipelineStage );
-
+	virtual int				GetProgram( const char* name, const int vIndex, const int fIndex );
+	virtual int				GetShader( const char* name, const rpStage_t pipelineStage );
+	
 	virtual void			SwapCommandBuffers( frameTiming_t* frameTiming );
 	virtual void			SwapAndRenderCommandBuffers( frameTiming_t* frameTiming );
 	virtual void			SwapCommandBuffers_FinishRendering( frameTiming_t* frameTiming );
@@ -120,7 +120,7 @@ public:
 	virtual void			TakeScreenshot( int width, int height, const char* fileName, int downSample, renderView_t* ref );
 	virtual void			CaptureRenderToFile( const char* fileName, bool fixAlpha );
 	
-	virtual void			GetDefaultViewport( idScreenRect & viewport ) const;
+	virtual void			GetDefaultViewport( idScreenRect& viewport ) const;
 	virtual void			PerformResolutionScaling( int& newWidth, int& newHeight );
 	
 	virtual void			ReloadSurface();
@@ -138,7 +138,7 @@ private:
 	void					ShutdownFrameData();
 	void					ToggleSmpFrame();
 	
-	void					AddDrawViewCmd( viewDef_t * parms );
+	void					AddDrawViewCmd( viewDef_t* parms );
 	
 	// Render
 	void					RenderView( viewDef_t* parms );

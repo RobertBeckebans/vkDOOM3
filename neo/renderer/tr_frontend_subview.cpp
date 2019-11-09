@@ -323,7 +323,7 @@ void idRenderSystemLocal::RemoteRender( const drawSurf_t* surf, textureStage_t* 
 	parms->isSubview = true;
 	parms->isMirror = false;
 	
-	idScreenRect & viewport = parms->viewport;
+	idScreenRect& viewport = parms->viewport;
 	viewport.x1 = 0;
 	viewport.y1 = 0;
 	viewport.x2 = stageWidth - 1;
@@ -337,11 +337,11 @@ void idRenderSystemLocal::RemoteRender( const drawSurf_t* surf, textureStage_t* 
 	parms->superView = viewDef;
 	parms->subviewSurface = surf;
 	
-	parms->renderTarget = ( stage->image ) ? stage->image : globalImages->m_scratchImage;
-
+	parms->renderTarget = ( stage->image ) ? stage->image : globalImages->scratchImage;
+	
 	// generate render commands for it
 	RenderView( parms );
-
+	
 	stage->dynamicFrameCount = frameCount;
 }
 
@@ -365,7 +365,7 @@ void idRenderSystemLocal::MirrorRender( const drawSurf_t* surf, textureStage_t* 
 		return;
 	}
 	
-	idScreenRect & viewport = parms->viewport;
+	idScreenRect& viewport = parms->viewport;
 	viewport.x1 = 0;
 	viewport.y1 = 0;
 	viewport.x2 = stage->width - 1;
@@ -382,8 +382,8 @@ void idRenderSystemLocal::MirrorRender( const drawSurf_t* surf, textureStage_t* 
 	// triangle culling order changes with mirroring
 	parms->isMirror = ( ( ( int )parms->isMirror ^ ( int )viewDef->isMirror ) != 0 );
 	
-	parms->renderTarget = globalImages->m_scratchImage;
-
+	parms->renderTarget = globalImages->scratchImage;
+	
 	// generate render commands for it
 	RenderView( parms );
 	
@@ -413,7 +413,7 @@ void idRenderSystemLocal::XrayRender( const drawSurf_t* surf, textureStage_t* st
 	int stageWidth = stage->width;
 	int stageHeight = stage->height;
 	
-	idScreenRect & viewport = parms->viewport;
+	idScreenRect& viewport = parms->viewport;
 	viewport.x1 = 0;
 	viewport.y1 = 0;
 	viewport.x2 = stageWidth - 1;
@@ -430,8 +430,8 @@ void idRenderSystemLocal::XrayRender( const drawSurf_t* surf, textureStage_t* st
 	// triangle culling order changes with mirroring
 	parms->isMirror = ( ( ( int )parms->isMirror ^ ( int )viewDef->isMirror ) != 0 );
 	
-	parms->renderTarget = globalImages->m_scratchImage2;
-
+	parms->renderTarget = globalImages->scratchImage2;
+	
 	// generate render commands for it
 	RenderView( parms );
 	

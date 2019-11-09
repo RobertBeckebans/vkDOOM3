@@ -150,25 +150,26 @@ idImage::idImage
 */
 idImage::idImage( const char* name ) : imgName( name )
 {
-	m_internalFormat = VK_FORMAT_UNDEFINED;
-	m_image = VK_NULL_HANDLE;
-	m_view = VK_NULL_HANDLE;
-	m_layout = VK_IMAGE_LAYOUT_GENERAL;
-	m_sampler = VK_NULL_HANDLE;
-	m_renderPass = VK_NULL_HANDLE;
-	m_frameBuffer = VK_NULL_HANDLE;
-	m_depthAttachment = NULL;
-	m_resolveAttachment = NULL;
-	m_generatorFunction = NULL;
-	m_filter = TF_DEFAULT;
-	m_repeat = TR_REPEAT;
-	m_cubeFiles = CF_2D;
-
-	m_referencedOutsideLevelLoad = false;
-	m_levelLoadReferenced = false;
-	m_sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
-	m_binaryFileTime = FILE_NOT_FOUND_TIMESTAMP;
-	m_refCount = 0;
+	bIsSwapChainImage = false;
+	internalFormat = VK_FORMAT_UNDEFINED;
+	image = VK_NULL_HANDLE;
+	view = VK_NULL_HANDLE;
+	layout = VK_IMAGE_LAYOUT_GENERAL;
+	sampler = VK_NULL_HANDLE;
+	renderPass = VK_NULL_HANDLE;
+	frameBuffer = VK_NULL_HANDLE;
+	depthAttachment = NULL;
+	resolveAttachment = NULL;
+	generatorFunction = NULL;
+	filter = TF_DEFAULT;
+	repeat = TR_REPEAT;
+	cubeFiles = CF_2D;
+	
+	referencedOutsideLevelLoad = false;
+	levelLoadReferenced = false;
+	sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
+	binaryFileTime = FILE_NOT_FOUND_TIMESTAMP;
+	refCount = 0;
 }
 
 /*
@@ -180,7 +181,8 @@ idImage::~idImage()
 {
 	if( !bIsSwapChainImage )
 	{
-	PurgeImage();
+		PurgeImage();
+	}
 }
 
 /*
@@ -316,23 +318,24 @@ void idImage::EmptyGarbage()
 idImage::CreateFromSwapImage
 ====================
 */
-void idImage::CreateFromSwapImage( VkImage image, VkImageView view, VkFormat format, int width, int height ) {
-	m_bIsSwapimage = true;
-	m_image = image;
-	m_view = view;
-	m_internalFormat = format;
-
-	m_opts.textureType = TT_2D;
-	m_opts.width = width;
-	m_opts.height = height;
-	m_opts.format = FMT_RGBA8;
-	m_opts.colorFormat = CFM_DEFAULT;
-	m_opts.numLevels = 1;
-	m_opts.samples = static_cast< textureSamples_t >( vkcontext.sampleCount );
-	m_opts.usage = TD_TARGET;
-
+void idImage::CreateFromSwapImage( VkImage image, VkImageView view, VkFormat format, int width, int height )
+{
+	bIsSwapChainImage = true;
+	image = image;
+	view = view;
+	internalFormat = format;
+	
+	opts.textureType = TT_2D;
+	opts.width = width;
+	opts.height = height;
+	opts.format = FMT_RGBA8;
+	opts.colorFormat = CFM_DEFAULT;
+	opts.numLevels = 1;
+	opts.samples = static_cast< textureSamples_t >( vkcontext.sampleCount );
+	opts.usage = TD_TARGET;
+	
 	CreateSampler();
-
+	
 	CreateFrameBuffer();
 }
 
@@ -341,11 +344,13 @@ void idImage::CreateFromSwapImage( VkImage image, VkImageView view, VkFormat for
 idImage::AllocImage
 ====================
 */
-void idImage::AllocImage() {
-	if ( m_bIsSwapimage ) {
+void idImage::AllocImage()
+{
+	if( bIsSwapChainImage )
+	{
 		return;
 	}
-
+	
 	PurgeImage();
 	
 	internalFormat = VK_GetFormatFromTextureFormat( opts.format );
@@ -354,11 +359,16 @@ void idImage::AllocImage() {
 	CreateSampler();
 	
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
-	if ( m_opts.usage == TD_TARGET ) {
+	if( opts.usage == TD_TARGET )
+	{
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	} else if ( m_opts.usage == TD_RESOLVE ) {
+	}
+	else if( opts.usage == TD_RESOLVE )
+	{
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-	} else if ( m_opts.format == FMT_DEPTH ) {
+	}
+	else if( opts.format == FMT_DEPTH )
+	{
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	}
 	else
@@ -417,9 +427,10 @@ void idImage::AllocImage() {
 	viewCreateInfo.subresourceRange.baseMipLevel = 0;
 	
 	ID_VK_CHECK( vkCreateImageView( vkcontext.device, &viewCreateInfo, NULL, &view ) );
-
+	
 	// If this is a render target then create the frame buffer
-	if ( m_opts.usage == TD_TARGET ) {
+	if( opts.usage == TD_TARGET )
+	{
 		CreateFrameBuffer();
 	}
 }
@@ -429,91 +440,94 @@ void idImage::AllocImage() {
 idImage::CreateFrameBuffer
 ====================
 */
-void idImage::CreateFrameBuffer() {
+void idImage::CreateFrameBuffer()
+{
 	const bool resolve = vkcontext.sampleCount > VK_SAMPLE_COUNT_1_BIT;
-
+	
 	VkImageView attachments[ 3 ];
 	memset( attachments, 0, sizeof( attachments ) );
-	attachments[ 0 ] = m_view;
-
+	attachments[ 0 ] = view;
+	
 	// Create the attachments
 	{
 		idImageOpts depthOptions;
 		depthOptions.format = FMT_DEPTH;
-		depthOptions.width = m_opts.width;
-		depthOptions.height = m_opts.height;
+		depthOptions.width = opts.width;
+		depthOptions.height = opts.height;
 		depthOptions.numLevels = 1;
 		depthOptions.samples = static_cast< textureSamples_t >( vkcontext.sampleCount );
-
-		m_depthAttachment = globalImages->ScratchImage( va( "%s_depth", m_imgName.c_str() ), depthOptions );
-		attachments[ 1 ] = m_depthAttachment->GetView();
-
+		
+		depthAttachment = globalImages->ScratchImage( va( "%s_depth", imgName.c_str() ), depthOptions );
+		attachments[ 1 ] = depthAttachment->GetView();
+		
 		const bool resolve = vkcontext.sampleCount > VK_SAMPLE_COUNT_1_BIT;
-
-		if ( resolve ) {
+		
+		if( resolve )
+		{
 			idImageOpts resolveOptions;
 			resolveOptions.format = FMT_RGBA8;
 			resolveOptions.usage = TD_RESOLVE;
-			resolveOptions.width = m_opts.width;
-			resolveOptions.height = m_opts.height;
+			resolveOptions.width = opts.width;
+			resolveOptions.height = opts.height;
 			resolveOptions.numLevels = 1;
 			resolveOptions.samples = static_cast< textureSamples_t >( vkcontext.sampleCount );
-
-			m_resolveAttachment = globalImages->ScratchImage( va( "%s_resolve", m_imgName.c_str() ), resolveOptions );
-			attachments[ 2 ] = m_resolveAttachment->GetView();
+			
+			resolveAttachment = globalImages->ScratchImage( va( "%s_resolve", imgName.c_str() ), resolveOptions );
+			attachments[ 2 ] = resolveAttachment->GetView();
 		}
 	}
-
+	
 	// Create the renderpass
 	{
 		VkAttachmentDescription attachmentDesc[ 3 ];
 		memset( attachmentDesc, 0, sizeof( attachmentDesc ) );
-
-		VkAttachmentDescription & colorAttachment = attachmentDesc[ 0 ];
-		colorAttachment.format = m_internalFormat;
+		
+		VkAttachmentDescription& colorAttachment = attachmentDesc[ 0 ];
+		colorAttachment.format = internalFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-		VkAttachmentDescription & depthAttachment = attachmentDesc[ 1 ];
+		
+		VkAttachmentDescription& depthAttachment = attachmentDesc[ 1 ];
 		depthAttachment.format = vkcontext.depthFormat;
 		depthAttachment.samples = vkcontext.sampleCount;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-		VkAttachmentDescription & resolveAttachment = attachmentDesc[ 2 ];
-		resolveAttachment.format = m_internalFormat;
+		
+		VkAttachmentDescription& resolveAttachment = attachmentDesc[ 2 ];
+		resolveAttachment.format = internalFormat;
 		resolveAttachment.samples = vkcontext.sampleCount;
 		resolveAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		resolveAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		resolveAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		resolveAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
+		
 		VkAttachmentReference colorRef = {};
 		colorRef.attachment = resolve ? 2 : 0;
 		colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
+		
 		VkAttachmentReference depthRef = {};
 		depthRef.attachment = 1;
 		depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
+		
 		VkAttachmentReference resolveRef = {};
 		resolveRef.attachment = 0;
 		resolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
+		
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorRef;
 		subpass.pDepthStencilAttachment = &depthRef;
-		if ( resolve ) {
+		if( resolve )
+		{
 			subpass.pResolveAttachments = &resolveRef;
 		}
-
+		
 		VkRenderPassCreateInfo renderPassCreateInfo = {};
 		renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassCreateInfo.attachmentCount = resolve ? 3 : 2;
@@ -521,22 +535,22 @@ void idImage::CreateFrameBuffer() {
 		renderPassCreateInfo.subpassCount = 1;
 		renderPassCreateInfo.pSubpasses = &subpass;
 		renderPassCreateInfo.dependencyCount = 0;
-
-		ID_VK_CHECK( vkCreateRenderPass( vkcontext.device, &renderPassCreateInfo, NULL, &m_renderPass ) );
+		
+		ID_VK_CHECK( vkCreateRenderPass( vkcontext.device, &renderPassCreateInfo, NULL, &renderPass ) );
 	}
-
+	
 	// Create the framebuffer
 	{
 		VkFramebufferCreateInfo frameBufferCreateInfo = {};
 		frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		frameBufferCreateInfo.renderPass = m_renderPass;
+		frameBufferCreateInfo.renderPass = renderPass;
 		frameBufferCreateInfo.attachmentCount = resolve ? 3 : 2;
 		frameBufferCreateInfo.pAttachments = attachments;
-		frameBufferCreateInfo.width = m_opts.width;
-		frameBufferCreateInfo.height = m_opts.height;
+		frameBufferCreateInfo.width = opts.width;
+		frameBufferCreateInfo.height = opts.height;
 		frameBufferCreateInfo.layers = 1;
-
-		ID_VK_CHECK( vkCreateFramebuffer( vkcontext.device, &frameBufferCreateInfo, NULL, &m_frameBuffer ) );
+		
+		ID_VK_CHECK( vkCreateFramebuffer( vkcontext.device, &frameBufferCreateInfo, NULL, &frameBuffer ) );
 	}
 }
 
@@ -545,21 +559,26 @@ void idImage::CreateFrameBuffer() {
 idImage::DestroyFrameBuffer
 ====================
 */
-void idImage::DestroyFrameBuffer() {
-	if ( m_depthAttachment ) {
-		m_depthAttachment->PurgeImage();
+void idImage::DestroyFrameBuffer()
+{
+	if( depthAttachment )
+	{
+		depthAttachment->PurgeImage();
 	}
-	if ( m_resolveAttachment ) {
-		m_resolveAttachment->PurgeImage();
+	if( resolveAttachment )
+	{
+		resolveAttachment->PurgeImage();
 	}
-
-	if ( m_renderPass != VK_NULL_HANDLE ) {
-		vkDestroyRenderPass( vkcontext.device, m_renderPass, NULL );
-		m_renderPass = VK_NULL_HANDLE;
+	
+	if( renderPass != VK_NULL_HANDLE )
+	{
+		vkDestroyRenderPass( vkcontext.device, renderPass, NULL );
+		renderPass = VK_NULL_HANDLE;
 	}
-	if ( m_frameBuffer != VK_NULL_HANDLE ) {
-		vkDestroyFramebuffer( vkcontext.device, m_frameBuffer, NULL );
-		m_frameBuffer = VK_NULL_HANDLE;
+	if( frameBuffer != VK_NULL_HANDLE )
+	{
+		vkDestroyFramebuffer( vkcontext.device, frameBuffer, NULL );
+		frameBuffer = VK_NULL_HANDLE;
 	}
 }
 
@@ -576,16 +595,19 @@ void idImage::PurgeImage()
 		sampler = VK_NULL_HANDLE;
 	}
 	
-	if ( m_bIsSwapimage ) {
-		m_view = VK_NULL_HANDLE;
-		m_image = VK_NULL_HANDLE;
-	} else if ( m_image != VK_NULL_HANDLE ) {
-		m_allocationGarbage[ m_garbageIndex ].Append( m_allocation );
-		m_viewGarbage[ m_garbageIndex ].Append( m_view );
-		m_imageGarbage[ m_garbageIndex ].Append( m_image );
-
-#if defined( ID_USE_AMD_ALLOCATOR )
-		m_allocation = NULL;
+	if( bIsSwapChainImage )
+	{
+		view = VK_NULL_HANDLE;
+		image = VK_NULL_HANDLE;
+	}
+	else if( image != VK_NULL_HANDLE )
+	{
+		allocationGarbage[ garbageIndex ].Append( allocation );
+		viewGarbage[ garbageIndex ].Append( view );
+		imageGarbage[ garbageIndex ].Append( image );
+		
+#if defined( USE_AMD_ALLOCATOR )
+		allocation = NULL;
 #else
 		allocation = vulkanAllocation_t();
 #endif
@@ -593,8 +615,9 @@ void idImage::PurgeImage()
 		view = VK_NULL_HANDLE;
 		image = VK_NULL_HANDLE;
 	}
-
-	if ( m_opts.usage == TD_TARGET ) {
+	
+	if( opts.usage == TD_TARGET )
+	{
 		DestroyFrameBuffer();
 	}
 }

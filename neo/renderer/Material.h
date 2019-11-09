@@ -374,7 +374,7 @@ public:
 	//BSM Nerve: Added for material editor
 	bool				Save( const char* fileName = NULL );
 	
-						// returns the internal image name for stage 0
+	// returns the internal image name for stage 0
 	virtual const char*	ImageName() const;
 	
 	void				ReloadImages( bool force ) const;

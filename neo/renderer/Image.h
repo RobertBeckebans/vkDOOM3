@@ -237,22 +237,32 @@ public:
 	//---------------------------------------------
 	
 #if defined( ID_VULKAN )
-	VkImage			GetImage() const { return m_image; }
-	VkImageView		GetView() const { return m_view; }
-	VkImageLayout	GetLayout() const { return m_layout; }
-	VkSampler		GetSampler() const { return m_sampler; }
-	VkRenderPass	GetRenderPass() const { return m_renderPass; }
-	VkFramebuffer	GetFrameBuffer() const { return m_frameBuffer; }
-
-	void		CreateFromSwapImage( VkImage image, VkImageView view, VkFormat format, int width, int height );
-	VkImageLayout GetLayout() const
+	VkImage			GetImage() const
+	{
+		return image;
+	}
+	VkImageView		GetView() const
+	{
+		return view;
+	}
+	VkImageLayout	GetLayout() const
 	{
 		return layout;
 	}
-	VkSampler	GetSampler() const
+	VkSampler		GetSampler() const
 	{
 		return sampler;
 	}
+	VkRenderPass	GetRenderPass() const
+	{
+		return renderPass;
+	}
+	VkFramebuffer	GetFrameBuffer() const
+	{
+		return frameBuffer;
+	}
+	
+	void		CreateFromSwapImage( VkImage image, VkImageView view, VkFormat format, int width, int height );
 #endif
 	
 	void		AllocImage( const idImageOpts& imgOpts, textureFilter_t filter, textureRepeat_t repeat );
@@ -317,7 +327,7 @@ private:
 	// parameters that define this image
 	idStr				imgName;				// game path, including extension (except for cube maps), may be an image program
 	cubeFiles_t			cubeFiles;				// If this is a cube map, and if so, what kind
-	void				(*m_generatorFunction)( idImage *image, textureUsage_t usage );	// NULL for files
+	void	( *generatorFunction )( idImage* image, textureUsage_t usage );	// NULL for files
 	idImageOpts			opts;					// Parameters that determine the storage method
 	
 	// Sampler settings
@@ -331,18 +341,17 @@ private:
 	
 	int					refCount;				// overall ref count
 	
-#if defined( ID_VULKAN )
-	bool				m_bIsSwapimage;
+	bool				bIsSwapChainImage;
+	VkFormat			internalFormat;
 	VkImage				image;
 	VkImageView			view;
 	VkImageLayout		layout;
 	VkSampler			sampler;
-	VkRenderPass		m_renderPass;
-	VkFramebuffer		m_frameBuffer;
-
-	idImage *			m_depthAttachment;
-	idImage *			m_resolveAttachment;
-#endif
+	VkRenderPass		renderPass;
+	VkFramebuffer		frameBuffer;
+	
+	idImage* 			depthAttachment;
+	idImage* 			resolveAttachment;
 	
 #if defined( USE_AMD_ALLOCATOR )
 	VmaAllocation		allocation;
@@ -395,7 +404,7 @@ public:
 	
 	// The callback will be issued immediately, and later if images are reloaded or vid_restart
 	// The callback function should call one of the idImage::Generate* functions to fill in the data
-	idImage *			ImageFromFunction( const char *name, void (*generatorFunction)( idImage *image, textureUsage_t usage ), textureUsage_t usage = TD_DEFAULT );
+	idImage* 			ImageFromFunction( const char* name, void ( *generatorFunction )( idImage* image, textureUsage_t usage ), textureUsage_t usage = TD_DEFAULT );
 	
 	// purges all the images before a vid_restart
 	void				PurgeAllImages();
@@ -403,9 +412,9 @@ public:
 	// reloads all appropriate images after a vid_restart
 	void				ReloadImages( bool all );
 	
-	// reloads all the render targets 
+	// reloads all the render targets
 	void				ReloadTargets();
-
+	
 	// Called only by renderSystem::BeginLevelLoad
 	void				BeginLevelLoad();
 	

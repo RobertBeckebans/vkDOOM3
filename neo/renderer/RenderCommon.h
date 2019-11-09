@@ -79,7 +79,8 @@ static const int MAX_UBO_PARMS				= 2;
 static const int NUM_TIMESTAMP_QUERIES		= 16;
 #endif
 
-enum rpStage_t {
+enum rpStage_t
+{
 	SHADER_STAGE_VERTEX		= BIT( 0 ),
 	SHADER_STAGE_FRAGMENT	= BIT( 1 ),
 	SHADER_STAGE_ALL		= SHADER_STAGE_VERTEX | SHADER_STAGE_FRAGMENT
@@ -89,7 +90,7 @@ enum rpStage_t {
 typedef uint64 vertCacheHandle_t;
 
 // How is this texture used?  Determines the storage and color format
-enum textureUsage_t{
+enum textureUsage_t
 {
 	TD_SPECULAR,			// may be compressed, and always zeros the alpha channel
 	TD_DIFFUSE,				// may be compressed
@@ -107,7 +108,7 @@ enum textureUsage_t{
 	TD_RESOLVE				// resolve target
 };
 
-enum cubeFiles_t{
+enum cubeFiles_t
 {
 	CF_2D,			// not a cube map
 	CF_NATIVE,		// _px, _nx, _py, etc, directly sent to GL
@@ -608,8 +609,8 @@ struct viewDef_t
 	idRenderMatrix		projectionRenderMatrix;	// tech5 version of projectionMatrix
 	viewEntity_t		worldSpace;
 	
-	idRenderWorld *		renderWorld;
-	idImage *			renderTarget;
+	idRenderWorld* 		renderWorld;
+	idImage* 			renderTarget;
 	
 	idVec3				initialViewAreaOrigin;
 	// Used to find the portalArea that view flooding will take place from.
@@ -749,14 +750,16 @@ idRenderBackend commands
 ===========================================================================
 */
 
-struct renderCommand_t {
+struct renderCommand_t
+{
 	renderCommand_t() :
 		viewDef( NULL ),
-		target( NULL ) {
+		target( NULL )
+	{
 	}
-
-	viewDef_t *	viewDef;
-	idImage *	target;
+	
+	viewDef_t* 	viewDef;
+	idImage* 	target;
 };
 
 /*

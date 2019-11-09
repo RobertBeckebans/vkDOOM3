@@ -102,7 +102,7 @@ ID_INLINE void idImage::DeriveOpts()
 	{
 		opts.colorFormat = CFM_DEFAULT;
 		
-		switch ( opts.usage )
+		switch( opts.usage )
 		{
 			case TD_COVERAGE:
 				opts.format = FMT_DXT1;
@@ -110,11 +110,11 @@ ID_INLINE void idImage::DeriveOpts()
 				break;
 			case TD_DEPTH:
 				opts.format = FMT_DEPTH;
-				m_opts.numLevels = 1;
+				opts.numLevels = 1;
 				break;
 			case TD_TARGET:
-				m_opts.format = FMT_RGBA8;
-				m_opts.numLevels = 1;
+				opts.format = FMT_RGBA8;
+				opts.numLevels = 1;
 				break;
 			case TD_DIFFUSE:
 				// TD_DIFFUSE gets only set to when its a diffuse texture for an interaction
@@ -194,7 +194,7 @@ ID_INLINE void idImage::DeriveOpts()
 idImage::AllocImage
 ========================
 */
-void idImage::AllocImage( const idImageOpts & imgOpts, textureFilter_t tf, textureRepeat_t tr ) {
+void idImage::AllocImage( const idImageOpts& imgOpts, textureFilter_t tf, textureRepeat_t tr )
 {
 	filter = tf;
 	repeat = tr;
@@ -236,8 +236,9 @@ On exit, the idImage will have a valid OpenGL texture number that can be bound
 void idImage::ActuallyLoadImage( bool fromBackEnd )
 {
 	// this is the ONLY place generatorFunction will ever be called
-	if ( m_generatorFunction ) {
-		m_generatorFunction( this, m_opts.usage );
+	if( generatorFunction )
+	{
+		generatorFunction( this, opts.usage );
 		return;
 	}
 	
@@ -261,7 +262,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 		else
 		{
 			opts.textureType = TT_2D;
-			R_LoadImageProgram( GetName(), NULL, NULL, NULL, &sourceFileTime, &usage );
+			R_LoadImageProgram( GetName(), NULL, NULL, NULL, &sourceFileTime, &opts.usage );
 		}
 	}
 	
@@ -269,7 +270,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 	DeriveOpts();
 	
 	idStrStatic< MAX_OSPATH > generatedName = GetName();
-	GetGeneratedName( generatedName, m_opts.usage, m_cubeFiles );
+	GetGeneratedName( generatedName, opts.usage, cubeFiles );
 	
 	idBinaryImage im( generatedName );
 	binaryFileTime = im.LoadFromGeneratedFile( sourceFileTime );
@@ -334,7 +335,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 		if( cvarSystem->GetCVarBool( "fs_buildresources" ) )
 		{
 			// for resource gathering write this image to the preload file for this map
-			fileSystem->AddImagePreload( GetName(), m_filter, m_repeat, m_opts.usage, m_cubeFiles );
+			fileSystem->AddImagePreload( GetName(), filter, repeat, opts.usage, cubeFiles );
 		}
 	}
 	else
@@ -373,7 +374,7 @@ void idImage::ActuallyLoadImage( bool fromBackEnd )
 			byte* pic;
 			
 			// load the full specification, and perform any image program calculations
-			R_LoadImageProgram( GetName(), &pic, &width, &height, &m_sourceFileTime, &m_opts.usage );
+			R_LoadImageProgram( GetName(), &pic, &width, &height, &sourceFileTime, &opts.usage );
 			
 			if( pic == NULL )
 			{
@@ -555,8 +556,9 @@ void idImage::Reload( bool force )
 {
 	// always regenerate functional images
 	if( generatorFunction )
+	{
 		idLib::Printf( "regenerating %s.\n", GetName() );
-		m_generatorFunction( this, m_opts.usage );
+		generatorFunction( this, opts.usage );
 		return;
 	}
 	
@@ -594,12 +596,11 @@ idImage::GenerateImage
 */
 void idImage::GenerateImage( const byte* pic, int width, int height, textureFilter_t filterParm, textureRepeat_t repeatParm, textureUsage_t usageParm )
 {
-
 	PurgeImage();
 	
 	filter = filterParm;
 	repeat = repeatParm;
-	usage = usageParm;
+	opts.usage = usageParm;
 	cubeFiles = CF_2D;
 	
 	opts.textureType = TT_2D;
@@ -637,7 +638,7 @@ void idImage::GenerateCubeImage( const byte* pic[6], int size, textureFilter_t f
 	
 	filter = filterParm;
 	repeat = TR_CLAMP;
-	usage = usageParm;
+	opts.usage = usageParm;
 	cubeFiles = CF_NATIVE;
 	
 	opts.textureType = TT_CUBIC;
@@ -682,39 +683,44 @@ void idImage::UploadScratchImage( const byte* data, int cols, int rows )
 			pic[i] = data + cols * rows * 4 * i;
 		}
 		
-		if ( m_opts.textureType != TT_CUBIC || m_opts.usage != TD_LOOKUP_TABLE_RGBA ) {
+		if( opts.textureType != TT_CUBIC || opts.usage != TD_LOOKUP_TABLE_RGBA )
 		{
-			GenerateCubeImage( pic, cols, TF_LINEAR, TD_LOOKUP_TABLE_RGBA );
-			return;
-		}
-		if( opts.width != cols || opts.height != rows )
-		{
-			opts.width = cols;
-			opts.height = rows;
+			{
+				GenerateCubeImage( pic, cols, TF_LINEAR, TD_LOOKUP_TABLE_RGBA );
+				return;
+			}
+			if( opts.width != cols || opts.height != rows )
+			{
+				opts.width = cols;
+				opts.height = rows;
+				
+				AllocImage();
+			}
+			SetSamplerState( TF_LINEAR, TR_CLAMP );
+			for( int i = 0; i < 6; i++ )
+			{
+				SubImageUpload( 0, 0, 0, i, opts.width, opts.height, pic[i] );
+			}
 			
-			AllocImage();
 		}
-		SetSamplerState( TF_LINEAR, TR_CLAMP );
-		for( int i = 0; i < 6; i++ )
+		else
 		{
-			SubImageUpload( 0, 0, 0, i, opts.width, opts.height, pic[i] );
-		}
-	}
-		if ( m_opts.textureType != TT_2D || m_opts.usage != TD_LOOKUP_TABLE_RGBA ) {
-	{
-		if( opts.textureType != TT_2D || usage != TD_LOOKUP_TABLE_RGBA )
-		{
-			GenerateImage( data, cols, rows, TF_LINEAR, TR_REPEAT, TD_LOOKUP_TABLE_RGBA );
-			return;
-		}
-		if( opts.width != cols || opts.height != rows )
-		{
-			opts.width = cols;
-			opts.height = rows;
+			if( opts.textureType != TT_2D || opts.usage != TD_LOOKUP_TABLE_RGBA )
+			{
+				GenerateImage( data, cols, rows, TF_LINEAR, TR_REPEAT, TD_LOOKUP_TABLE_RGBA );
+				return;
+			}
 			
-			AllocImage();
+			if( opts.width != cols || opts.height != rows )
+			{
+				opts.width = cols;
+				opts.height = rows;
+				
+				AllocImage();
+			}
+			
+			SetSamplerState( TF_LINEAR, TR_REPEAT );
+			SubImageUpload( 0, 0, 0, 0, opts.width, opts.height, data );
 		}
-		SetSamplerState( TF_LINEAR, TR_REPEAT );
-		SubImageUpload( 0, 0, 0, 0, opts.width, opts.height, data );
 	}
 }

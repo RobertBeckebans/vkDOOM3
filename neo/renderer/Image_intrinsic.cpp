@@ -41,7 +41,7 @@ the default image will be grey with a white box outline
 to allow you to see the mapping coordinates on a surface
 ==================
 */
-static void R_DefaultImage( idImage * image, textureUsage_t usage ) {
+static void R_DefaultImage( idImage* image, textureUsage_t usage )
 {
 	int		x, y;
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
@@ -106,7 +106,7 @@ static void R_DefaultImage( idImage * image, textureUsage_t usage ) {
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
-static void R_WhiteImage( idImage * image, textureUsage_t usage ) {
+static void R_WhiteImage( idImage* image, textureUsage_t usage )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 	
@@ -119,7 +119,7 @@ static void R_WhiteImage( idImage * image, textureUsage_t usage ) {
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
-static void R_BlackImage( idImage * image, textureUsage_t usage ) {
+static void R_BlackImage( idImage* image, textureUsage_t usage )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 	
@@ -132,7 +132,7 @@ static void R_BlackImage( idImage * image, textureUsage_t usage ) {
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
-static void R_RGBA8Image( idImage * image, textureUsage_t usage ) {
+static void R_RGBA8Image( idImage* image, textureUsage_t usage )
 {
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
@@ -149,7 +149,7 @@ static void R_RGBA8Image( idImage * image, textureUsage_t usage ) {
 	Mem_Free( data );
 }
 
-static void R_DepthImage( idImage * image, textureUsage_t usage ) {
+static void R_DepthImage( idImage* image, textureUsage_t usage )
 {
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
@@ -165,7 +165,7 @@ static void R_DepthImage( idImage * image, textureUsage_t usage ) {
 	Mem_Free( data );
 }
 
-static void R_AlphaNotchImage( idImage * image, textureUsage_t usage ) {
+static void R_AlphaNotchImage( idImage* image, textureUsage_t usage )
 {
 	byte	data[2][4];
 	
@@ -176,10 +176,10 @@ static void R_AlphaNotchImage( idImage * image, textureUsage_t usage ) {
 	data[1][0] = data[1][1] = data[1][2] = 255;
 	data[1][3] = 255;
 	
-	image->GenerateImage( (byte *)data, 2, 1, TF_NEAREST, TR_CLAMP, usage );
+	image->GenerateImage( ( byte* )data, 2, 1, TF_NEAREST, TR_CLAMP, usage );
 }
 
-static void R_FlatNormalImage( idImage * image, textureUsage_t usage ) {
+static void R_FlatNormalImage( idImage* image, textureUsage_t usage )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 	
@@ -210,7 +210,7 @@ third will still be projection based
 */
 const int FOG_SIZE = 128;
 
-void R_FogImage( idImage * image, textureUsage_t usage ) {
+void R_FogImage( idImage* image, textureUsage_t usage )
 {
 	int		x, y;
 	byte	data[FOG_SIZE][FOG_SIZE][4];
@@ -270,7 +270,7 @@ R_CreateNoFalloffImage
 This is a solid white texture that is zero clamped.
 ================
 */
-static void R_CreateNoFalloffImage( idImage * image, textureUsage_t usage ) {
+static void R_CreateNoFalloffImage( idImage* image, textureUsage_t usage )
 {
 	int		x, y;
 	byte	data[16][FALLOFF_TEXTURE_SIZE][4];
@@ -286,9 +286,9 @@ static void R_CreateNoFalloffImage( idImage * image, textureUsage_t usage ) {
 			data[y][x][3] = 255;
 		}
 	}
-	image->GenerateImage( 
-		(byte *)data, 
-		FALLOFF_TEXTURE_SIZE, 16, 
+	image->GenerateImage(
+		( byte* )data,
+		FALLOFF_TEXTURE_SIZE, 16,
 		TF_DEFAULT, TR_CLAMP_TO_ZERO, usage );
 }
 
@@ -385,7 +385,7 @@ Modulate the fog alpha density based on the distance of the
 start and end points to the terminator plane
 ================
 */
-void R_FogEnterImage( idImage * image, textureUsage_t usage ) {
+void R_FogEnterImage( idImage* image, textureUsage_t usage )
 {
 	int		x, y;
 	byte	data[FOG_ENTER_SIZE][FOG_ENTER_SIZE][4];
@@ -432,7 +432,7 @@ R_QuadraticImage
 static const int QUADRATIC_WIDTH = 32;
 static const int QUADRATIC_HEIGHT = 4;
 
-void R_QuadraticImage( idImage * image, textureUsage_t usage ) {
+void R_QuadraticImage( idImage* image, textureUsage_t usage )
 {
 	int		x, y;
 	byte	data[QUADRATIC_HEIGHT][QUADRATIC_WIDTH][4];
@@ -469,9 +469,9 @@ void R_QuadraticImage( idImage * image, textureUsage_t usage ) {
 		}
 	}
 	
-	image->GenerateImage( 
-		(byte *)data, 
-		QUADRATIC_WIDTH, QUADRATIC_HEIGHT, 
+	image->GenerateImage(
+		( byte* )data,
+		QUADRATIC_WIDTH, QUADRATIC_HEIGHT,
 		TF_DEFAULT, TR_CLAMP, usage );
 }
 
@@ -486,18 +486,18 @@ void idImageManager::CreateIntrinsicImages()
 	defaultImage = ImageFromFunction( "_default", R_DefaultImage );
 	whiteImage = ImageFromFunction( "_white", R_WhiteImage );
 	blackImage = ImageFromFunction( "_black", R_BlackImage );
-	m_flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage, TD_BUMP );
-	m_alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage, TD_LOOKUP_TABLE_ALPHA );
-	m_fogImage = ImageFromFunction( "_fog", R_FogImage, TD_LOOKUP_TABLE_ALPHA );
-	m_fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage, TD_LOOKUP_TABLE_ALPHA );
-	m_noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage, TD_LOOKUP_TABLE_MONO );
-	m_quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage, TD_LOOKUP_TABLE_RGB1 );
+	flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage, TD_BUMP );
+	alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage, TD_LOOKUP_TABLE_ALPHA );
+	fogImage = ImageFromFunction( "_fog", R_FogImage, TD_LOOKUP_TABLE_ALPHA );
+	fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage, TD_LOOKUP_TABLE_ALPHA );
+	noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage, TD_LOOKUP_TABLE_MONO );
+	quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage, TD_LOOKUP_TABLE_RGB1 );
 	
 	// scratchImage is used for screen wipes/doublevision etc..
-	m_scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image, TD_TARGET );
-	m_scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image, TD_TARGET );
-	m_currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image, TD_TARGET );
-	m_accumImage = ImageFromFunction( "_accum", R_RGBA8Image, TD_TARGET );
+	scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image, TD_TARGET );
+	scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image, TD_TARGET );
+	currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image, TD_TARGET );
+	accumImage = ImageFromFunction( "_accum", R_RGBA8Image, TD_TARGET );
 	
 	loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
 	hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );

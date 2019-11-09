@@ -319,7 +319,7 @@ with a callback which must work at any time, allowing the OpenGL
 system to be completely regenerated if needed.
 ==================
 */
-idImage *idImageManager::ImageFromFunction( const char *_name, void (*generatorFunction)( idImage * image, textureUsage_t usage ), textureUsage_t usage ) {
+idImage* idImageManager::ImageFromFunction( const char* _name, void ( *generatorFunction )( idImage* image, textureUsage_t usage ), textureUsage_t usage )
 {
 
 	// strip any .tga file extensions from anywhere in the _name
@@ -346,7 +346,7 @@ idImage *idImageManager::ImageFromFunction( const char *_name, void (*generatorF
 	idImage*	 image = AllocImage( name );
 	
 	image->generatorFunction = generatorFunction;
-	image->m_opts.usage = usage;
+	image->opts.usage = usage;
 	
 	// check for precompressed, load is from the front end
 	image->referencedOutsideLevelLoad = true;
@@ -362,21 +362,27 @@ PatchUsage
 HACK to change usage of images without being able to repackage assets.
 ==============
 */
-static void PatchUsage( const char * name, textureUsage_t & usage ) {
-	if ( idStr::Icmpn( name, "fonts", 5 ) == 0 || idStr::Icmpn( name, "newfonts", 8 ) == 0 ) {
+static void PatchUsage( const char* name, textureUsage_t& usage )
+{
+	if( idStr::Icmpn( name, "fonts", 5 ) == 0 || idStr::Icmpn( name, "newfonts", 8 ) == 0 )
+	{
 		usage = TD_FONT;
 	}
-	if ( idStr::Icmpn( name, "lights", 6 ) == 0 ) {
+	if( idStr::Icmpn( name, "lights", 6 ) == 0 )
+	{
 		usage = TD_LIGHT;
 	}
-
-	static const char * const targetImages[] = {
+	
+	static const char* const targetImages[] =
+	{
 		"textures/dynamic/camera1",
 		NULL
 	};
-
-	for ( int i = 0; targetImages[ i ] != NULL; ++i ) {
-		if ( idStr::Icmp( name, targetImages[ i ] ) == 0 ) {
+	
+	for( int i = 0; targetImages[ i ] != NULL; ++i )
+	{
+		if( idStr::Icmp( name, targetImages[ i ] ) == 0 )
+		{
 			usage = TD_TARGET;
 		}
 	}
@@ -399,7 +405,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 		declManager->MediaPrint( "DEFAULTED\n" );
 		return globalImages->defaultImage;
 	}
-
+	
 	PatchUsage( _name, usage );
 	
 	// strip any .tga file extensions from anywhere in the _name, including image program parameters
@@ -433,13 +439,13 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 				// share the image data
 				continue;
 			}
-			if ( image->m_opts.usage != usage ) {
+			if( image->opts.usage != usage )
 			{
 				// If an image is used differently then we need 2 copies of it because usage affects the way it's compressed and swizzled
 				continue;
 			}
 			
-			image->m_opts.usage = usage;
+			image->opts.usage = usage;
 			image->levelLoadReferenced = true;
 			
 			if( ( !insideLevelLoad  || preloadingMapImages ) && !image->IsLoaded() )
@@ -457,7 +463,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	//
 	idImage*	 image = AllocImage( name );
 	image->cubeFiles = cubeMap;
-	image->m_opts.usage = usage;
+	image->opts.usage = usage;
 	image->filter = filter;
 	image->repeat = repeat;
 	
@@ -566,16 +572,19 @@ void idImageManager::ReloadImages( bool all )
 	{
 		images[ i ]->Reload( all );
 	}
-
+}
 /*
 ===============
 ReloadImages
 ===============
 */
-void idImageManager::ReloadTargets() {
-	for ( int i = 0; i < m_images.Num(); ++i ) {
-		if ( m_images[ i ]->GetOpts().usage == TD_TARGET ) {
-			m_images[ i ]->Reload( true );
+void idImageManager::ReloadTargets()
+{
+	for( int i = 0; i < images.Num(); ++i )
+	{
+		if( images[ i ]->GetOpts().usage == TD_TARGET )
+		{
+			images[ i ]->Reload( true );
 		}
 	}
 }
