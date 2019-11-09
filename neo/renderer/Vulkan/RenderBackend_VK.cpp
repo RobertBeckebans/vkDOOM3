@@ -1528,30 +1528,7 @@ void idRenderBackend::Restart()
 	CreateFrameBuffers();
 }
 
-/*
-====================
-idRenderBackend::BlockingSwapBuffers
-====================
-*/
-void idRenderBackend::BlockingSwapBuffers()
-{
-	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
-	
-	counter++;
-	currentFrameData = counter % NUM_FRAME_DATA;
-	
-	if( commandBufferRecorded[ currentFrameData ] == false )
-	{
-		return;
-	}
-	
-	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ], VK_TRUE, UINT64_MAX ) );
-	
-	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ] ) );
-	commandBufferRecorded[ currentFrameData ] = false;
-	
-	//vkDeviceWaitIdle( vkcontext.device );
-}
+
 
 /*
 ==================
@@ -1787,6 +1764,33 @@ void idRenderBackend::GL_EndFrame()
 	
 	counter++;
 	currentFrameData = counter % NUM_FRAME_DATA;
+}
+
+/*
+=============
+GL_BlockingSwapBuffers
+
+We want to exit this with the GPU idle, right at vsync
+=============
+*/
+void idRenderBackend::BlockingSwapBuffers()
+{
+	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
+	
+	counter++;
+	currentFrameData = counter % NUM_FRAME_DATA;
+	
+	if( commandBufferRecorded[ currentFrameData ] == false )
+	{
+		return;
+	}
+	
+	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ], VK_TRUE, UINT64_MAX ) );
+	
+	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ] ) );
+	commandBufferRecorded[ currentFrameData ] = false;
+	
+	//vkDeviceWaitIdle( vkcontext.device );
 }
 
 /*
