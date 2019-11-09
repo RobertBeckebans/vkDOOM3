@@ -1924,6 +1924,9 @@ void idRenderBackend::DrawView( const renderCommand_t& cmd )
 	// when a SS_POST_PROCESS material is used
 	currentRenderCopied = false;
 	
+	// RB: make sure that every EndRenderPass completes a BeginRenderPass
+	GL_StartRenderPass();
+	
 	// if there aren't any drawsurfs, do nothing
 	if( !viewDef->numDrawSurfs )
 	{
@@ -1938,8 +1941,6 @@ void idRenderBackend::DrawView( const renderCommand_t& cmd )
 	}
 	
 	pc.c_surfaces += viewDef->numDrawSurfs;
-	
-	GL_StartRenderPass();
 	
 	DBG_ShowOverdraw();
 	

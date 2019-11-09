@@ -1378,6 +1378,8 @@ void idRenderBackend::GL_StartFrame()
 	vkCmdResetQueryPool( commandBuffer, queryPool, 0, NUM_TIMESTAMP_QUERIES );
 	
 	vkCmdWriteTimestamp( commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, queryIndex[ currentFrameData ]++ );
+	
+	//GL_StartRenderPass();
 }
 
 /*
@@ -1387,9 +1389,13 @@ idRenderBackend::GL_EndFrame
 */
 void idRenderBackend::GL_EndFrame()
 {
+	VkCommandBuffer commandBuffer = commandBuffers[ currentFrameData ];
+	
 	vkCmdWriteTimestamp( commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPools[ currentFrameData ], queryIndex[ currentFrameData ]++ );
 	
-	vkCmdEndRenderPass( commandBuffer );
+	// RB: should be obsolete because of GL_EndRenderPass in DrawView
+	//vkCmdEndRenderPass( commandBuffer );
+	
 	// Transition our swap image to present.
 	// Do this instead of having the renderpass do the transition
 	// so we can take advantage of the general layout to avoid
@@ -2492,12 +2498,12 @@ static VkPipeline CreateGraphicsPipeline(
 	dynamic.Append( VK_DYNAMIC_STATE_SCISSOR );
 	dynamic.Append( VK_DYNAMIC_STATE_VIEWPORT );
 	
-	if( stateBits & GLS_POLYGON_OFFSET )
+	//if( stateBits & GLS_POLYGON_OFFSET )
 	{
 		dynamic.Append( VK_DYNAMIC_STATE_DEPTH_BIAS );
 	}
 	
-	if( stateBits & GLS_DEPTH_TEST_MASK )
+	//if( stateBits & GLS_DEPTH_TEST_MASK )
 	{
 		dynamic.Append( VK_DYNAMIC_STATE_DEPTH_BOUNDS );
 	}

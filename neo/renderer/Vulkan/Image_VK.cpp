@@ -318,11 +318,11 @@ void idImage::EmptyGarbage()
 idImage::CreateFromSwapImage
 ====================
 */
-void idImage::CreateFromSwapImage( VkImage image, VkImageView view, VkFormat format, int width, int height )
+void idImage::CreateFromSwapImage( VkImage _image, VkImageView _view, VkFormat format, int width, int height )
 {
 	bIsSwapChainImage = true;
-	image = image;
-	view = view;
+	image = _image;
+	view = _view;
 	internalFormat = format;
 	
 	opts.textureType = TT_2D;
@@ -494,6 +494,7 @@ void idImage::CreateFrameBuffer()
 		depthAttachment.format = vkcontext.depthFormat;
 		depthAttachment.samples = vkcontext.sampleCount;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
