@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,11 +33,11 @@ If you have questions concerning this license or the applicable additional terms
 #if defined( ID_VULKAN )
 
 #define VK_USE_PLATFORM_WIN32_KHR
-//#define ID_USE_AMD_ALLOCATOR
+#define USE_AMD_ALLOCATOR
 
 #include <vulkan/vulkan.h>
 
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 #include "vma.h"
 #endif
 
@@ -50,7 +50,7 @@ If you have questions concerning this license or the applicable additional terms
 	if ( !( x ) ) idLib::FatalError( "VK: %s - %s", msg, #x ); \
 }
 
-const char * VK_ErrorToString( VkResult result );
+const char* VK_ErrorToString( VkResult result );
 
 #endif
 

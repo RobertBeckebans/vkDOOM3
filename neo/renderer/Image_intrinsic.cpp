@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -42,47 +42,56 @@ to allow you to see the mapping coordinates on a surface
 ==================
 */
 static void R_DefaultImage( idImage * image, textureUsage_t usage ) {
+{
 	int		x, y;
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-
+	
 	memset( data, 0, sizeof( data ) );
-
-	if ( com_developer.GetBool() ) {
+	
+	if( com_developer.GetBool() )
+	{
 		// grey center
-		for ( y = 0 ; y < DEFAULT_SIZE ; y++ ) {
-			for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
+		for( y = 0 ; y < DEFAULT_SIZE ; y++ )
+		{
+			for( x = 0 ; x < DEFAULT_SIZE ; x++ )
+			{
 				data[y][x][0] = 32;
 				data[y][x][1] = 32;
 				data[y][x][2] = 32;
 				data[y][x][3] = 255;
 			}
 		}
-
+		
 		// white border
-		for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
+		for( x = 0 ; x < DEFAULT_SIZE ; x++ )
+		{
 			data[0][x][0] =
 				data[0][x][1] =
-				data[0][x][2] =
-				data[0][x][3] = 255;
-
+					data[0][x][2] =
+						data[0][x][3] = 255;
+						
 			data[x][0][0] =
 				data[x][0][1] =
-				data[x][0][2] =
-				data[x][0][3] = 255;
-
-			data[DEFAULT_SIZE-1][x][0] =
-				data[DEFAULT_SIZE-1][x][1] =
-				data[DEFAULT_SIZE-1][x][2] =
-				data[DEFAULT_SIZE-1][x][3] = 255;
-
-			data[x][DEFAULT_SIZE-1][0] =
-				data[x][DEFAULT_SIZE-1][1] =
-				data[x][DEFAULT_SIZE-1][2] =
-				data[x][DEFAULT_SIZE-1][3] = 255;
+					data[x][0][2] =
+						data[x][0][3] = 255;
+						
+			data[DEFAULT_SIZE - 1][x][0] =
+				data[DEFAULT_SIZE - 1][x][1] =
+					data[DEFAULT_SIZE - 1][x][2] =
+						data[DEFAULT_SIZE - 1][x][3] = 255;
+						
+			data[x][DEFAULT_SIZE - 1][0] =
+				data[x][DEFAULT_SIZE - 1][1] =
+					data[x][DEFAULT_SIZE - 1][2] =
+						data[x][DEFAULT_SIZE - 1][3] = 255;
 		}
-	} else {
-		for ( y = 0 ; y < DEFAULT_SIZE ; y++ ) {
-			for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
+	}
+	else
+	{
+		for( y = 0 ; y < DEFAULT_SIZE ; y++ )
+		{
+			for( x = 0 ; x < DEFAULT_SIZE ; x++ )
+			{
 				data[y][x][0] = 0;
 				data[y][x][1] = 0;
 				data[y][x][2] = 0;
@@ -90,97 +99,104 @@ static void R_DefaultImage( idImage * image, textureUsage_t usage ) {
 			}
 		}
 	}
-
-	image->GenerateImage( 
-		(byte *)data, 
-		DEFAULT_SIZE, DEFAULT_SIZE, 
+	
+	image->GenerateImage(
+		( byte* )data,
+		DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
 static void R_WhiteImage( idImage * image, textureUsage_t usage ) {
+{
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-
+	
 	memset( data, 255, sizeof( data ) );
-
+	
 	// solid white texture
-	image->GenerateImage( 
-		(byte *)data, 
-		DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage(
+		( byte* )data,
+		DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
 static void R_BlackImage( idImage * image, textureUsage_t usage ) {
+{
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-
+	
 	memset( data, 0, sizeof( data ) );
-
+	
 	// solid black texture
-	image->GenerateImage( 
-		(byte *)data, 
-		DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage(
+		( byte* )data,
+		DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
 static void R_RGBA8Image( idImage * image, textureUsage_t usage ) {
+{
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
-
-	byte * data = (byte *)Mem_ClearedAlloc( size, TAG_IMAGE );
+	
+	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
 	
 	memset( data, 0, sizeof( data ) );
-	image->GenerateImage( 
-		(byte *)data, 
-		width, height, 
+	image->GenerateImage(
+		( byte* )data,
+		width, height,
 		TF_DEFAULT, TR_REPEAT, usage );
-
+		
 	Mem_Free( data );
 }
 
 static void R_DepthImage( idImage * image, textureUsage_t usage ) {
+{
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
-
-	byte * data = (byte *)Mem_ClearedAlloc( size, TAG_IMAGE );
-
-	image->GenerateImage( 
-		(byte *)data, 
-		width, height, 
+	
+	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
+	
+	image->GenerateImage(
+		( byte* )data,
+		width, height,
 		TF_NEAREST, TR_CLAMP, TD_DEPTH );
-
+		
 	Mem_Free( data );
 }
 
 static void R_AlphaNotchImage( idImage * image, textureUsage_t usage ) {
+{
 	byte	data[2][4];
-
+	
 	// this is used for alpha test clip planes
-
+	
 	data[0][0] = data[0][1] = data[0][2] = 255;
 	data[0][3] = 0;
 	data[1][0] = data[1][1] = data[1][2] = 255;
 	data[1][3] = 255;
-
+	
 	image->GenerateImage( (byte *)data, 2, 1, TF_NEAREST, TR_CLAMP, usage );
 }
 
 static void R_FlatNormalImage( idImage * image, textureUsage_t usage ) {
+{
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-
+	
 	memset( data, 0, sizeof( data ) );
-
+	
 	// flat normal map for default bunp mapping
-	for ( int i = 0 ; i < 4 ; i++ ) {
+	for( int i = 0 ; i < 4 ; i++ )
+	{
 		data[0][i][0] = 128;
 		data[0][i][1] = 128;
 		data[0][i][2] = 255;
 		data[0][i][3] = 255;
 	}
-
-	image->GenerateImage( 
-		(byte *)data, 
-		2, 1, 
+	
+	image->GenerateImage(
+		( byte* )data,
+		2, 1,
 		TF_DEFAULT, TR_REPEAT, usage );
 }
 
@@ -195,48 +211,56 @@ third will still be projection based
 const int FOG_SIZE = 128;
 
 void R_FogImage( idImage * image, textureUsage_t usage ) {
-	int		x,y;
+{
+	int		x, y;
 	byte	data[FOG_SIZE][FOG_SIZE][4];
 	int		b;
-
+	
 	memset( data, 0, sizeof( data ) );
-
+	
 	float	step[256];
 	int		i;
 	float	remaining = 1.0;
-	for ( i = 0 ; i < 256 ; i++ ) {
+	for( i = 0 ; i < 256 ; i++ )
+	{
 		step[i] = remaining;
 		remaining *= 0.982f;
 	}
-
-	for (x=0 ; x<FOG_SIZE ; x++) {
-		for (y=0 ; y<FOG_SIZE ; y++) {
+	
+	for( x = 0 ; x < FOG_SIZE ; x++ )
+	{
+		for( y = 0 ; y < FOG_SIZE ; y++ )
+		{
 			float	d;
-
-			d = idMath::Sqrt( (x - FOG_SIZE/2) * (x - FOG_SIZE/2) 
-				+ (y - FOG_SIZE/2) * (y - FOG_SIZE / 2) );
-			d /= FOG_SIZE/2-1;
-
-			b = (byte)(d * 255);
-			if ( b <= 0 ) {
+			
+			d = idMath::Sqrt( ( x - FOG_SIZE / 2 ) * ( x - FOG_SIZE / 2 )
+							  + ( y - FOG_SIZE / 2 ) * ( y - FOG_SIZE / 2 ) );
+			d /= FOG_SIZE / 2 - 1;
+			
+			b = ( byte )( d * 255 );
+			if( b <= 0 )
+			{
 				b = 0;
-			} else if ( b > 255 ) {
+			}
+			else if( b > 255 )
+			{
 				b = 255;
 			}
-			b = (byte)(255 * ( 1.0 - step[b] ));
-			if ( x == 0 || x == FOG_SIZE-1 || y == 0 || y == FOG_SIZE-1 ) {
+			b = ( byte )( 255 * ( 1.0 - step[b] ) );
+			if( x == 0 || x == FOG_SIZE - 1 || y == 0 || y == FOG_SIZE - 1 )
+			{
 				b = 255;		// avoid clamping issues
 			}
 			data[y][x][0] =
-			data[y][x][1] =
-			data[y][x][2] = 255;
+				data[y][x][1] =
+					data[y][x][2] = 255;
 			data[y][x][3] = b;
 		}
 	}
-
-	image->GenerateImage( 
-		(byte *)data, 
-		FOG_SIZE, FOG_SIZE, 
+	
+	image->GenerateImage(
+		( byte* )data,
+		FOG_SIZE, FOG_SIZE,
 		TF_LINEAR, TR_CLAMP, usage );
 }
 
@@ -247,12 +271,15 @@ This is a solid white texture that is zero clamped.
 ================
 */
 static void R_CreateNoFalloffImage( idImage * image, textureUsage_t usage ) {
-	int		x,y;
+{
+	int		x, y;
 	byte	data[16][FALLOFF_TEXTURE_SIZE][4];
-
+	
 	memset( data, 0, sizeof( data ) );
-	for (x=1 ; x<FALLOFF_TEXTURE_SIZE-1 ; x++) {
-		for (y=1 ; y<15 ; y++) {
+	for( x = 1 ; x < FALLOFF_TEXTURE_SIZE - 1 ; x++ )
+	{
+		for( y = 1 ; y < 15 ; y++ )
+		{
 			data[y][x][0] = 255;
 			data[y][x][1] = 255;
 			data[y][x][2] = 255;
@@ -274,64 +301,79 @@ Height values below zero are inside the fog volume
 */
 static const float	RAMP_RANGE =	8;
 static const float	DEEP_RANGE =	-30;
-static float	FogFraction( float viewHeight, float targetHeight ) {
+static float	FogFraction( float viewHeight, float targetHeight )
+{
 	float	total = idMath::Fabs( targetHeight - viewHeight );
-
+	
 //	return targetHeight >= 0 ? 0 : 1.0;
 
 	// only ranges that cross the ramp range are special
-	if ( targetHeight > 0 && viewHeight > 0 ) {
+	if( targetHeight > 0 && viewHeight > 0 )
+	{
 		return 0.0;
 	}
-	if ( targetHeight < -RAMP_RANGE && viewHeight < -RAMP_RANGE ) {
+	if( targetHeight < -RAMP_RANGE && viewHeight < -RAMP_RANGE )
+	{
 		return 1.0;
 	}
-
+	
 	float	above;
-	if ( targetHeight > 0 ) {
+	if( targetHeight > 0 )
+	{
 		above = targetHeight;
-	} else if ( viewHeight > 0 ) {
+	}
+	else if( viewHeight > 0 )
+	{
 		above = viewHeight;
-	} else {
+	}
+	else
+	{
 		above = 0;
 	}
-
+	
 	float	rampTop, rampBottom;
-
-	if ( viewHeight > targetHeight ) {
+	
+	if( viewHeight > targetHeight )
+	{
 		rampTop = viewHeight;
 		rampBottom = targetHeight;
-	} else {
+	}
+	else
+	{
 		rampTop = targetHeight;
 		rampBottom = viewHeight;
 	}
-	if ( rampTop > 0 ) {
+	if( rampTop > 0 )
+	{
 		rampTop = 0;
 	}
-	if ( rampBottom < -RAMP_RANGE ) {
+	if( rampBottom < -RAMP_RANGE )
+	{
 		rampBottom = -RAMP_RANGE;
 	}
-
+	
 	float	rampSlope = 1.0 / RAMP_RANGE;
-
-	if ( !total ) {
+	
+	if( !total )
+	{
 		return -viewHeight * rampSlope;
 	}
-
+	
 	float ramp = ( 1.0 - ( rampTop * rampSlope + rampBottom * rampSlope ) * -0.5 ) * ( rampTop - rampBottom );
-
+	
 	float	frac = ( total - above - ramp ) / total;
-
+	
 	// after it gets moderately deep, always use full value
 	float deepest = viewHeight < targetHeight ? viewHeight : targetHeight;
-
+	
 	float	deepFrac = deepest / DEEP_RANGE;
-	if ( deepFrac >= 1.0 ) {
+	if( deepFrac >= 1.0 )
+	{
 		return 1.0;
 	}
-
+	
 	frac = frac * ( 1.0 - deepFrac ) + deepFrac;
-
+	
 	return frac;
 }
 
@@ -344,35 +386,41 @@ start and end points to the terminator plane
 ================
 */
 void R_FogEnterImage( idImage * image, textureUsage_t usage ) {
-	int		x,y;
+{
+	int		x, y;
 	byte	data[FOG_ENTER_SIZE][FOG_ENTER_SIZE][4];
 	int		b;
-
+	
 	memset( data, 0, sizeof( data ) );
-
-	for (x=0 ; x<FOG_ENTER_SIZE ; x++) {
-		for (y=0 ; y<FOG_ENTER_SIZE ; y++) {
+	
+	for( x = 0 ; x < FOG_ENTER_SIZE ; x++ )
+	{
+		for( y = 0 ; y < FOG_ENTER_SIZE ; y++ )
+		{
 			float	d;
-
-			d = FogFraction( x - (FOG_ENTER_SIZE / 2), y - (FOG_ENTER_SIZE / 2) );
-
-			b = (byte)(d * 255);
-			if ( b <= 0 ) {
+			
+			d = FogFraction( x - ( FOG_ENTER_SIZE / 2 ), y - ( FOG_ENTER_SIZE / 2 ) );
+			
+			b = ( byte )( d * 255 );
+			if( b <= 0 )
+			{
 				b = 0;
-			} else if ( b > 255 ) {
+			}
+			else if( b > 255 )
+			{
 				b = 255;
 			}
 			data[y][x][0] =
-			data[y][x][1] =
-			data[y][x][2] = 255;
+				data[y][x][1] =
+					data[y][x][2] = 255;
 			data[y][x][3] = b;
 		}
 	}
-
+	
 	// if mipmapped, acutely viewed surfaces fade wrong
-	image->GenerateImage( 
-		(byte *)data, 
-		FOG_ENTER_SIZE, FOG_ENTER_SIZE, 
+	image->GenerateImage(
+		( byte* )data,
+		FOG_ENTER_SIZE, FOG_ENTER_SIZE,
 		TF_LINEAR, TR_CLAMP, usage );
 }
 
@@ -385,36 +433,42 @@ static const int QUADRATIC_WIDTH = 32;
 static const int QUADRATIC_HEIGHT = 4;
 
 void R_QuadraticImage( idImage * image, textureUsage_t usage ) {
-	int		x,y;
+{
+	int		x, y;
 	byte	data[QUADRATIC_HEIGHT][QUADRATIC_WIDTH][4];
 	int		b;
-
-
-	for (x=0 ; x<QUADRATIC_WIDTH ; x++) {
-		for (y=0 ; y<QUADRATIC_HEIGHT ; y++) {
+	
+	
+	for( x = 0 ; x < QUADRATIC_WIDTH ; x++ )
+	{
+		for( y = 0 ; y < QUADRATIC_HEIGHT ; y++ )
+		{
 			float	d;
-
-			d = x - (QUADRATIC_WIDTH/2 - 0.5);
+			
+			d = x - ( QUADRATIC_WIDTH / 2 - 0.5 );
 			d = idMath::Fabs( d );
 			d -= 0.5;
-			d /= QUADRATIC_WIDTH/2;
-		
+			d /= QUADRATIC_WIDTH / 2;
+			
 			d = 1.0 - d;
 			d = d * d;
-
-			b = (byte)(d * 255);
-			if ( b <= 0 ) {
+			
+			b = ( byte )( d * 255 );
+			if( b <= 0 )
+			{
 				b = 0;
-			} else if ( b > 255 ) {
+			}
+			else if( b > 255 )
+			{
 				b = 255;
 			}
 			data[y][x][0] =
-			data[y][x][1] =
-			data[y][x][2] = b;
+				data[y][x][1] =
+					data[y][x][2] = b;
 			data[y][x][3] = 255;
 		}
 	}
-
+	
 	image->GenerateImage( 
 		(byte *)data, 
 		QUADRATIC_WIDTH, QUADRATIC_HEIGHT, 
@@ -426,24 +480,25 @@ void R_QuadraticImage( idImage * image, textureUsage_t usage ) {
 idImageManager::CreateIntrinsicImages
 ================
 */
-void idImageManager::CreateIntrinsicImages() {
+void idImageManager::CreateIntrinsicImages()
+{
 	// create built in images
-	m_defaultImage = ImageFromFunction( "_default", R_DefaultImage );
-	m_whiteImage = ImageFromFunction( "_white", R_WhiteImage );
-	m_blackImage = ImageFromFunction( "_black", R_BlackImage );
+	defaultImage = ImageFromFunction( "_default", R_DefaultImage );
+	whiteImage = ImageFromFunction( "_white", R_WhiteImage );
+	blackImage = ImageFromFunction( "_black", R_BlackImage );
 	m_flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage, TD_BUMP );
 	m_alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage, TD_LOOKUP_TABLE_ALPHA );
 	m_fogImage = ImageFromFunction( "_fog", R_FogImage, TD_LOOKUP_TABLE_ALPHA );
 	m_fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage, TD_LOOKUP_TABLE_ALPHA );
 	m_noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage, TD_LOOKUP_TABLE_MONO );
 	m_quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage, TD_LOOKUP_TABLE_RGB1 );
-
+	
 	// scratchImage is used for screen wipes/doublevision etc..
 	m_scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image, TD_TARGET );
 	m_scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image, TD_TARGET );
 	m_currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image, TD_TARGET );
 	m_accumImage = ImageFromFunction( "_accum", R_RGBA8Image, TD_TARGET );
-
-	m_loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
-	m_hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
+	
+	loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
+	hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
 }

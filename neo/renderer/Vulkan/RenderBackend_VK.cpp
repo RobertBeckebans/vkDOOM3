@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 #include "../../framework/precompiled.h"
 #include "../../framework/Common_local.h"
-#include "../../sys/win32/rc/doom_resource.h"
 #include "../GLState.h"
 #include "../GLMatrix.h"
 #include "../RenderBackend.h"
@@ -40,6 +39,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "../../sys/win32/win_local.h"
 #include "Allocator_VK.h"
 #include "Staging_VK.h"
+
+void CreateWindowClasses();
+bool ChangeDisplaySettingsIfNeeded( gfxImpParms_t parms );
+bool CreateGameWindow( gfxImpParms_t parms );
 
 vulkanContext_t vkcontext;
 
@@ -63,23 +66,27 @@ void PrintState( uint64 stateBits );
 void RpPrintState( uint64 stateBits );
 
 static const int g_numInstanceExtensions = 2;
-static const char * g_instanceExtensions[ g_numInstanceExtensions ] = {
+static const char* g_instanceExtensions[ g_numInstanceExtensions ] =
+{
 	VK_KHR_SURFACE_EXTENSION_NAME,
 	VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 };
 
 static const int g_numDebugInstanceExtensions = 1;
-static const char * g_debugInstanceExtensions[ g_numDebugInstanceExtensions ] = {
+static const char* g_debugInstanceExtensions[ g_numDebugInstanceExtensions ] =
+{
 	VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 };
 
 static const int g_numDeviceExtensions = 1;
-static const char * g_deviceExtensions[ g_numDeviceExtensions ] = {
+static const char* g_deviceExtensions[ g_numDeviceExtensions ] =
+{
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
 static const int g_numValidationLayers = 1;
-static const char * g_validationLayers[ g_numValidationLayers ] = {
+static const char* g_validationLayers[ g_numValidationLayers ] =
+{
 	"VK_LAYER_LUNARG_standard_validation"
 };
 
@@ -95,35 +102,38 @@ static const char * renderProgBindingStrings[ BINDING_TYPE_MAX ] = {
 VK_ErrorToString
 =============
 */
-const char * VK_ErrorToString( VkResult result ) {
-	switch ( result ) {
-		ID_VK_ERROR_STRING( VK_SUCCESS );
-		ID_VK_ERROR_STRING( VK_NOT_READY );
-		ID_VK_ERROR_STRING( VK_TIMEOUT );
-		ID_VK_ERROR_STRING( VK_EVENT_SET );
-		ID_VK_ERROR_STRING( VK_EVENT_RESET );
-		ID_VK_ERROR_STRING( VK_INCOMPLETE );
-		ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_HOST_MEMORY );
-		ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_DEVICE_MEMORY );
-		ID_VK_ERROR_STRING( VK_ERROR_INITIALIZATION_FAILED );
-		ID_VK_ERROR_STRING( VK_ERROR_DEVICE_LOST );
-		ID_VK_ERROR_STRING( VK_ERROR_MEMORY_MAP_FAILED );
-		ID_VK_ERROR_STRING( VK_ERROR_LAYER_NOT_PRESENT );
-		ID_VK_ERROR_STRING( VK_ERROR_EXTENSION_NOT_PRESENT );
-		ID_VK_ERROR_STRING( VK_ERROR_FEATURE_NOT_PRESENT );
-		ID_VK_ERROR_STRING( VK_ERROR_INCOMPATIBLE_DRIVER );
-		ID_VK_ERROR_STRING( VK_ERROR_TOO_MANY_OBJECTS );
-		ID_VK_ERROR_STRING( VK_ERROR_FORMAT_NOT_SUPPORTED );
-		ID_VK_ERROR_STRING( VK_ERROR_SURFACE_LOST_KHR );
-		ID_VK_ERROR_STRING( VK_ERROR_NATIVE_WINDOW_IN_USE_KHR );
-		ID_VK_ERROR_STRING( VK_SUBOPTIMAL_KHR );
-		ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_DATE_KHR );
-		ID_VK_ERROR_STRING( VK_ERROR_INCOMPATIBLE_DISPLAY_KHR );
-		ID_VK_ERROR_STRING( VK_ERROR_VALIDATION_FAILED_EXT );
-		ID_VK_ERROR_STRING( VK_ERROR_INVALID_SHADER_NV );
-		ID_VK_ERROR_STRING( VK_RESULT_BEGIN_RANGE );
-		ID_VK_ERROR_STRING( VK_RESULT_RANGE_SIZE );
-		default: return "UNKNOWN";
+const char* VK_ErrorToString( VkResult result )
+{
+	switch( result )
+	{
+			ID_VK_ERROR_STRING( VK_SUCCESS );
+			ID_VK_ERROR_STRING( VK_NOT_READY );
+			ID_VK_ERROR_STRING( VK_TIMEOUT );
+			ID_VK_ERROR_STRING( VK_EVENT_SET );
+			ID_VK_ERROR_STRING( VK_EVENT_RESET );
+			ID_VK_ERROR_STRING( VK_INCOMPLETE );
+			ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_HOST_MEMORY );
+			ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_DEVICE_MEMORY );
+			ID_VK_ERROR_STRING( VK_ERROR_INITIALIZATION_FAILED );
+			ID_VK_ERROR_STRING( VK_ERROR_DEVICE_LOST );
+			ID_VK_ERROR_STRING( VK_ERROR_MEMORY_MAP_FAILED );
+			ID_VK_ERROR_STRING( VK_ERROR_LAYER_NOT_PRESENT );
+			ID_VK_ERROR_STRING( VK_ERROR_EXTENSION_NOT_PRESENT );
+			ID_VK_ERROR_STRING( VK_ERROR_FEATURE_NOT_PRESENT );
+			ID_VK_ERROR_STRING( VK_ERROR_INCOMPATIBLE_DRIVER );
+			ID_VK_ERROR_STRING( VK_ERROR_TOO_MANY_OBJECTS );
+			ID_VK_ERROR_STRING( VK_ERROR_FORMAT_NOT_SUPPORTED );
+			ID_VK_ERROR_STRING( VK_ERROR_SURFACE_LOST_KHR );
+			ID_VK_ERROR_STRING( VK_ERROR_NATIVE_WINDOW_IN_USE_KHR );
+			ID_VK_ERROR_STRING( VK_SUBOPTIMAL_KHR );
+			ID_VK_ERROR_STRING( VK_ERROR_OUT_OF_DATE_KHR );
+			ID_VK_ERROR_STRING( VK_ERROR_INCOMPATIBLE_DISPLAY_KHR );
+			ID_VK_ERROR_STRING( VK_ERROR_VALIDATION_FAILED_EXT );
+			ID_VK_ERROR_STRING( VK_ERROR_INVALID_SHADER_NV );
+			ID_VK_ERROR_STRING( VK_RESULT_BEGIN_RANGE );
+			ID_VK_ERROR_STRING( VK_RESULT_RANGE_SIZE );
+		default:
+			return "UNKNOWN";
 	};
 }
 
@@ -142,15 +152,38 @@ static VkDebugReportCallbackEXT debugReportCallback = VK_NULL_HANDLE;
 DebugCallback
 =============
 */
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback( 
-	VkDebugReportFlagsEXT flags, 
-	VkDebugReportObjectTypeEXT objType, 
-	uint64 obj, size_t location, int32 code,
-	const char * layerPrefix, const char * msg, void * userData ) {
-
-	idLib::Printf( "VK_DEBUG::%s: %s flags=%d, objType=%d, obj=%llu, location=%lld, code=%d\n", 
-		layerPrefix, msg, flags, objType, obj, location, code );
-
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback( VkDebugReportFlagsEXT msgFlags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
+		size_t location, int32_t msgCode, const char* layerPrefix, const char* msg,
+		void* userData )
+{
+	if( msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] ERROR: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] PERFORMANCE WARNING: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] INFO: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	else if( msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT )
+	{
+		idLib::Printf( "[Vulkan] DEBUG: [ %s ] Code %d : '%s'\n", layerPrefix, msgCode, msg );
+	}
+	
+	/*
+	 * false indicates that layer should not bail-out of an
+	 * API call that had validation failures. This may mean that the
+	 * app dies inside the driver due to invalid parameter(s).
+	 * That's what would happen without validation layers, so we'll
+	 * keep that behavior here.
+	 */
 	return VK_FALSE;
 }
 
@@ -159,13 +192,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 CreateDebugReportCallback
 =============
 */
-static void CreateDebugReportCallback( VkInstance instance ) {
+static void CreateDebugReportCallback( VkInstance instance )
+{
 	VkDebugReportCallbackCreateInfoEXT callbackInfo = {};
 	callbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
 	callbackInfo.flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT;
-	callbackInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) DebugCallback;
-
-	PFN_vkCreateDebugReportCallbackEXT func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr( instance, "vkCreateDebugReportCallbackEXT" );
+	callbackInfo.pfnCallback = ( PFN_vkDebugReportCallbackEXT ) DebugCallback;
+	
+	PFN_vkCreateDebugReportCallbackEXT func = ( PFN_vkCreateDebugReportCallbackEXT ) vkGetInstanceProcAddr( instance, "vkCreateDebugReportCallbackEXT" );
 	ID_VK_VALIDATE( func != NULL, "Could not find vkCreateDebugReportCallbackEXT" );
 	ID_VK_CHECK( func( instance, &callbackInfo, NULL, &debugReportCallback ) );
 }
@@ -175,8 +209,9 @@ static void CreateDebugReportCallback( VkInstance instance ) {
 DestroyDebugReportCallback
 =============
 */
-static void DestroyDebugReportCallback( VkInstance instance ) {
-	PFN_vkDestroyDebugReportCallbackEXT func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr( instance, "vkDestroyDebugReportCallbackEXT" );
+static void DestroyDebugReportCallback( VkInstance instance )
+{
+	PFN_vkDestroyDebugReportCallbackEXT func = ( PFN_vkDestroyDebugReportCallbackEXT ) vkGetInstanceProcAddr( instance, "vkDestroyDebugReportCallbackEXT" );
 	ID_VK_VALIDATE( func != NULL, "Could not find vkDestroyDebugReportCallbackEXT" );
 	func( instance, debugReportCallback, NULL );
 }
@@ -186,23 +221,28 @@ static void DestroyDebugReportCallback( VkInstance instance ) {
 ValidateValidationLayers
 =============
 */
-static void ValidateValidationLayers() {
+static void ValidateValidationLayers()
+{
 	uint32 instanceLayerCount = 0;
 	vkEnumerateInstanceLayerProperties( &instanceLayerCount, NULL );
-
+	
 	idList< VkLayerProperties > instanceLayers;
 	instanceLayers.SetNum( instanceLayerCount );
 	vkEnumerateInstanceLayerProperties( &instanceLayerCount, instanceLayers.Ptr() );
-
+	
 	bool found = false;
-	for ( uint32 i = 0; i < g_numValidationLayers; ++i ) {
-		for ( uint32 j = 0; j < instanceLayerCount; ++j ) {
-			if ( idStr::Icmp( g_validationLayers[i], instanceLayers[j].layerName ) == 0 ) {
+	for( uint32 i = 0; i < g_numValidationLayers; ++i )
+	{
+		for( uint32 j = 0; j < instanceLayerCount; ++j )
+		{
+			if( idStr::Icmp( g_validationLayers[i], instanceLayers[j].layerName ) == 0 )
+			{
 				found = true;
 				break;
 			}
 		}
-		if ( !found ) {
+		if( !found )
+		{
 			idLib::FatalError( "Cannot find validation layer: %s.\n", g_validationLayers[ i ] );
 		}
 	}
@@ -213,22 +253,27 @@ static void ValidateValidationLayers() {
 ChooseSupportedFormat
 =============
 */
-static VkFormat ChooseSupportedFormat( VkPhysicalDevice physicalDevice, VkFormat * formats, int numFormats, VkImageTiling tiling, VkFormatFeatureFlags features ) {
-	for ( int i = 0; i < numFormats; ++i ) {
+static VkFormat ChooseSupportedFormat( VkPhysicalDevice physicalDevice, VkFormat* formats, int numFormats, VkImageTiling tiling, VkFormatFeatureFlags features )
+{
+	for( int i = 0; i < numFormats; ++i )
+	{
 		VkFormat format = formats[ i ];
-
+		
 		VkFormatProperties props;
 		vkGetPhysicalDeviceFormatProperties( physicalDevice, format, &props );
-
-		if ( tiling == VK_IMAGE_TILING_LINEAR && ( props.linearTilingFeatures & features ) == features ) {
+		
+		if( tiling == VK_IMAGE_TILING_LINEAR && ( props.linearTilingFeatures & features ) == features )
+		{
 			return format;
-		} else if ( tiling == VK_IMAGE_TILING_OPTIMAL && ( props.optimalTilingFeatures & features ) == features ) {
+		}
+		else if( tiling == VK_IMAGE_TILING_OPTIMAL && ( props.optimalTilingFeatures & features ) == features )
+		{
 			return format;
 		}
 	}
-
+	
 	idLib::FatalError( "Failed to find a supported format." );
-
+	
 	return VK_FORMAT_UNDEFINED;
 }
 
@@ -237,7 +282,8 @@ static VkFormat ChooseSupportedFormat( VkPhysicalDevice physicalDevice, VkFormat
 idRenderBackend::CreateInstance
 =============
 */
-void idRenderBackend::CreateInstance() {
+void idRenderBackend::CreateInstance()
+{
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "DOOM";
@@ -245,130 +291,53 @@ void idRenderBackend::CreateInstance() {
 	appInfo.pEngineName = "idTech 4.5";
 	appInfo.engineVersion = 1;
 	appInfo.apiVersion = VK_MAKE_VERSION( 1, 0, VK_HEADER_VERSION );
-
+	
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
-
+	
 	const bool enableLayers = r_vkEnableValidationLayers.GetBool();
-
-	m_instanceExtensions.Clear();
-	m_deviceExtensions.Clear();
-	m_validationLayers.Clear();
-
-	for ( int i = 0; i < g_numInstanceExtensions; ++i ) {
-		m_instanceExtensions.Append( g_instanceExtensions[ i ] );
+	
+	instanceExtensions.Clear();
+	deviceExtensions.Clear();
+	validationLayers.Clear();
+	
+	for( int i = 0; i < g_numInstanceExtensions; ++i )
+	{
+		instanceExtensions.Append( g_instanceExtensions[ i ] );
 	}
-
-	for ( int i = 0; i < g_numDeviceExtensions; ++i ) {
-		m_deviceExtensions.Append( g_deviceExtensions[ i ] );
+	
+	for( int i = 0; i < g_numDeviceExtensions; ++i )
+	{
+		deviceExtensions.Append( g_deviceExtensions[ i ] );
 	}
-
-	if ( enableLayers ) {
-		for ( int i = 0; i < g_numDebugInstanceExtensions; ++i ) {
-			m_instanceExtensions.Append( g_debugInstanceExtensions[ i ] );
+	
+	if( enableLayers )
+	{
+		for( int i = 0; i < g_numDebugInstanceExtensions; ++i )
+		{
+			instanceExtensions.Append( g_debugInstanceExtensions[ i ] );
 		}
-
-		for ( int i = 0; i < g_numValidationLayers; ++i ) {
-			m_validationLayers.Append( g_validationLayers[ i ] );
+		
+		for( int i = 0; i < g_numValidationLayers; ++i )
+		{
+			validationLayers.Append( g_validationLayers[ i ] );
 		}
-
+		
 		ValidateValidationLayers();
 	}
-
-	createInfo.enabledExtensionCount = m_instanceExtensions.Num();
-	createInfo.ppEnabledExtensionNames = m_instanceExtensions.Ptr();
-	createInfo.enabledLayerCount = m_validationLayers.Num();
-	createInfo.ppEnabledLayerNames = m_validationLayers.Ptr();
-
-	ID_VK_CHECK( vkCreateInstance( &createInfo, NULL, &m_instance ) );
-
-	if ( enableLayers ) {
-		CreateDebugReportCallback( m_instance );
-	}
-}
-
-/*
-=============
-idRenderBackend::EnumeratePhysicalDevices
-=============
-*/
-void idRenderBackend::EnumeratePhysicalDevices() {
-	uint32 numDevices = 0;
-	ID_VK_CHECK( vkEnumeratePhysicalDevices( m_instance, &numDevices, NULL ) );
-	ID_VK_VALIDATE( numDevices > 0, "vkEnumeratePhysicalDevices returned zero devices." );
-
-	idList< VkPhysicalDevice > devices;
-	devices.SetNum( numDevices );
 	
-	ID_VK_CHECK( vkEnumeratePhysicalDevices( m_instance, &numDevices, devices.Ptr() ) );
-	ID_VK_VALIDATE( numDevices > 0, "vkEnumeratePhysicalDevices returned zero devices." );
-
-	vkcontext.gpus.SetNum( numDevices );
-
-	for ( uint32 i = 0; i < numDevices; ++i ) {
-		gpuInfo_t & gpu = vkcontext.gpus[ i ];
-		gpu.device = devices[ i ];
-
-		{
-			uint32 numQueues = 0;
-			vkGetPhysicalDeviceQueueFamilyProperties( gpu.device, &numQueues, NULL );
-			ID_VK_VALIDATE( numQueues > 0, "vkGetPhysicalDeviceQueueFamilyProperties returned zero queues." );
-
-			gpu.queueFamilyProps.SetNum( numQueues );
-			vkGetPhysicalDeviceQueueFamilyProperties( gpu.device, &numQueues, gpu.queueFamilyProps.Ptr() );
-			ID_VK_VALIDATE( numQueues > 0, "vkGetPhysicalDeviceQueueFamilyProperties returned zero queues." );
-		}
-
-		{
-			uint32 numExtension;
-			ID_VK_CHECK( vkEnumerateDeviceExtensionProperties( gpu.device, NULL, &numExtension, NULL ) );
-			ID_VK_VALIDATE( numExtension > 0, "vkEnumerateDeviceExtensionProperties returned zero extensions." );
-
-			gpu.extensionProps.SetNum( numExtension );
-			ID_VK_CHECK( vkEnumerateDeviceExtensionProperties( gpu.device, NULL, &numExtension, gpu.extensionProps.Ptr() ) );
-			ID_VK_VALIDATE( numExtension > 0, "vkEnumerateDeviceExtensionProperties returned zero extensions." );
-		}
-
-		ID_VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( gpu.device, m_surface, &gpu.surfaceCaps ) );
-
-		{
-			uint32 numFormats;
-			ID_VK_CHECK( vkGetPhysicalDeviceSurfaceFormatsKHR( gpu.device, m_surface, &numFormats, NULL ) );
-			ID_VK_VALIDATE( numFormats > 0, "vkGetPhysicalDeviceSurfaceFormatsKHR returned zero surface formats." );
-
-			gpu.surfaceFormats.SetNum( numFormats );
-			ID_VK_CHECK( vkGetPhysicalDeviceSurfaceFormatsKHR( gpu.device, m_surface, &numFormats, gpu.surfaceFormats.Ptr() ) );
-			ID_VK_VALIDATE( numFormats > 0, "vkGetPhysicalDeviceSurfaceFormatsKHR returned zero surface formats." );
-		}
-
-		{
-			uint32 numPresentModes;
-			ID_VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( gpu.device, m_surface, &numPresentModes, NULL ) );
-			ID_VK_VALIDATE( numPresentModes > 0, "vkGetPhysicalDeviceSurfacePresentModesKHR returned zero present modes." );
-
-			gpu.presentModes.SetNum( numPresentModes );
-			ID_VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( gpu.device, m_surface, &numPresentModes, gpu.presentModes.Ptr() ) );
-			ID_VK_VALIDATE( numPresentModes > 0, "vkGetPhysicalDeviceSurfacePresentModesKHR returned zero present modes." );
-		}
-
-		vkGetPhysicalDeviceMemoryProperties( gpu.device, &gpu.memProps );
-		vkGetPhysicalDeviceProperties( gpu.device, &gpu.props );
+	createInfo.enabledExtensionCount = instanceExtensions.Num();
+	createInfo.ppEnabledExtensionNames = instanceExtensions.Ptr();
+	createInfo.enabledLayerCount = validationLayers.Num();
+	createInfo.ppEnabledLayerNames = validationLayers.Ptr();
+	
+	ID_VK_CHECK( vkCreateInstance( &createInfo, NULL, &instance ) );
+	
+	if( enableLayers )
+	{
+		CreateDebugReportCallback( instance );
 	}
-}
-
-/*
-=============
-idRenderBackend::CreateSurface
-=============
-*/
-void idRenderBackend::CreateSurface() {
-	VkWin32SurfaceCreateInfoKHR createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	createInfo.hinstance = win32.hInstance;
-	createInfo.hwnd = win32.hWnd;
-
-	ID_VK_CHECK( vkCreateWin32SurfaceKHR( m_instance, &createInfo, NULL, &m_surface ) );
 }
 
 /*
@@ -376,91 +345,186 @@ void idRenderBackend::CreateSurface() {
 CheckPhysicalDeviceExtensionSupport
 =============
 */
-static bool CheckPhysicalDeviceExtensionSupport( gpuInfo_t & gpu, idList< const char * > & requiredExt ) {
+static bool CheckPhysicalDeviceExtensionSupport( GPUInfo_t& gpu, idList< const char* >& requiredExt )
+{
 	int required = requiredExt.Num();
 	int available = 0;
-
-	for ( int i = 0; i < requiredExt.Num(); ++i ) {
-		for ( int j = 0; j < gpu.extensionProps.Num(); ++j ) {
-			if ( idStr::Icmp( requiredExt[ i ], gpu.extensionProps[ j ].extensionName ) == 0 ) {
+	
+	for( int i = 0; i < requiredExt.Num(); ++i )
+	{
+		for( int j = 0; j < gpu.extensionProps.Num(); ++j )
+		{
+			if( idStr::Icmp( requiredExt[ i ], gpu.extensionProps[ j ].extensionName ) == 0 )
+			{
 				available++;
 				break;
 			}
 		}
 	}
-
+	
 	return available == required;
 }
 
 /*
 =============
-idRenderBackend::SelectPhysicalDevice
+idRenderBackend::SelectSuitablePhysicalDevice
 =============
 */
-void idRenderBackend::SelectPhysicalDevice() {
-	for ( int i = 0; i < vkcontext.gpus.Num(); ++i ) {
-		gpuInfo_t & gpu = vkcontext.gpus[ i ];
-
+void idRenderBackend::SelectSuitablePhysicalDevice()
+{
+	uint32 numDevices = 0;
+	ID_VK_CHECK( vkEnumeratePhysicalDevices( instance, &numDevices, NULL ) );
+	ID_VK_VALIDATE( numDevices > 0, "vkEnumeratePhysicalDevices returned zero devices." );
+	
+	idList< VkPhysicalDevice > devices;
+	devices.SetNum( numDevices );
+	
+	ID_VK_CHECK( vkEnumeratePhysicalDevices( instance, &numDevices, devices.Ptr() ) );
+	ID_VK_VALIDATE( numDevices > 0, "vkEnumeratePhysicalDevices returned zero devices." );
+	
+	idList< GPUInfo_t > gpus;
+	gpus.SetNum( numDevices );
+	
+	for( uint32 i = 0; i < numDevices; ++i )
+	{
+		GPUInfo_t& gpu = gpus[ i ];
+		gpu.device = devices[ i ];
+		
+		{
+			uint32 numQueues = 0;
+			vkGetPhysicalDeviceQueueFamilyProperties( gpu.device, &numQueues, NULL );
+			ID_VK_VALIDATE( numQueues > 0, "vkGetPhysicalDeviceQueueFamilyProperties returned zero queues." );
+			
+			gpu.queueFamilyProps.SetNum( numQueues );
+			vkGetPhysicalDeviceQueueFamilyProperties( gpu.device, &numQueues, gpu.queueFamilyProps.Ptr() );
+			ID_VK_VALIDATE( numQueues > 0, "vkGetPhysicalDeviceQueueFamilyProperties returned zero queues." );
+		}
+		
+		{
+			uint32 numExtension;
+			ID_VK_CHECK( vkEnumerateDeviceExtensionProperties( gpu.device, NULL, &numExtension, NULL ) );
+			ID_VK_VALIDATE( numExtension > 0, "vkEnumerateDeviceExtensionProperties returned zero extensions." );
+			
+			gpu.extensionProps.SetNum( numExtension );
+			ID_VK_CHECK( vkEnumerateDeviceExtensionProperties( gpu.device, NULL, &numExtension, gpu.extensionProps.Ptr() ) );
+			ID_VK_VALIDATE( numExtension > 0, "vkEnumerateDeviceExtensionProperties returned zero extensions." );
+		}
+		
+		ID_VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( gpu.device, surface, &gpu.surfaceCaps ) );
+		
+		{
+			uint32 numFormats;
+			ID_VK_CHECK( vkGetPhysicalDeviceSurfaceFormatsKHR( gpu.device, surface, &numFormats, NULL ) );
+			ID_VK_VALIDATE( numFormats > 0, "vkGetPhysicalDeviceSurfaceFormatsKHR returned zero surface formats." );
+			
+			gpu.surfaceFormats.SetNum( numFormats );
+			ID_VK_CHECK( vkGetPhysicalDeviceSurfaceFormatsKHR( gpu.device, surface, &numFormats, gpu.surfaceFormats.Ptr() ) );
+			ID_VK_VALIDATE( numFormats > 0, "vkGetPhysicalDeviceSurfaceFormatsKHR returned zero surface formats." );
+		}
+		
+		{
+			uint32 numPresentModes;
+			ID_VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( gpu.device, surface, &numPresentModes, NULL ) );
+			ID_VK_VALIDATE( numPresentModes > 0, "vkGetPhysicalDeviceSurfacePresentModesKHR returned zero present modes." );
+			
+			gpu.presentModes.SetNum( numPresentModes );
+			ID_VK_CHECK( vkGetPhysicalDeviceSurfacePresentModesKHR( gpu.device, surface, &numPresentModes, gpu.presentModes.Ptr() ) );
+			ID_VK_VALIDATE( numPresentModes > 0, "vkGetPhysicalDeviceSurfacePresentModesKHR returned zero present modes." );
+		}
+		
+		vkGetPhysicalDeviceMemoryProperties( gpu.device, &gpu.memProps );
+		vkGetPhysicalDeviceProperties( gpu.device, &gpu.props );
+		vkGetPhysicalDeviceFeatures( gpu.device, &gpu.features );
+	}
+	
+	// Now try to select one
+	for( int i = 0; i < gpus.Num(); ++i )
+	{
+		GPUInfo_t& gpu = gpus[ i ];
+		
 		int graphicsIdx = -1;
 		int presentIdx = -1;
-
-		if ( !CheckPhysicalDeviceExtensionSupport( gpu, m_deviceExtensions ) ) {
+		
+		if( !CheckPhysicalDeviceExtensionSupport( gpu, deviceExtensions ) )
+		{
 			continue;
 		}
-
-		if ( gpu.surfaceFormats.Num() == 0 ) {
+		
+		if( gpu.surfaceFormats.Num() == 0 )
+		{
 			continue;
 		}
-
-		if ( gpu.presentModes.Num() == 0 ) {
+		
+		if( gpu.presentModes.Num() == 0 )
+		{
 			continue;
 		}
-
+		
 		// Find graphics queue family
-		for ( int j = 0; j < gpu.queueFamilyProps.Num(); ++j ) {
-			VkQueueFamilyProperties & props = gpu.queueFamilyProps[ j ];
-
-			if ( props.queueCount == 0 ) {
+		for( int j = 0; j < gpu.queueFamilyProps.Num(); ++j )
+		{
+			VkQueueFamilyProperties& props = gpu.queueFamilyProps[ j ];
+			
+			if( props.queueCount == 0 )
+			{
 				continue;
 			}
-
-			if ( props.queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
+			
+			if( props.queueFlags & VK_QUEUE_GRAPHICS_BIT )
+			{
 				graphicsIdx = j;
 				break;
 			}
 		}
-
+		
 		// Find present queue family
-		for ( int j = 0; j < gpu.queueFamilyProps.Num(); ++j ) {
-			VkQueueFamilyProperties & props = gpu.queueFamilyProps[ j ];
-
-			if ( props.queueCount == 0 ) {
+		for( int j = 0; j < gpu.queueFamilyProps.Num(); ++j )
+		{
+			VkQueueFamilyProperties& props = gpu.queueFamilyProps[ j ];
+			
+			if( props.queueCount == 0 )
+			{
 				continue;
 			}
-
+			
 			VkBool32 supportsPresent = VK_FALSE;
-			vkGetPhysicalDeviceSurfaceSupportKHR( gpu.device, j, m_surface, &supportsPresent );
-			if ( supportsPresent ) {
+			vkGetPhysicalDeviceSurfaceSupportKHR( gpu.device, j, surface, &supportsPresent );
+			if( supportsPresent )
+			{
 				presentIdx = j;
 				break;
 			}
 		}
-
+		
 		// Did we find a device supporting both graphics and present.
-		if ( graphicsIdx >= 0 && presentIdx >= 0 ) {
+		if( graphicsIdx >= 0 && presentIdx >= 0 )
+		{
 			vkcontext.graphicsFamilyIdx = graphicsIdx;
 			vkcontext.presentFamilyIdx = presentIdx;
-			m_physicalDevice = gpu.device;
-			vkcontext.gpu = &gpu;
-
-			vkGetPhysicalDeviceFeatures( m_physicalDevice, &m_physicalDeviceFeatures );
-
+			physicalDevice = gpu.device;
+			vkcontext.gpu = gpu;
+			
 			return;
 		}
 	}
-
+	
 	// If we can't render or present, just bail.
 	idLib::FatalError( "Could not find a physical device which fits our desired profile" );
+}
+
+/*
+=============
+idRenderBackend::CreateSurface
+=============
+*/
+void idRenderBackend::CreateSurface()
+{
+	VkWin32SurfaceCreateInfoKHR createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	createInfo.hinstance = win32.hInstance;
+	createInfo.hwnd = win32.hWnd;
+	
+	ID_VK_CHECK( vkCreateWin32SurfaceKHR( instance, &createInfo, NULL, &surface ) );
 }
 
 /*
@@ -468,49 +532,54 @@ void idRenderBackend::SelectPhysicalDevice() {
 idRenderBackend::CreateLogicalDeviceAndQueues
 =============
 */
-void idRenderBackend::CreateLogicalDeviceAndQueues() {
+void idRenderBackend::CreateLogicalDeviceAndQueues()
+{
 	idList< int > uniqueIdx;
 	uniqueIdx.AddUnique( vkcontext.graphicsFamilyIdx );
 	uniqueIdx.AddUnique( vkcontext.presentFamilyIdx );
 	
 	idList< VkDeviceQueueCreateInfo > devqInfo;
-
+	
 	const float priority = 1.0f;
-	for ( int i = 0; i < uniqueIdx.Num(); ++i ) {
+	for( int i = 0; i < uniqueIdx.Num(); ++i )
+	{
 		VkDeviceQueueCreateInfo qinfo = {};
 		qinfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		qinfo.queueFamilyIndex = uniqueIdx[ i ];
 		qinfo.queueCount = 1;
 		qinfo.pQueuePriorities = &priority;
-
+		
 		devqInfo.Append( qinfo );
 	}
-
+	
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.textureCompressionBC = VK_TRUE;
 	deviceFeatures.imageCubeArray = VK_TRUE;
 	deviceFeatures.depthClamp = VK_TRUE;
 	deviceFeatures.depthBiasClamp = VK_TRUE;
-	deviceFeatures.depthBounds = VK_TRUE;
+	deviceFeatures.depthBounds = vkcontext.gpu.features.depthBounds;
 	deviceFeatures.fillModeNonSolid = VK_TRUE;
-
+	
 	VkDeviceCreateInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	info.queueCreateInfoCount = devqInfo.Num();
 	info.pQueueCreateInfos = devqInfo.Ptr();
 	info.pEnabledFeatures = &deviceFeatures;
-	info.enabledExtensionCount = m_deviceExtensions.Num();
-	info.ppEnabledExtensionNames = m_deviceExtensions.Ptr();
-
-	if ( r_vkEnableValidationLayers.GetBool() ) {
-		info.enabledLayerCount = m_validationLayers.Num();
-		info.ppEnabledLayerNames = m_validationLayers.Ptr();
-	} else {
+	info.enabledExtensionCount = deviceExtensions.Num();
+	info.ppEnabledExtensionNames = deviceExtensions.Ptr();
+	
+	if( r_vkEnableValidationLayers.GetBool() )
+	{
+		info.enabledLayerCount = validationLayers.Num();
+		info.ppEnabledLayerNames = validationLayers.Ptr();
+	}
+	else
+	{
 		info.enabledLayerCount = 0;
 	}
-
-	ID_VK_CHECK( vkCreateDevice( m_physicalDevice, &info, NULL, &vkcontext.device ) );
-
+	
+	ID_VK_CHECK( vkCreateDevice( physicalDevice, &info, NULL, &vkcontext.device ) );
+	
 	vkGetDeviceQueue( vkcontext.device, vkcontext.graphicsFamilyIdx, 0, &vkcontext.graphicsQueue );
 	vkGetDeviceQueue( vkcontext.device, vkcontext.presentFamilyIdx, 0, &vkcontext.presentQueue );
 }
@@ -520,22 +589,26 @@ void idRenderBackend::CreateLogicalDeviceAndQueues() {
 ChooseSurfaceFormat
 =============
 */
-VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR > & formats ) {
+VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR >& formats )
+{
 	VkSurfaceFormatKHR result;
 	
-	if ( formats.Num() == 1 && formats[ 0 ].format == VK_FORMAT_UNDEFINED ) {
+	if( formats.Num() == 1 && formats[ 0 ].format == VK_FORMAT_UNDEFINED )
+	{
 		result.format = VK_FORMAT_B8G8R8A8_UNORM;
 		result.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		return result;
 	}
-
-	for ( int i = 0; i < formats.Num(); ++i ) {
-		VkSurfaceFormatKHR & fmt = formats[ i ];
-		if ( fmt.format == VK_FORMAT_B8G8R8A8_UNORM && fmt.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ) {
+	
+	for( int i = 0; i < formats.Num(); ++i )
+	{
+		VkSurfaceFormatKHR& fmt = formats[ i ];
+		if( fmt.format == VK_FORMAT_B8G8R8A8_UNORM && fmt.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
+		{
 			return fmt;
 		}
 	}
-
+	
 	return formats[ 0 ];
 }
 
@@ -544,26 +617,33 @@ VkSurfaceFormatKHR ChooseSurfaceFormat( idList< VkSurfaceFormatKHR > & formats )
 ChoosePresentMode
 =============
 */
-VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR > & modes ) {
+VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR >& modes )
+{
 	VkPresentModeKHR desiredMode = VK_PRESENT_MODE_FIFO_KHR;
-
-	if (r_swapInterval.GetInteger() < 1) {
-		for (int i = 0; i < modes.Num(); i++) {
-			if (modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+	
+	if( r_swapInterval.GetInteger() < 1 )
+	{
+		for( int i = 0; i < modes.Num(); i++ )
+		{
+			if( modes[i] == VK_PRESENT_MODE_MAILBOX_KHR )
+			{
 				return VK_PRESENT_MODE_MAILBOX_KHR;
 			}
-			if ((modes[i] != VK_PRESENT_MODE_MAILBOX_KHR) && (modes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)) {
+			if( ( modes[i] != VK_PRESENT_MODE_MAILBOX_KHR ) && ( modes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR ) )
+			{
 				return VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
 		}
 	}
-
-	for (int i = 0; i < modes.Num(); ++i) {
-		if (modes[i] == desiredMode) {
+	
+	for( int i = 0; i < modes.Num(); ++i )
+	{
+		if( modes[i] == desiredMode )
+		{
 			return desiredMode;
 		}
 	}
-
+	
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
 
@@ -572,16 +652,20 @@ VkPresentModeKHR ChoosePresentMode( idList< VkPresentModeKHR > & modes ) {
 ChooseSurfaceExtent
 =============
 */
-VkExtent2D ChooseSurfaceExtent( VkSurfaceCapabilitiesKHR & caps ) {
+VkExtent2D ChooseSurfaceExtent( VkSurfaceCapabilitiesKHR& caps )
+{
 	VkExtent2D extent;
-
-	if ( caps.currentExtent.width == -1 ) {
+	
+	if( caps.currentExtent.width == -1 )
+	{
 		extent.width = win32.nativeScreenWidth;
 		extent.height = win32.nativeScreenHeight;
-	} else {
+	}
+	else
+	{
 		extent = caps.currentExtent;
 	}
-
+	
 	return extent;
 }
 
@@ -590,60 +674,65 @@ VkExtent2D ChooseSurfaceExtent( VkSurfaceCapabilitiesKHR & caps ) {
 idRenderBackend::CreateSwapChain
 =============
 */
-void idRenderBackend::CreateSwapChain() {
-	gpuInfo_t & gpu = *vkcontext.gpu;
-
+void idRenderBackend::CreateSwapChain()
+{
+	GPUInfo_t& gpu = vkcontext.gpu;
+	
 	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat( gpu.surfaceFormats );
 	VkPresentModeKHR presentMode = ChoosePresentMode( gpu.presentModes );
 	VkExtent2D extent = ChooseSurfaceExtent( gpu.surfaceCaps );
-
+	
 	VkSwapchainCreateInfoKHR info = {};
 	info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	info.surface = m_surface;
+	info.surface = surface;
 	info.minImageCount = NUM_FRAME_DATA;
 	info.imageFormat = surfaceFormat.format;
 	info.imageColorSpace = surfaceFormat.colorSpace;
 	info.imageExtent = extent;
 	info.imageArrayLayers = 1;
 	info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-
-	if ( vkcontext.graphicsFamilyIdx != vkcontext.presentFamilyIdx ) {
-		uint32 indices[] = { (uint32)vkcontext.graphicsFamilyIdx, (uint32)vkcontext.presentFamilyIdx };
-
+	
+	if( vkcontext.graphicsFamilyIdx != vkcontext.presentFamilyIdx )
+	{
+		uint32 indices[] = { ( uint32 )vkcontext.graphicsFamilyIdx, ( uint32 )vkcontext.presentFamilyIdx };
+		
 		info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		info.queueFamilyIndexCount = 2;
 		info.pQueueFamilyIndices = indices;
-	} else {
+	}
+	else
+	{
 		info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	}
-
+	
 	info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 	info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	info.presentMode = presentMode;
 	info.clipped = VK_TRUE;
-
-	ID_VK_CHECK( vkCreateSwapchainKHR( vkcontext.device, &info, NULL, &m_swapchain ) );
-
-	m_swapchainFormat = surfaceFormat.format;
-	m_presentMode = presentMode;
-	m_swapchainExtent = extent;
-	m_fullscreen = win32.isFullscreen;
-
+	
+	ID_VK_CHECK( vkCreateSwapchainKHR( vkcontext.device, &info, NULL, &swapchain ) );
+	
+	swapchainFormat = surfaceFormat.format;
+	presentMode = presentMode;
+	swapchainExtent = extent;
+	fullscreen = win32.isFullscreen;
+	
 	uint32 numImages = 0;
-	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, m_swapchain, &numImages, NULL ) );
+	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, swapchain, &numImages, NULL ) );
 	ID_VK_VALIDATE( numImages > 0, "vkGetSwapchainImagesKHR returned a zero image count." );
 
 	idList< VkImage > swapImages;
 	swapImages.SetNum( numImages );
 	ID_VK_CHECK( vkGetSwapchainImagesKHR( vkcontext.device, m_swapchain, &numImages, swapImages.Ptr() ) );
 	ID_VK_VALIDATE( numImages > 0, "vkGetSwapchainImagesKHR returned a zero image count." );
-
-	for ( uint32 i = 0; i < numImages; ++i ) {
+	
+	for ( uint32 i = 0; i < numImages; ++i )
+	{
 		VkImageViewCreateInfo imageViewCreateInfo = {};
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewCreateInfo.image = swapImages[ i ];
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = m_swapchainFormat;
+		imageViewCreateInfo.format = swapchainFormat;
 		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
 		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
 		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -654,7 +743,7 @@ void idRenderBackend::CreateSwapChain() {
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 		imageViewCreateInfo.flags = 0;
-
+		
 		VkImageView swapImageView = VK_NULL_HANDLE;
 		ID_VK_CHECK( vkCreateImageView( vkcontext.device, &imageViewCreateInfo, NULL, &swapImageView ) );
 
@@ -675,50 +764,53 @@ void idRenderBackend::CreateSwapChain() {
 idRenderBackend::DestroySwapChain
 =============
 */
-void idRenderBackend::DestroySwapChain() {
+void idRenderBackend::DestroySwapChain()
 	const int numImages = m_swapchainImages.Num();
 	for ( int i = 0; i < numImages; ++i ) {
 		m_swapchainImages[ i ]->PurgeImage();
 		delete m_swapchainImages[ i ];
 	}
 	m_swapchainImages.Clear();
-
-	vkDestroySwapchainKHR( vkcontext.device, m_swapchain, NULL );
+	
+	vkDestroySwapchainKHR( vkcontext.device, swapchain, NULL );
 }
 
 /*
 =============
-CreateCommandPool
+idRenderBackend::CreateCommandPool
 =============
 */
-static void CreateCommandPool() {
+void idRenderBackend::CreateCommandPool()
+{
 	VkCommandPoolCreateInfo commandPoolCreateInfo = {};
 	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	commandPoolCreateInfo.queueFamilyIndex = vkcontext.graphicsFamilyIdx;
-
-	ID_VK_CHECK( vkCreateCommandPool( vkcontext.device, &commandPoolCreateInfo, NULL, &vkcontext.commandPool ) );
+	
+	ID_VK_CHECK( vkCreateCommandPool( vkcontext.device, &commandPoolCreateInfo, NULL, &commandPool ) );
 }
 
 /*
 =============
-CreateCommandBuffer
+idRenderBackend::CreateCommandBuffer
 =============
 */
-static void CreateCommandBuffer() {
+void idRenderBackend::CreateCommandBuffer()
+{
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandPool = vkcontext.commandPool;
+	commandBufferAllocateInfo.commandPool = commandPool;
 	commandBufferAllocateInfo.commandBufferCount = NUM_FRAME_DATA;
-
-	ID_VK_CHECK( vkAllocateCommandBuffers( vkcontext.device, &commandBufferAllocateInfo, vkcontext.commandBuffers.Ptr() ) );
-
+	
+	ID_VK_CHECK( vkAllocateCommandBuffers( vkcontext.device, &commandBufferAllocateInfo, commandBuffers.Ptr() ) );
+	
 	VkFenceCreateInfo fenceCreateInfo = {};
 	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		ID_VK_CHECK( vkCreateFence( vkcontext.device, &fenceCreateInfo, NULL, &vkcontext.commandBufferFences[ i ] ) );
+	
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		ID_VK_CHECK( vkCreateFence( vkcontext.device, &fenceCreateInfo, NULL, &commandBufferFences[ i ] ) );
 	}
 }
 
@@ -727,13 +819,15 @@ static void CreateCommandBuffer() {
 idRenderBackend::CreateSemaphores
 =============
 */
-void idRenderBackend::CreateSemaphores() {
+void idRenderBackend::CreateSemaphores()
+{
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		ID_VK_CHECK( vkCreateSemaphore( vkcontext.device, &semaphoreCreateInfo, NULL, &m_acquireSemaphores[ i ] ) );
-		ID_VK_CHECK( vkCreateSemaphore( vkcontext.device, &semaphoreCreateInfo, NULL, &m_renderCompleteSemaphores[ i ] ) );
+	
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		ID_VK_CHECK( vkCreateSemaphore( vkcontext.device, &semaphoreCreateInfo, NULL, &acquireSemaphores[ i ] ) );
+		ID_VK_CHECK( vkCreateSemaphore( vkcontext.device, &semaphoreCreateInfo, NULL, &renderCompleteSemaphores[ i ] ) );
 	}
 }
 
@@ -742,14 +836,16 @@ void idRenderBackend::CreateSemaphores() {
 idRenderBackend::CreateQueryPool
 ===============
 */
-void idRenderBackend::CreateQueryPool() {
+void idRenderBackend::CreateQueryPool()
+{
 	VkQueryPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 	createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
 	createInfo.queryCount = NUM_TIMESTAMP_QUERIES;
-
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		ID_VK_CHECK( vkCreateQueryPool( vkcontext.device, &createInfo, NULL, &m_queryPools[ i ] ) );
+	
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		ID_VK_CHECK( vkCreateQueryPool( vkcontext.device, &createInfo, NULL, &queryPools[ i ] ) );
 	}
 }
 
@@ -758,7 +854,8 @@ void idRenderBackend::CreateQueryPool() {
 CreatePipelineCache
 =============
 */
-static void CreatePipelineCache() {
+static void CreatePipelineCache()
+{
 	VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 	pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 	ID_VK_CHECK( vkCreatePipelineCache( vkcontext.device, &pipelineCacheCreateInfo, NULL, &vkcontext.pipelineCache ) );
@@ -769,22 +866,15 @@ static void CreatePipelineCache() {
 ClearContext
 =============
 */
-static void ClearContext() {
-	vkcontext.counter = 0;
-	vkcontext.currentFrameData = 0;
+static void ClearContext()
+{
 	vkcontext.jointCacheHandle = 0;
-	vkcontext.gpu = NULL;
-	vkcontext.gpus.Clear();
+	vkcontext.gpu = GPUInfo_t();
 	vkcontext.device = VK_NULL_HANDLE;
 	vkcontext.graphicsFamilyIdx = -1;
 	vkcontext.presentFamilyIdx = -1;
 	vkcontext.graphicsQueue = VK_NULL_HANDLE;
 	vkcontext.presentQueue = VK_NULL_HANDLE;
-	vkcontext.commandPool = VK_NULL_HANDLE;
-	vkcontext.commandBuffer = VK_NULL_HANDLE;
-	vkcontext.commandBuffers.Zero();
-	vkcontext.commandBufferFences.Zero();
-	vkcontext.commandBufferRecorded.Zero();
 	vkcontext.depthFormat = VK_FORMAT_UNDEFINED;
 	vkcontext.pipelineCache = VK_NULL_HANDLE;
 	vkcontext.sampleCount = VK_SAMPLE_COUNT_1_BIT;
@@ -797,11 +887,12 @@ static void ClearContext() {
 idRenderBackend::idRenderBackend
 =============
 */
-idRenderBackend::idRenderBackend() {
+idRenderBackend::idRenderBackend()
+{
 	ClearContext();
 	Clear();
-
-	memset( m_gammaTable, 0, sizeof( m_gammaTable ) );
+	
+	memset( gammaTable, 0, sizeof( gammaTable ) );
 	memset( m_parmBuffers, 0, sizeof( m_parmBuffers ) );
 }
 
@@ -810,7 +901,8 @@ idRenderBackend::idRenderBackend() {
 idRenderBackend::~idRenderBackend
 =============
 */
-idRenderBackend::~idRenderBackend() {
+idRenderBackend::~idRenderBackend()
+{
 
 }
 
@@ -819,36 +911,51 @@ idRenderBackend::~idRenderBackend() {
 idRenderBackend::Clear
 =============
 */
-void idRenderBackend::Clear() {
+void idRenderBackend::Clear()
+{
 	m_currentRp = 0;
 	m_currentDescSet = 0;
 	m_currentParmBufferOffset = 0;
 	m_currentRenderTarget = NULL;
 
-	m_instance = VK_NULL_HANDLE;
-	m_physicalDevice = VK_NULL_HANDLE;
-
-	debugReportCallback = VK_NULL_HANDLE;
-	m_instanceExtensions.Clear();
-	m_deviceExtensions.Clear();
-	m_validationLayers.Clear();
-
-	m_surface = VK_NULL_HANDLE;
-	m_presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+	counter = 0;
+	currentFrameData = 0;
 	
-	m_fullscreen = 0;
-	m_swapchain = VK_NULL_HANDLE;
-	m_swapchainFormat = VK_FORMAT_UNDEFINED;
-	m_currentSwapIndex = 0;
+	instance = VK_NULL_HANDLE;
+	physicalDevice = VK_NULL_HANDLE;
+	
+	debugReportCallback = VK_NULL_HANDLE;
+	instanceExtensions.Clear();
+	deviceExtensions.Clear();
+	validationLayers.Clear();
+	
+	surface = VK_NULL_HANDLE;
+	presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+	
+	fullscreen = 0;
+	swapchain = VK_NULL_HANDLE;
+	swapchainFormat = VK_FORMAT_UNDEFINED;
+	currentSwapIndex = 0;
 	m_swapchainImages.Clear();
-	m_acquireSemaphores.Zero();
-	m_renderCompleteSemaphores.Zero();
-
-	m_queryIndex.Zero();
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		m_queryResults[ i ].Zero();
+	
+	swapchainImages.Zero();
+	swapchainViews.Zero();
+	frameBuffers.Zero();
+	
+	commandBuffers.Zero();
+	commandBufferFences.Zero();
+	commandBufferRecorded.Zero();
+	acquireSemaphores.Zero();
+	renderCompleteSemaphores.Zero();
+	
+	queryIndex.Zero();
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		queryResults[ i ].Zero();
 	}
-	m_queryPools.Zero();
+	queryPools.Zero();
+		}
+	}
 }
 
 /*
@@ -873,69 +980,67 @@ void idRenderBackend::Print() {
 idRenderBackend::Init
 =============
 */
-void idRenderBackend::Init() {
+void idRenderBackend::Init()
+{
 	idLib::Printf( "----- idRenderBackend::Init -----\n" );
-
+	
 	// Setup the window
 	OpenWindow();
-
+	
 	// input and sound systems need to be tied to the new window
 	Sys_InitInput();
-
+	
 	// Create the instance
 	CreateInstance();
-
+	
 	// Create presentation surface
 	CreateSurface();
-
+	
 	// Enumerate physical devices and get their properties
-	EnumeratePhysicalDevices();
-
-	// Find queue family/families supporting graphics and present.
-	SelectPhysicalDevice();
-
+	SelectSuitablePhysicalDevice();
+	
 	// Create logical device and queues
 	CreateLogicalDeviceAndQueues();
-
+	
 	// Create semaphores for image acquisition and rendering completion
 	CreateSemaphores();
-
+	
 	// Create Query Pool
 	CreateQueryPool();
-
+	
 	// Create Command Pool
 	CreateCommandPool();
-
+	
 	// Create Command Buffer
 	CreateCommandBuffer();
-
+	
 	// Setup the allocator
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	extern idCVar r_vkHostVisibleMemoryMB;
 	extern idCVar r_vkDeviceLocalMemoryMB;
-
+	
 	VmaAllocatorCreateInfo createInfo = {};
-	createInfo.physicalDevice = m_physicalDevice;
+	createInfo.physicalDevice = physicalDevice;
 	createInfo.device = vkcontext.device;
 	createInfo.preferredSmallHeapBlockSize = r_vkHostVisibleMemoryMB.GetInteger() * 1024 * 1024;
 	createInfo.preferredLargeHeapBlockSize = r_vkDeviceLocalMemoryMB.GetInteger() * 1024 * 1024;
-
+	
 	vmaCreateAllocator( &createInfo, &vmaAllocator );
 #else
 	vulkanAllocator.Init();
 #endif
-
+	
 	// Start the Staging Manager
 	stagingManager.Init();
-
+	
 	// Determine samples before creating depth
 	{
 		VkImageFormatProperties fmtProps = {};
 		vkGetPhysicalDeviceImageFormatProperties( m_physicalDevice, m_swapchainFormat, 
 			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 0, &fmtProps );
-
+	
 		const int samples = r_multiSamples.GetInteger();
-
+	
 		if ( samples >= 16 && ( fmtProps.sampleCounts & VK_SAMPLE_COUNT_16_BIT ) ) {
 			vkcontext.sampleCount = VK_SAMPLE_COUNT_16_BIT;
 		} else if ( samples >= 8 && ( fmtProps.sampleCounts & VK_SAMPLE_COUNT_8_BIT ) ) {
@@ -962,15 +1067,15 @@ void idRenderBackend::Init() {
 
 	// Create Swap Chain
 	CreateSwapChain();
-
+	
 	// Create Pipeline Cache
 	CreatePipelineCache();
-
+	
 	// Init RenderProg Manager
 	CreateRenderProgs();
-
+	
 	// Init Vertex Cache
-	vertexCache.Init( vkcontext.gpu->props.limits.minUniformBufferOffsetAlignment );
+	vertexCache.Init( vkcontext.gpu.props.limits.minUniformBufferOffsetAlignment );
 }
 
 /*
@@ -978,164 +1083,134 @@ void idRenderBackend::Init() {
 idRenderBackend::Shutdown
 =============
 */
-void idRenderBackend::Shutdown() {
+void idRenderBackend::Shutdown()
+{
 	// Shutdown input
 	Sys_ShutdownInput();
-
+	
 	DestroyRenderProgs();
-
+	
 	// Destroy Pipeline Cache
 	vkDestroyPipelineCache( vkcontext.device, vkcontext.pipelineCache, NULL );
 
 	// Destroy Swap Chain
 	DestroySwapChain();
-
+	
 	// Stop the Staging Manager
 	stagingManager.Shutdown();
-
+	
 	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
 		idImage::EmptyGarbage();
 	}
 
 	// Destroy Command Buffer
-	vkFreeCommandBuffers( vkcontext.device, vkcontext.commandPool, NUM_FRAME_DATA, vkcontext.commandBuffers.Ptr() );
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		vkDestroyFence( vkcontext.device, vkcontext.commandBufferFences[ i ], NULL );
+	vkFreeCommandBuffers( vkcontext.device, commandPool, NUM_FRAME_DATA, commandBuffers.Ptr() );
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		vkDestroyFence( vkcontext.device, commandBufferFences[ i ], NULL );
 	}
-
+	
 	// Destroy Command Pool
-	vkDestroyCommandPool( vkcontext.device, vkcontext.commandPool, NULL );
-
+	vkDestroyCommandPool( vkcontext.device, commandPool, NULL );
+	
 	// Destroy Query Pools
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		vkDestroyQueryPool( vkcontext.device, m_queryPools[ i ], NULL );
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		vkDestroyQueryPool( vkcontext.device, queryPools[ i ], NULL );
 	}
-
+	
 	// Destroy Semaphores
-	for ( int i = 0; i < NUM_FRAME_DATA; ++i ) {
-		vkDestroySemaphore( vkcontext.device, m_acquireSemaphores[ i ], NULL );
-		vkDestroySemaphore( vkcontext.device, m_renderCompleteSemaphores[ i ], NULL );
+	for( int i = 0; i < NUM_FRAME_DATA; ++i )
+	{
+		vkDestroySemaphore( vkcontext.device, acquireSemaphores[ i ], NULL );
+		vkDestroySemaphore( vkcontext.device, renderCompleteSemaphores[ i ], NULL );
 	}
-
+	
 	// Destroy Debug Callback
-	if ( r_vkEnableValidationLayers.GetBool() ) {
-		DestroyDebugReportCallback( m_instance );
+	if( r_vkEnableValidationLayers.GetBool() )
+	{
+		DestroyDebugReportCallback( instance );
 	}
-
+	
 	// Dump all our memory
-#if defined( ID_USE_AMD_ALLOCATOR )
+#if defined( USE_AMD_ALLOCATOR )
 	vmaDestroyAllocator( vmaAllocator );
 #else
 	vulkanAllocator.Shutdown();
 #endif
-
+	
 	// Destroy Logical Device
 	vkDestroyDevice( vkcontext.device, NULL );
-
+	
 	// Destroy Surface
-	vkDestroySurfaceKHR( m_instance, m_surface, NULL );
-
+	vkDestroySurfaceKHR( instance, surface, NULL );
+	
 	// Destroy the Instance
-	vkDestroyInstance( m_instance, NULL );
-
+	vkDestroyInstance( instance, NULL );
+	
 	ClearContext();
 	Clear();
-
+	
 	CloseWindow();
 }
 
 /*
 ====================
-idRenderBackend::ResizeImages
+idRenderBackend::Restart
 ====================
 */
-void idRenderBackend::ResizeImages() {
-	if ( m_swapchainExtent.width == win32.nativeScreenWidth && 
-		m_swapchainExtent.height == win32.nativeScreenHeight &&
-		m_fullscreen == win32.isFullscreen ) {
-		return;
-	}
-
+void idRenderBackend::Restart()
+{
 	stagingManager.Flush();
 	
 	vkDeviceWaitIdle( vkcontext.device );
 
 	// Destroy Current Swap Chain
 	DestroySwapChain();
-
+	
 	// Destroy Current Surface
-	vkDestroySurfaceKHR( m_instance, m_surface, NULL );
-
-#if !defined( ID_USE_AMD_ALLOCATOR )
+	vkDestroySurfaceKHR( instance, surface, NULL );
+	
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
-
+	
 	// Create New Surface
 	CreateSurface();
-
+	
 	// Refresh Surface Capabilities
-	ID_VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( m_physicalDevice, m_surface, &vkcontext.gpu->surfaceCaps ) );
-
+	ID_VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( physicalDevice, surface, &vkcontext.gpu.surfaceCaps ) );
+	
 	// Recheck presentation support
 	VkBool32 supportsPresent = VK_FALSE;
-	ID_VK_CHECK( vkGetPhysicalDeviceSurfaceSupportKHR( m_physicalDevice, vkcontext.presentFamilyIdx, m_surface, &supportsPresent ) );
-	if ( supportsPresent == VK_FALSE ) {
+	ID_VK_CHECK( vkGetPhysicalDeviceSurfaceSupportKHR( physicalDevice, vkcontext.presentFamilyIdx, surface, &supportsPresent ) );
+	if( supportsPresent == VK_FALSE )
+	{
 		idLib::FatalError( "idRenderBackend::ResizeImages: New surface does not support present?" );
 	}
-
+	
 	// Create New Swap Chain
 	CreateSwapChain();
-
+	
 	// Recreate the targets
 	globalImages->ReloadTargets();
-
+	
 	// Clear any image garbage we may have amassed.
 	idImage::EmptyGarbage();
 }
 
-/*
-====================
-idRenderBackend::BlockingSwapBuffers
-====================
-*/
-void idRenderBackend::BlockingSwapBuffers() {
-	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
 
-	if ( vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] == false ) {
-		return;
-	}	
-
-	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ], VK_TRUE, UINT64_MAX ) );
-
-	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &vkcontext.commandBufferFences[ vkcontext.currentFrameData ] ) );
-	vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] = false;
-		
-	VkSemaphore * finished = &m_renderCompleteSemaphores[ vkcontext.currentFrameData ];
-
-	VkPresentInfoKHR presentInfo = {};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = finished;
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = &m_swapchain;
-	presentInfo.pImageIndices = &m_currentSwapIndex;
-
-	ID_VK_CHECK( vkQueuePresentKHR( vkcontext.presentQueue, &presentInfo ) );
-
-	vkcontext.counter++;
-	vkcontext.currentFrameData = vkcontext.counter % NUM_FRAME_DATA;
 	
 
 
-	//vkDeviceWaitIdle( vkcontext.device );
-}
 
 /*
 ==================
 idRenderBackend::CheckCVars
 ==================
 */
-void idRenderBackend::CheckCVars() {
+void idRenderBackend::CheckCVars()
+{
 
 }
 
@@ -1152,70 +1227,87 @@ BACKEND COMMANDS
 idRenderBackend::DrawElementsWithCounters
 =============
 */
-void idRenderBackend::DrawElementsWithCounters( const drawSurf_t * surf ) {
+void idRenderBackend::DrawElementsWithCounters( const drawSurf_t* surf )
+{
 	// get vertex buffer
 	const vertCacheHandle_t vbHandle = surf->ambientCache;
-	idVertexBuffer * vertexBuffer;
-	if ( vertexCache.CacheIsStatic( vbHandle ) ) {
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
-	} else {
-		const uint64 frameNum = (int)( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if ( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) ) {
+	idVertexBuffer* vertexBuffer;
+	if( vertexCache.CacheIsStatic( vbHandle ) )
+	{
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
+	}
+	else
+	{
+		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
-	int vertOffset = (int)( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
-
+	int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
+	
 	// get index buffer
 	const vertCacheHandle_t ibHandle = surf->indexCache;
-	idIndexBuffer * indexBuffer;
-	if ( vertexCache.CacheIsStatic( ibHandle ) ) {
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
-	} else {
-		const uint64 frameNum = (int)( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if ( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) ) {
+	idIndexBuffer* indexBuffer;
+	if( vertexCache.CacheIsStatic( ibHandle ) )
+	{
+		indexBuffer = &vertexCache.staticData.indexBuffer;
+	}
+	else
+	{
+		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		{
 			idLib::Warning( "idRenderBackend::DrawElementsWithCounters, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
-	int indexOffset = (int)( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
-
+	int indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
+	
 	RENDERLOG_PRINTF( "Binding Buffers(%d): %p:%i %p:%i\n", surf->numIndexes, vertexBuffer, vertOffset, indexBuffer, indexOffset );
-
+	
 	const renderProg_t & prog = m_renderProgs[ m_currentRp ];
-
-	if ( surf->jointCache ) {
+	
+	if( surf->jointCache )
+	{
 		assert( prog.usesJoints );
-		if ( !prog.usesJoints ) {
-			return;
-		}
-	} else {
-		assert( !prog.usesJoints || prog.optionalSkinning );
-		if ( prog.usesJoints && !prog.optionalSkinning ) {
+		if( !prog.usesJoints )
+		{
 			return;
 		}
 	}
-
+	else
+	{
+		assert( !prog.usesJoints || prog.optionalSkinning );
+		if( prog.usesJoints && !prog.optionalSkinning )
+		{
+			return;
+		}
+	}
+	
 	vkcontext.jointCacheHandle = surf->jointCache;
-
-	PrintState( m_glStateBits );
+	
+	VkCommandBuffer commandBuffer = commandBuffers[ currentFrameData ];
+	
 	CommitCurrent( m_glStateBits, m_currentRenderTarget );
-
+	PrintState( glStateBits );
+	renderProgManager.CommitCurrent( glStateBits, commandBuffer );
+	
 	{
 		const VkBuffer buffer = indexBuffer->GetAPIObject();
 		const VkDeviceSize offset = indexBuffer->GetOffset();
-		vkCmdBindIndexBuffer( vkcontext.commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT16 );
+		vkCmdBindIndexBuffer( commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT16 );
 	}
 	{
 		const VkBuffer buffer = vertexBuffer->GetAPIObject();
 		const VkDeviceSize offset = vertexBuffer->GetOffset();
-		vkCmdBindVertexBuffers( vkcontext.commandBuffer, 0, 1, &buffer, &offset );
+		vkCmdBindVertexBuffers( commandBuffer, 0, 1, &buffer, &offset );
 	}
-
-	vkCmdDrawIndexed( vkcontext.commandBuffer, surf->numIndexes, 1, ( indexOffset >> 1 ), vertOffset / sizeof( idDrawVert ), 0 );
+	
+	vkCmdDrawIndexed( commandBuffer, surf->numIndexes, 1, ( indexOffset >> 1 ), vertOffset / sizeof( idDrawVert ), 0 );
 }
 
 /*
@@ -1231,13 +1323,12 @@ GL COMMANDS
 idRenderBackend::GL_StartFrame
 ==================
 */
-void idRenderBackend::GL_StartFrame() {
-	vkcontext.commandBuffer = vkcontext.commandBuffers[ vkcontext.currentFrameData ];
-
-	ID_VK_CHECK( vkAcquireNextImageKHR( vkcontext.device, m_swapchain, UINT64_MAX, m_acquireSemaphores[ vkcontext.currentFrameData ], VK_NULL_HANDLE, &m_currentSwapIndex ) );
-
+void idRenderBackend::GL_StartFrame()
+{
+	ID_VK_CHECK( vkAcquireNextImageKHR( vkcontext.device, swapchain, UINT64_MAX, acquireSemaphores[ currentFrameData ], VK_NULL_HANDLE, &currentSwapIndex ) );
+	
 	idImage::EmptyGarbage();
-#if !defined( ID_USE_AMD_ALLOCATOR )
+#if !defined( USE_AMD_ALLOCATOR )
 	vulkanAllocator.EmptyGarbage();
 #endif
 	stagingManager.Flush();
@@ -1246,29 +1337,32 @@ void idRenderBackend::GL_StartFrame() {
 	m_currentParmBufferOffset = 0;
 
 	vkResetDescriptorPool( vkcontext.device, m_descriptorPools[ vkcontext.currentFrameData ], 0 );
-
-	VkQueryPool queryPool = m_queryPools[ vkcontext.currentFrameData ];
-	idArray< uint64, NUM_TIMESTAMP_QUERIES > & results = m_queryResults[ vkcontext.currentFrameData ];
-
-	if ( m_queryIndex[ vkcontext.currentFrameData ] > 0 ) {
-		vkGetQueryPoolResults( vkcontext.device, queryPool, 0, 2, 
-			results.ByteSize(), results.Ptr(), sizeof( uint64 ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
-
+	
+	VkQueryPool queryPool = queryPools[ currentFrameData ];
+	idArray< uint64, NUM_TIMESTAMP_QUERIES >& results = queryResults[ currentFrameData ];
+	
+	if( queryIndex[ currentFrameData ] > 0 )
+	{
+		vkGetQueryPoolResults( vkcontext.device, queryPool, 0, 2,
+							   results.ByteSize(), results.Ptr(), sizeof( uint64 ), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT );
+							   
 		const uint64 gpuStart = results[ 0 ];
 		const uint64 gpuEnd = results[ 1 ];
-		const uint64 tick = ( 1000 * 1000 * 1000 ) / vkcontext.gpu->props.limits.timestampPeriod;
-		m_pc.gpuMicroSec = ( ( gpuEnd - gpuStart ) * 1000 * 1000 ) / tick;
-
-		m_queryIndex[ vkcontext.currentFrameData ] = 0;
+		const uint64 tick = ( 1000 * 1000 * 1000 ) / vkcontext.gpu.props.limits.timestampPeriod;
+		pc.gpuMicroSec = ( ( gpuEnd - gpuStart ) * 1000 * 1000 ) / tick;
+		
+		queryIndex[ currentFrameData ] = 0;
 	}
-
+	
+	VkCommandBuffer commandBuffer = commandBuffers[ currentFrameData ];
+	
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	ID_VK_CHECK( vkBeginCommandBuffer( vkcontext.commandBuffer, &commandBufferBeginInfo ) );
-
-	vkCmdResetQueryPool( vkcontext.commandBuffer, queryPool, 0, NUM_TIMESTAMP_QUERIES );
-
-	vkCmdWriteTimestamp( vkcontext.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, m_queryIndex[ vkcontext.currentFrameData ]++ );
+	ID_VK_CHECK( vkBeginCommandBuffer( commandBuffer, &commandBufferBeginInfo ) );
+	
+	vkCmdResetQueryPool( commandBuffer, queryPool, 0, NUM_TIMESTAMP_QUERIES );
+	
+	vkCmdWriteTimestamp( commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, queryIndex[ currentFrameData ]++ );
 }
 
 /*
@@ -1276,12 +1370,16 @@ void idRenderBackend::GL_StartFrame() {
 idRenderBackend::GL_EndFrame
 ==================
 */
-void idRenderBackend::GL_EndFrame() {
-	vkCmdWriteTimestamp( vkcontext.commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_queryPools[ vkcontext.currentFrameData ], m_queryIndex[ vkcontext.currentFrameData ]++ );
-
+void idRenderBackend::GL_EndFrame()
+{
+	VkCommandBuffer commandBuffer = commandBuffers[ currentFrameData ];
+	
+	vkCmdWriteTimestamp( commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPools[ currentFrameData ], queryIndex[ currentFrameData ]++ );
+	
+	vkCmdEndRenderPass( commandBuffer );
 	// Transition our swap image to present.
 	// Do this instead of having the renderpass do the transition
-	// so we can take advantage of the general layout to avoid 
+	// so we can take advantage of the general layout to avoid
 	// additional image barriers.
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1297,32 +1395,72 @@ void idRenderBackend::GL_EndFrame() {
 	barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	barrier.dstAccessMask = 0;
-
-	vkCmdPipelineBarrier( 
-		vkcontext.commandBuffer, 
+	
+	vkCmdPipelineBarrier(
+		commandBuffer,
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
 		0, 0, NULL, 0, NULL, 1, &barrier );
-
-	ID_VK_CHECK( vkEndCommandBuffer( vkcontext.commandBuffer ) )
-	vkcontext.commandBufferRecorded[ vkcontext.currentFrameData ] = true;
-
-	VkSemaphore * acquire = &m_acquireSemaphores[ vkcontext.currentFrameData ];
-	VkSemaphore * finished = &m_renderCompleteSemaphores[ vkcontext.currentFrameData ];
-
+		
+	ID_VK_CHECK( vkEndCommandBuffer( commandBuffer ) )
+	commandBufferRecorded[ currentFrameData ] = true;
+	
+	VkSemaphore* acquire = &acquireSemaphores[ currentFrameData ];
+	VkSemaphore* finished = &renderCompleteSemaphores[ currentFrameData ];
+	
 	VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
+	
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &vkcontext.commandBuffer;
+	submitInfo.pCommandBuffers = &commandBuffer;
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = acquire;
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = finished;
 	submitInfo.pWaitDstStageMask = &dstStageMask;
+	
+	ID_VK_CHECK( vkQueueSubmit( vkcontext.graphicsQueue, 1, &submitInfo, commandBufferFences[ currentFrameData ] ) );
+	
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = finished;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &swapchain;
+	presentInfo.pImageIndices = &currentSwapIndex;
+	
+	ID_VK_CHECK( vkQueuePresentKHR( vkcontext.presentQueue, &presentInfo ) );
+	
+	counter++;
+	currentFrameData = counter % NUM_FRAME_DATA;
+}
 
-	ID_VK_CHECK( vkQueueSubmit( vkcontext.graphicsQueue, 1, &submitInfo, vkcontext.commandBufferFences[ vkcontext.currentFrameData ] ) );
+/*
+=============
+GL_BlockingSwapBuffers
+
+We want to exit this with the GPU idle, right at vsync
+=============
+*/
+void idRenderBackend::BlockingSwapBuffers()
+{
+	RENDERLOG_PRINTF( "***************** BlockingSwapBuffers *****************\n\n\n" );
+	
+	counter++;
+	currentFrameData = counter % NUM_FRAME_DATA;
+	
+	if( commandBufferRecorded[ currentFrameData ] == false )
+	{
+		return;
+	}
+	
+	ID_VK_CHECK( vkWaitForFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ], VK_TRUE, UINT64_MAX ) );
+	
+	ID_VK_CHECK( vkResetFences( vkcontext.device, 1, &commandBufferFences[ currentFrameData ] ) );
+	commandBufferRecorded[ currentFrameData ] = false;
+	
+	//vkDeviceWaitIdle( vkcontext.device );
 }
 
 /*
@@ -1366,13 +1504,14 @@ This should initialize all GL state that any part of the entire program
 may touch, including the editor.
 ========================
 */
-void idRenderBackend::GL_SetDefaultState() {
+void idRenderBackend::GL_SetDefaultState()
+{
 	RENDERLOG_PRINTF( "--- GL_SetDefaultState ---\n" );
-
-	m_glStateBits = 0;
-
+	
+	glStateBits = 0;
+	
 	GL_State( 0, true );
-
+	
 	GL_Scissor( 0, 0, renderSystem->GetWidth(), renderSystem->GetHeight() );
 }
 
@@ -1383,10 +1522,12 @@ idRenderBackend::GL_State
 This routine is responsible for setting the most commonly changed state
 ====================
 */
-void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState ) {
-	m_glStateBits = stateBits | ( m_glStateBits & GLS_KEEP );
-	if ( m_viewDef != NULL && m_viewDef->isMirror ) {
-		m_glStateBits |= GLS_MIRROR_VIEW;
+void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState )
+{
+	glStateBits = stateBits | ( glStateBits & GLS_KEEP );
+	if( viewDef != NULL && viewDef->isMirror )
+	{
+		glStateBits |= GLS_MIRROR_VIEW;
 	}
 }
 
@@ -1395,9 +1536,10 @@ void idRenderBackend::GL_State( uint64 stateBits, bool forceGlState ) {
 idRenderBackend::GL_BindTexture
 ====================
 */
-void idRenderBackend::GL_BindTexture( int index, idImage * image ) {
+void idRenderBackend::GL_BindTexture( int index, idImage* image )
+{
 	RENDERLOG_PRINTF( "GL_BindTexture( %d, %s )\n", index, image->GetName() );
-
+	
 	vkcontext.imageParms[ index ] = image;
 }
 
@@ -1406,7 +1548,7 @@ void idRenderBackend::GL_BindTexture( int index, idImage * image ) {
 idRenderBackend::GL_CopyFrameBuffer
 ====================
 */
-void idRenderBackend::GL_CopyFrameBuffer( idImage * image, int x, int y, int imageWidth, int imageHeight ) {
+void idRenderBackend::GL_CopyFrameBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight )
 	//vkCmdEndRenderPass( vkcontext.commandBuffer );
 
 	//VkImageMemoryBarrier dstBarrier = {};
@@ -1419,7 +1561,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage * image, int x, int y, int ima
 	//dstBarrier.subresourceRange.levelCount = 1;
 	//dstBarrier.subresourceRange.baseArrayLayer = 0;
 	//dstBarrier.subresourceRange.layerCount = 1;
-
+	
 	//// Pre copy transitions
 	//{
 	//	// Transition the color dst image so we can transfer to it.
@@ -1442,7 +1584,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage * image, int x, int y, int ima
 	//	region.srcSubresource.mipLevel = 0;
 	//	region.srcSubresource.layerCount = 1;
 	//	region.srcOffsets[ 1 ] = { imageWidth, imageHeight, 1 };
-
+		
 	//	region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	//	region.dstSubresource.baseArrayLayer = 0;
 	//	region.dstSubresource.mipLevel = 0;
@@ -1455,7 +1597,7 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage * image, int x, int y, int ima
 	//		image->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 	//		1, &region, VK_FILTER_NEAREST );
 	//}
-
+	
 	//// Post copy transitions
 	//{
 	//	// Transition the color dst image so we can transfer to it.
@@ -1484,43 +1626,52 @@ void idRenderBackend::GL_CopyFrameBuffer( idImage * image, int x, int y, int ima
 idRenderBackend::GL_Clear
 ========================
 */
-void idRenderBackend::GL_Clear( bool color, bool depth, bool stencil, byte stencilValue, float r, float g, float b, float a ) {
-	RENDERLOG_PRINTF( "GL_Clear( color=%d, depth=%d, stencil=%d, stencil=%d, r=%f, g=%f, b=%f, a=%f )\n", 
-		color, depth, stencil, stencilValue, r, g, b, a );
-
+void idRenderBackend::GL_Clear( bool color, bool depth, bool stencil, byte stencilValue, float r, float g, float b, float a )
+{
+	RENDERLOG_PRINTF( "GL_Clear( color=%d, depth=%d, stencil=%d, stencil=%d, r=%f, g=%f, b=%f, a=%f )\n",
+					  color, depth, stencil, stencilValue, r, g, b, a );
+					  
 	uint32 numAttachments = 0;
 	VkClearAttachment attachments[ 2 ];
 	memset( attachments, 0, sizeof( attachments ) );
-
-	if ( color ) {
-		VkClearAttachment & attachment = attachments[ numAttachments++ ];
+	
+	if( color )
+	{
+		VkClearAttachment& attachment = attachments[ numAttachments++ ];
 		attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		attachment.colorAttachment = 0;
-		VkClearColorValue & color = attachment.clearValue.color;
+		
+		VkClearColorValue& color = attachment.clearValue.color;
 		color.float32[ 0 ] = r;
 		color.float32[ 1 ] = g;
 		color.float32[ 2 ] = b;
 		color.float32[ 3 ] = a;
 	}
-
-	if ( depth || stencil ) {
-		VkClearAttachment & attachment = attachments[ numAttachments++ ];
-		if ( depth ) {
+	
+	if( depth || stencil )
+	{
+		VkClearAttachment& attachment = attachments[ numAttachments++ ];
+		
+		if( depth )
+		{
 			attachment.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 		}
-		if ( stencil ) {
+		
+		if( stencil )
+		{
 			attachment.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
+		
 		attachment.clearValue.depthStencil.depth = 1.0f;
 		attachment.clearValue.depthStencil.stencil = stencilValue;
 	}
-
+	
 	VkClearRect clearRect = {};
 	clearRect.baseArrayLayer = 0;
 	clearRect.layerCount = 1;
-	clearRect.rect.extent = m_swapchainExtent;
-
-	vkCmdClearAttachments( vkcontext.commandBuffer, numAttachments, attachments, 1, &clearRect );
+	clearRect.rect.extent = swapchainExtent;
+	
+	vkCmdClearAttachments( commandBuffers[ currentFrameData ], numAttachments, attachments, 1, &clearRect );
 }
 
 /*
@@ -1528,18 +1679,23 @@ void idRenderBackend::GL_Clear( bool color, bool depth, bool stencil, byte stenc
 idRenderBackend::GL_DepthBoundsTest
 ========================
 */
-void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax ) {
-	if ( zmin > zmax ) {
+void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax )
+{
+	if( !vkcontext.gpu.features.depthBounds || zmin > zmax )
+	{
 		return;
 	}
-
-	if ( zmin == 0.0f && zmax == 0.0f ) {
-		m_glStateBits = m_glStateBits & ~GLS_DEPTH_TEST_MASK;
-	} else {
-		m_glStateBits |= GLS_DEPTH_TEST_MASK;
-		vkCmdSetDepthBounds( vkcontext.commandBuffer, zmin, zmax );
+	
+	if( zmin == 0.0f && zmax == 0.0f )
+	{
+		glStateBits = glStateBits & ~GLS_DEPTH_TEST_MASK;
 	}
-
+	else
+	{
+		glStateBits |= GLS_DEPTH_TEST_MASK;
+		vkCmdSetDepthBounds( commandBuffers[ currentFrameData ], zmin, zmax );
+	}
+	
 	RENDERLOG_PRINTF( "GL_DepthBoundsTest( zmin=%f, zmax=%f )\n", zmin, zmax );
 }
 
@@ -1548,9 +1704,10 @@ void idRenderBackend::GL_DepthBoundsTest( const float zmin, const float zmax ) {
 idRenderBackend::GL_PolygonOffset
 ====================
 */
-void idRenderBackend::GL_PolygonOffset( float scale, float bias ) {
-	vkCmdSetDepthBias( vkcontext.commandBuffer, bias, 0.0f, scale );
-
+void idRenderBackend::GL_PolygonOffset( float scale, float bias )
+{
+	vkCmdSetDepthBias( commandBuffers[ currentFrameData ], bias, 0.0f, scale );
+	
 	RENDERLOG_PRINTF( "GL_PolygonOffset( scale=%f, bias=%f )\n", scale, bias );
 }
 
@@ -1559,13 +1716,14 @@ void idRenderBackend::GL_PolygonOffset( float scale, float bias ) {
 idRenderBackend::GL_Scissor
 ====================
 */
-void idRenderBackend::GL_Scissor( int x /* left*/, int y /* bottom */, int w, int h ) {
+void idRenderBackend::GL_Scissor( int x /* left*/, int y /* bottom */, int w, int h )
+{
 	VkRect2D scissor;
 	scissor.offset.x = x;
 	scissor.offset.y = y;
 	scissor.extent.width = w;
 	scissor.extent.height = h;
-	vkCmdSetScissor( vkcontext.commandBuffer, 0, 1, &scissor );
+	vkCmdSetScissor( commandBuffers[ currentFrameData ], 0, 1, &scissor );
 }
 
 /*
@@ -1573,7 +1731,8 @@ void idRenderBackend::GL_Scissor( int x /* left*/, int y /* bottom */, int w, in
 idRenderBackend::GL_Viewport
 ====================
 */
-void idRenderBackend::GL_Viewport( int x /* left */, int y /* bottom */, int w, int h ) {
+void idRenderBackend::GL_Viewport( int x /* left */, int y /* bottom */, int w, int h )
+{
 	VkViewport viewport;
 	viewport.x = x;
 	viewport.y = y;
@@ -1581,7 +1740,7 @@ void idRenderBackend::GL_Viewport( int x /* left */, int y /* bottom */, int w, 
 	viewport.height = h;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport( vkcontext.commandBuffer, 0, 1, &viewport );
+	vkCmdSetViewport( commandBuffers[ currentFrameData ], 0, 1, &viewport );
 }
 
 /*
@@ -1597,83 +1756,100 @@ STENCIL SHADOW RENDERING
 idRenderBackend::DrawStencilShadowPass
 =====================
 */
-void idRenderBackend::DrawStencilShadowPass( const drawSurf_t * drawSurf, const bool renderZPass ) {
-	if ( renderZPass ) {
+void idRenderBackend::DrawStencilShadowPass( const drawSurf_t* drawSurf, const bool renderZPass )
+{
+	if( renderZPass )
+	{
 		// Z-pass
 		uint64 stencil = GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR
-						| GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_KEEP | GLS_BACK_STENCIL_OP_PASS_DECR;
-		GL_State( m_glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
-	} else if ( r_useStencilShadowPreload.GetBool() ) {
+						 | GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_KEEP | GLS_BACK_STENCIL_OP_PASS_DECR;
+		GL_State( glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
+	}
+	else if( r_useStencilShadowPreload.GetBool() )
+	{
 		// preload + Z-pass
 		uint64 stencil = GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_DECR | GLS_STENCIL_OP_PASS_DECR
-						| GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_INCR | GLS_BACK_STENCIL_OP_PASS_INCR;
-		GL_State( m_glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
-	} else {
+						 | GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_INCR | GLS_BACK_STENCIL_OP_PASS_INCR;
+		GL_State( glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
+	}
+	else
+	{
 		// Z-fail
 	}
-
+	
 	// get vertex buffer
 	const vertCacheHandle_t vbHandle = drawSurf->shadowCache;
-	idVertexBuffer * vertexBuffer;
-	if ( vertexCache.CacheIsStatic( vbHandle ) ) {
-		vertexBuffer = &vertexCache.m_staticData.vertexBuffer;
-	} else {
-		const uint64 frameNum = (int)( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if ( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) ) {
+	idVertexBuffer* vertexBuffer;
+	if( vertexCache.CacheIsStatic( vbHandle ) )
+	{
+		vertexBuffer = &vertexCache.staticData.vertexBuffer;
+	}
+	else
+	{
+		const uint64 frameNum = ( int )( vbHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		{
 			idLib::Warning( "RB_DrawElementsWithCounters, vertexBuffer == NULL" );
 			return;
 		}
-		vertexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].vertexBuffer;
+		vertexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].vertexBuffer;
 	}
-	const int vertOffset = (int)( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
-
+	const int vertOffset = ( int )( vbHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
+	
 	// get index buffer
 	const vertCacheHandle_t ibHandle = drawSurf->indexCache;
-	idIndexBuffer * indexBuffer;
-	if ( vertexCache.CacheIsStatic( ibHandle ) ) {
-		indexBuffer = &vertexCache.m_staticData.indexBuffer;
-	} else {
-		const uint64 frameNum = (int)( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
-		if ( frameNum != ( ( vertexCache.m_currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) ) {
+	idIndexBuffer* indexBuffer;
+	if( vertexCache.CacheIsStatic( ibHandle ) )
+	{
+		indexBuffer = &vertexCache.staticData.indexBuffer;
+	}
+	else
+	{
+		const uint64 frameNum = ( int )( ibHandle >> VERTCACHE_FRAME_SHIFT ) & VERTCACHE_FRAME_MASK;
+		if( frameNum != ( ( vertexCache.currentFrame - 1 ) & VERTCACHE_FRAME_MASK ) )
+		{
 			idLib::Warning( "RB_DrawElementsWithCounters, indexBuffer == NULL" );
 			return;
 		}
-		indexBuffer = &vertexCache.m_frameData[ vertexCache.m_drawListNum ].indexBuffer;
+		indexBuffer = &vertexCache.frameData[ vertexCache.drawListNum ].indexBuffer;
 	}
-	int indexOffset = (int)( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
-
+	int indexOffset = ( int )( ibHandle >> VERTCACHE_OFFSET_SHIFT ) & VERTCACHE_OFFSET_MASK;
+	
 	RENDERLOG_PRINTF( "Binding Buffers(%d): %p:%i %p:%i\n", drawSurf->numIndexes, vertexBuffer, vertOffset, indexBuffer, indexOffset );
-
+	
 	vkcontext.jointCacheHandle = drawSurf->jointCache;
 
 	PrintState( m_glStateBits );
 	CommitCurrent( m_glStateBits, m_currentRenderTarget );
+	
+	VkCommandBuffer commandBuffer = commandBuffers[ currentFrameData ];
 
 	{
 		const VkBuffer buffer = indexBuffer->GetAPIObject();
 		const VkDeviceSize offset = indexBuffer->GetOffset();
-		vkCmdBindIndexBuffer( vkcontext.commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT16 );
+		vkCmdBindIndexBuffer( commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT16 );
 	}
 	{
 		const VkBuffer buffer = vertexBuffer->GetAPIObject();
 		const VkDeviceSize offset = vertexBuffer->GetOffset();
-		vkCmdBindVertexBuffers( vkcontext.commandBuffer, 0, 1, &buffer, &offset );
+		vkCmdBindVertexBuffers( commandBuffer, 0, 1, &buffer, &offset );
 	}
-
+	
 	const int baseVertex = vertOffset / ( drawSurf->jointCache ? sizeof( idShadowVertSkinned ) : sizeof( idShadowVert ) );
-
-	vkCmdDrawIndexed( vkcontext.commandBuffer, drawSurf->numIndexes, 1, ( indexOffset >> 1 ), baseVertex, 0 );
-
-	if ( !renderZPass && r_useStencilShadowPreload.GetBool() ) {
+	
+	vkCmdDrawIndexed( commandBuffer, drawSurf->numIndexes, 1, ( indexOffset >> 1 ), baseVertex, 0 );
+	
+	if( !renderZPass && r_useStencilShadowPreload.GetBool() )
+	{
 		// render again with Z-pass
 		uint64 stencil = GLS_STENCIL_OP_FAIL_KEEP | GLS_STENCIL_OP_ZFAIL_KEEP | GLS_STENCIL_OP_PASS_INCR
-						| GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_KEEP | GLS_BACK_STENCIL_OP_PASS_DECR;
-		GL_State( m_glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
-
-		PrintState( m_glStateBits );
+						 | GLS_BACK_STENCIL_OP_FAIL_KEEP | GLS_BACK_STENCIL_OP_ZFAIL_KEEP | GLS_BACK_STENCIL_OP_PASS_DECR;
+		GL_State( glStateBits & ~GLS_STENCIL_OP_BITS | stencil );
+		
+		PrintState( glStateBits );
 		CommitCurrent( m_glStateBits, m_currentRenderTarget );
-
-		vkCmdDrawIndexed( vkcontext.commandBuffer, drawSurf->numIndexes, 1, ( indexOffset >> 1 ), baseVertex, 0 );
+		
+		vkCmdDrawIndexed( commandBuffer, drawSurf->numIndexes, 1, ( indexOffset >> 1 ), baseVertex, 0 );
 	}
 }
 

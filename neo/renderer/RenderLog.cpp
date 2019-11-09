@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,7 +45,8 @@ extern idCVar r_logFile;
 static const int LOG_LEVEL_BLOCKS_ONLY	= 1;
 static const int LOG_LEVEL_EVERYTHING	= 2;
 
-const char * renderLogMainBlockLabels[] = {
+const char* renderLogMainBlockLabels[] =
+{
 	ASSERT_ENUM_STRING( MRB_NONE,							0 ),
 	ASSERT_ENUM_STRING( MRB_BEGIN_DRAWING_VIEW,				1 ),
 	ASSERT_ENUM_STRING( MRB_FILL_DEPTH_BUFFER,				2 ),
@@ -75,10 +76,11 @@ PIX events on all platforms
 
 /*
 ================================================
-pixEvent_t 
+pixEvent_t
 ================================================
 */
-struct pixEvent_t {
+struct pixEvent_t
+{
 	char		name[256];
 	uint64		cpuTime;
 	uint64		gpuTime;
@@ -88,7 +90,7 @@ idCVar r_pix( "r_pix", "0", CVAR_INTEGER, "print GPU/CPU event timing" );
 
 static const int	MAX_PIX_EVENTS = 256;
 // defer allocation of this until needed, so we don't waste lots of memory
-pixEvent_t *		pixEvents;	// [MAX_PIX_EVENTS]
+pixEvent_t* 		pixEvents;	// [MAX_PIX_EVENTS]
 int					numPixEvents;
 int					numPixLevels;
 
@@ -110,12 +112,13 @@ idRenderLog	renderLog;
 idRenderLog::idRenderLog
 ========================
 */
-idRenderLog::idRenderLog() {
+idRenderLog::idRenderLog()
+{
 	activeLevel = 0;
 	indentString[0] = '\0';
 	indentLevel = 0;
 	logFile = NULL;
-
+	
 	frameStartTime = 0;
 	closeBlockTime = 0;
 	logLevel = 0;
@@ -126,24 +129,26 @@ idRenderLog::idRenderLog() {
 idRenderLog::StartFrame
 ========================
 */
-void idRenderLog::StartFrame() {
-	if ( r_logFile.GetInteger() == 0 ) {
+void idRenderLog::StartFrame()
+{
+	if( r_logFile.GetInteger() == 0 )
+	{
 		return;
 	}
-
+	
 	// open a new logfile
 	indentLevel = 0;
 	indentString[0] = '\0';
 	activeLevel = r_logLevel.GetInteger();
-
-	struct tm		*newtime;
+	
+	struct tm*		newtime;
 	time_t			aclock;
-
+	
 	char ospath[ MAX_OSPATH ];
-
+	
 	char qpath[128];
 	sprintf( qpath, "renderlogPC_%04i.txt", r_logFile.GetInteger() );
-	idStr finalPath = fileSystem->RelativePathToOSPath( qpath );		
+	idStr finalPath = fileSystem->RelativePathToOSPath( qpath );
 	sprintf( ospath, "%s", finalPath.c_str() );
 	/*
 	for ( int i = 0; i < 9999 ; i++ ) {
@@ -156,28 +161,30 @@ void idRenderLog::StartFrame() {
 		}
 	}
 	*/
-
+	
 	common->SetRefreshOnPrint( false );	// problems are caused if this print causes a refresh...
-
-	if ( logFile != NULL ) {
+	
+	if( logFile != NULL )
+	{
 		fileSystem->CloseFile( logFile );
 		logFile = NULL;
 	}
-
-	logFile = fileSystem->OpenFileWrite( ospath );	
-	if ( logFile == NULL ) {
+	
+	logFile = fileSystem->OpenFileWrite( ospath );
+	if( logFile == NULL )
+	{
 		idLib::Warning( "Failed to open logfile %s", ospath );
 		return;
 	}
 	idLib::Printf( "Opened logfile %s\n", ospath );
-
+	
 	// write the time out to the top of the file
 	time( &aclock );
 	newtime = localtime( &aclock );
-	const char *str = asctime( newtime );
+	const char* str = asctime( newtime );
 	logFile->Printf( "// %s", str );
 	logFile->Printf( "// %s\n\n", com_version.GetString() );
-
+	
 	frameStartTime = Sys_Microseconds();
 	closeBlockTime = frameStartTime;
 	OpenBlock( "Frame" );
@@ -188,9 +195,12 @@ void idRenderLog::StartFrame() {
 idRenderLog::EndFrame
 ========================
 */
-void idRenderLog::EndFrame() {
-	if ( logFile != NULL ) {
-		if ( r_logFile.GetInteger() == 1 ) {
+void idRenderLog::EndFrame()
+{
+	if( logFile != NULL )
+	{
+		if( r_logFile.GetInteger() == 1 )
+		{
 			Close();
 		}
 		// log is open, so decrement r_logFile and stop if it is zero
@@ -205,8 +215,10 @@ void idRenderLog::EndFrame() {
 idRenderLog::Close
 ========================
 */
-void idRenderLog::Close() {
-	if ( logFile != NULL ) {
+void idRenderLog::Close()
+{
+	if( logFile != NULL )
+	{
 		CloseBlock();
 		idLib::Printf( "Closing logfile\n" );
 		fileSystem->CloseFile( logFile );
@@ -220,7 +232,8 @@ void idRenderLog::Close() {
 idRenderLog::OpenMainBlock
 ========================
 */
-void idRenderLog::OpenMainBlock( renderLogMainBlock_t block ) {
+void idRenderLog::OpenMainBlock( renderLogMainBlock_t block )
+{
 }
 
 /*
@@ -228,7 +241,8 @@ void idRenderLog::OpenMainBlock( renderLogMainBlock_t block ) {
 idRenderLog::CloseMainBlock
 ========================
 */
-void idRenderLog::CloseMainBlock() {
+void idRenderLog::CloseMainBlock()
+{
 }
 
 /*
@@ -236,8 +250,10 @@ void idRenderLog::CloseMainBlock() {
 idRenderLog::OpenBlock
 ========================
 */
-void idRenderLog::OpenBlock( const char *label ) {
-	if ( logFile != NULL ) {
+void idRenderLog::OpenBlock( const char* label )
+{
+	if( logFile != NULL )
+	{
 		LogOpenBlock( RENDER_LOG_INDENT_MAIN_BLOCK, label, NULL );
 	}
 }
@@ -247,8 +263,10 @@ void idRenderLog::OpenBlock( const char *label ) {
 idRenderLog::CloseBlock
 ========================
 */
-void idRenderLog::CloseBlock() {
-	if ( logFile != NULL ) {
+void idRenderLog::CloseBlock()
+{
+	if( logFile != NULL )
+	{
 		LogCloseBlock( RENDER_LOG_INDENT_MAIN_BLOCK );
 	}
 }
@@ -258,15 +276,18 @@ void idRenderLog::CloseBlock() {
 idRenderLog::Printf
 ========================
 */
-void idRenderLog::Printf( const char *fmt, ... ) {
-	if ( activeLevel <= LOG_LEVEL_BLOCKS_ONLY ) {
+void idRenderLog::Printf( const char* fmt, ... )
+{
+	if( activeLevel <= LOG_LEVEL_BLOCKS_ONLY )
+	{
 		return;
 	}
-
-	if ( logFile == NULL ) {
+	
+	if( logFile == NULL )
+	{
 		return;
 	}
-
+	
 	va_list marker;
 	logFile->Printf( "%s", indentString );
 	va_start( marker, fmt );
@@ -280,15 +301,18 @@ void idRenderLog::Printf( const char *fmt, ... ) {
 idRenderLog::Printf_NoIndent
 ========================
 */
-void idRenderLog::Printf_NoIndent( const char * fmt, ... ) {
-	if ( activeLevel <= LOG_LEVEL_BLOCKS_ONLY ) {
+void idRenderLog::Printf_NoIndent( const char* fmt, ... )
+{
+	if( activeLevel <= LOG_LEVEL_BLOCKS_ONLY )
+	{
 		return;
 	}
-
-	if ( logFile == NULL ) {
+	
+	if( logFile == NULL )
+	{
 		return;
 	}
-
+	
 	va_list marker;
 	va_start( marker, fmt );
 	logFile->VPrintf( fmt, marker );
@@ -300,26 +324,30 @@ void idRenderLog::Printf_NoIndent( const char * fmt, ... ) {
 idRenderLog::LogOpenBlock
 ========================
 */
-void idRenderLog::LogOpenBlock( renderLogIndentLabel_t label, const char * fmt, va_list args ) {
+void idRenderLog::LogOpenBlock( renderLogIndentLabel_t label, const char* fmt, va_list args )
+{
 
 	uint64 now = Sys_Microseconds();
-
-	if ( logFile != NULL ) {
-		if ( now - closeBlockTime >= 1000 ) {
+	
+	if( logFile != NULL )
+	{
+		if( now - closeBlockTime >= 1000 )
+		{
 			logFile->Printf( "%s%1.1f msec gap from last closeblock\n", indentString, ( now - closeBlockTime ) * ( 1.0f / 1000.0f ) );
 		}
 		logFile->Printf( "%s", indentString );
 		logFile->VPrintf( fmt, args );
 		logFile->Printf( " {\n" );
 	}
-
+	
 	Indent( label );
-
-	if ( logLevel >= MAX_LOG_LEVELS ) {
+	
+	if( logLevel >= MAX_LOG_LEVELS )
+	{
 		idLib::Warning( "logLevel %d >= MAX_LOG_LEVELS", logLevel );
 	}
-
-
+	
+	
 	logLevel++;
 }
 
@@ -328,15 +356,17 @@ void idRenderLog::LogOpenBlock( renderLogIndentLabel_t label, const char * fmt, 
 idRenderLog::LogCloseBlock
 ========================
 */
-void idRenderLog::LogCloseBlock( renderLogIndentLabel_t label ) {
+void idRenderLog::LogCloseBlock( renderLogIndentLabel_t label )
+{
 	closeBlockTime = Sys_Microseconds();
-
+	
 	assert( logLevel > 0 );
 	logLevel--;
-
+	
 	Outdent( label );
-
-	if ( logFile != NULL ) {
+	
+	if( logFile != NULL )
+	{
 	}
 }
 
@@ -347,7 +377,8 @@ void idRenderLog::LogCloseBlock( renderLogIndentLabel_t label ) {
 idRenderLog::OpenBlock
 ========================
 */
-void idRenderLog::OpenBlock( const char *label ) {
+void idRenderLog::OpenBlock( const char* label )
+{
 	PC_BeginNamedEvent( label );
 }
 
@@ -356,7 +387,8 @@ void idRenderLog::OpenBlock( const char *label ) {
 idRenderLog::CloseBlock
 ========================
 */
-void idRenderLog::CloseBlock() {
+void idRenderLog::CloseBlock()
+{
 	PC_EndNamedEvent();
 }
 

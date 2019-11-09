@@ -2,10 +2,10 @@
 ===========================================================================
 
 Doom 3 BFG Edition GPL Source Code
-Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1993-2012 id Software LLC, a ZeniMax Media company.
 Copyright (C) 2016-2017 Dustin Land
 
-This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").  
+This file is part of the Doom 3 BFG Edition GPL Source Code ("Doom 3 BFG Edition Source Code").
 
 Doom 3 BFG Edition Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,13 +30,15 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __RENDERER_BACKEND_H__
 #define __RENDERER_BACKEND_H__
 
-enum stencilFace_t {
+enum stencilFace_t
+{
 	STENCIL_FACE_FRONT,
 	STENCIL_FACE_BACK,
 	STENCIL_FACE_NUM
 };
 
-struct backEndCounters_t {
+struct backEndCounters_t
+{
 	backEndCounters_t() :
 		c_surfaces( 0 ),
 		c_shaders( 0 ),
@@ -50,22 +52,23 @@ struct backEndCounters_t {
 		shadowMicroSec( 0 ),
 		interactionMicroSec( 0 ),
 		shaderPassMicroSec( 0 ),
-		gpuMicroSec( 0 ) {
+		gpuMicroSec( 0 )
+	{
 	}
-
+	
 	int		c_surfaces;
 	int		c_shaders;
-
+	
 	int		c_drawElements;
 	int		c_drawIndexes;
-
+	
 	int		c_shadowElements;
 	int		c_shadowIndexes;
-
+	
 	int		c_copyFrameBuffer;
-
+	
 	float	c_overDraw;
-
+	
 	uint64	totalMicroSec;		// total microseconds for backend run
 	uint64	shadowMicroSec;
 	uint64	depthMicroSec;
@@ -74,13 +77,14 @@ struct backEndCounters_t {
 	uint64	gpuMicroSec;
 };
 
-struct gfxImpParms_t {
+struct gfxImpParms_t
+{
 	int		x;				// ignored in fullscreen
 	int		y;				// ignored in fullscreen
 	int		width;
 	int		height;
 	int		fullScreen;		// 0 = windowed, otherwise 1 based monitor number to go full screen on
-							// -1 = borderless window for spanning multiple displays
+	// -1 = borderless window for spanning multiple displays
 	int		displayHz;
 	int		multiSamples;
 };
@@ -97,7 +101,8 @@ Debug
 #define MAX_DEBUG_TEXT		512
 #define MAX_DEBUG_POLYGONS	8192
 
-struct debugLine_t {
+struct debugLine_t
+{
 	idVec4		rgb;
 	idVec3		start;
 	idVec3		end;
@@ -105,7 +110,8 @@ struct debugLine_t {
 	int			lifeTime;
 };
 
-struct debugText_t {
+struct debugText_t
+{
 	idStr		text;
 	idVec3		origin;
 	float		scale;
@@ -116,7 +122,8 @@ struct debugText_t {
 	bool		depthTest;
 };
 
-struct debugPolygon_t {
+struct debugPolygon_t
+{
 	idVec4		rgb;
 	idWinding	winding;
 	bool		depthTest;
@@ -343,11 +350,10 @@ Backend Globals
 
 ===========================================================================
 */
-
-struct gpuInfo_t {
 	VkPhysicalDevice					device;
 	VkPhysicalDeviceProperties			props;
 	VkPhysicalDeviceMemoryProperties	memProps;
+	VkPhysicalDeviceFeatures			features;
 	VkSurfaceCapabilitiesKHR			surfaceCaps;
 	idList< VkSurfaceFormatKHR >		surfaceFormats;
 	idList< VkPresentModeKHR >			presentModes;
@@ -355,33 +361,24 @@ struct gpuInfo_t {
 	idList< VkExtensionProperties >		extensionProps;
 };
 
-struct vulkanContext_t {
-	uint64							counter;
-	uint32							currentFrameData;
-
+struct vulkanContext_t
+{
 	vertCacheHandle_t				jointCacheHandle;
-
-	gpuInfo_t *						gpu;
-	idList< gpuInfo_t >				gpus;
-
+	
+	GPUInfo_t						gpu;
+	
 	VkDevice						device;
 	int								graphicsFamilyIdx;
 	int								presentFamilyIdx;
 	VkQueue							graphicsQueue;
 	VkQueue							presentQueue;
-
-	VkCommandPool					commandPool;
-	VkCommandBuffer					commandBuffer;
-	idArray< VkCommandBuffer, NUM_FRAME_DATA >	commandBuffers;
-	idArray< VkFence, NUM_FRAME_DATA >			commandBufferFences;
-	idArray< bool, NUM_FRAME_DATA >				commandBufferRecorded;
-
+	
 	VkFormat						depthFormat;
 	VkPipelineCache					pipelineCache;
 	VkSampleCountFlagBits			sampleCount;
 	bool							supersampling;
-
-	idArray< idImage *, MAX_IMAGE_PARMS > imageParms;
+	
+	idArray< idImage*, MAX_IMAGE_PARMS > imageParms;
 };
 
 extern vulkanContext_t vkcontext;
@@ -395,85 +392,94 @@ all state modified by the back end is separated from the front end state
 
 ===========================================================================
 */
-class idRenderBackend {
+class idRenderBackend
+{
 public:
 	idRenderBackend();
 	~idRenderBackend();
-
+	
 	void				Init();
 	void				Shutdown();
-
+	
 	int					FindShader( const char * name, rpStage_t stage );
 	int					FindProgram( const char * name, int vIndex, int fIndex );
 
-	void				ExecuteBackEndCommands( const int numCmds, const idArray< renderCommand_t, 16 > & renderCommands );
+	void				Execute( const int numCmds, const idArray< renderCommand_t, 16 > & renderCommands );
 	void				BlockingSwapBuffers();
-
-	void				Print();
-
+	
+	void				Restart();
+	
 private:
 	bool				OpenWindow();
 	void				CloseWindow();
 
-	void				DrawElementsWithCounters( const drawSurf_t * surf );
-	void				DrawStencilShadowPass( const drawSurf_t * drawSurf, const bool renderZPass );
-
+	void				DrawElementsWithCounters( const drawSurf_t* surf );
+	void				DrawStencilShadowPass( const drawSurf_t* drawSurf, const bool renderZPass );
+	
 	void				SetColorMappings();
 	void				CheckCVars();
-	void				ResizeImages();
-
-	void				DrawView( const renderCommand_t & cmd );
-	void				CopyRender( const renderCommand_t & cmd );
-
-	void				BindVariableStageImage( const textureStage_t * texture, const float * shaderRegisters );
-	void				PrepareStageTexturing( const shaderStage_t * pStage, const drawSurf_t * surf );
-
-	void				FillDepthBufferGeneric( const drawSurf_t * const * drawSurfs, int numDrawSurfs );
-	void				FillDepthBufferFast( drawSurf_t ** drawSurfs, int numDrawSurfs );
-
-	void				T_BlendLight( const drawSurf_t * drawSurfs, const viewLight_t * vLight );
-	void				BlendLight( const drawSurf_t * drawSurfs, const drawSurf_t * drawSurfs2, const viewLight_t * vLight );
-	void				T_BasicFog( const drawSurf_t * drawSurfs, const idPlane fogPlanes[ 4 ], const idRenderMatrix * inverseBaseLightProject );
-	void				FogPass( const drawSurf_t * drawSurfs,  const drawSurf_t * drawSurfs2, const viewLight_t * vLight );
+	
+	void				DrawView( const renderCommand_t& cmd );
+	void				CopyRender( const renderCommand_t& cmd );
+	
+	void				BindVariableStageImage( const textureStage_t* texture, const float* shaderRegisters );
+	void				PrepareStageTexturing( const shaderStage_t* pStage, const drawSurf_t* surf );
+	
+	void				FillDepthBufferGeneric( const drawSurf_t* const* drawSurfs, int numDrawSurfs );
+	void				FillDepthBufferFast( drawSurf_t** drawSurfs, int numDrawSurfs );
+	
+	void				T_BlendLight( const drawSurf_t* drawSurfs, const viewLight_t* vLight );
+	void				BlendLight( const drawSurf_t* drawSurfs, const drawSurf_t* drawSurfs2, const viewLight_t* vLight );
+	void				T_BasicFog( const drawSurf_t* drawSurfs, const idPlane fogPlanes[ 4 ], const idRenderMatrix* inverseBaseLightProject );
+	void				FogPass( const drawSurf_t* drawSurfs,  const drawSurf_t* drawSurfs2, const viewLight_t* vLight );
 	void				FogAllLights();
-
+	
 	void				DrawInteractions();
-	void				DrawSingleInteraction( drawInteraction_t * din );
-	int					DrawShaderPasses( const drawSurf_t * const * const drawSurfs, const int numDrawSurfs );
-
-	void				RenderInteractions( const drawSurf_t * surfList, const viewLight_t * vLight, int depthFunc, bool performStencilTest, bool useLightDepthBounds );
-
-	void				StencilShadowPass( const drawSurf_t * drawSurfs, const viewLight_t * vLight );
-	void				StencilSelectLight( const viewLight_t * vLight );
-
+	void				DrawSingleInteraction( drawInteraction_t* din );
+	int					DrawShaderPasses( const drawSurf_t* const* const drawSurfs, const int numDrawSurfs );
+	
+	void				RenderInteractions( const drawSurf_t* surfList, const viewLight_t* vLight, int depthFunc, bool performStencilTest, bool useLightDepthBounds );
+	
+	void				StencilShadowPass( const drawSurf_t* drawSurfs, const viewLight_t* vLight );
+	void				StencilSelectLight( const viewLight_t* vLight );
+	
 private:
 	void				GL_StartFrame();
 	void				GL_EndFrame();
-
+	
 	void				GL_StartRenderPass();
 	void				GL_EndRenderPass();
 
 	uint64				GL_GetCurrentStateMinusStencil() const;
 	void				GL_SetDefaultState();
 	void				GL_State( uint64 stateBits, bool forceGlState = false );
-
-	void				GL_BindTexture( int index, idImage * image );
-
-	void				GL_CopyFrameBuffer( idImage * image, int x, int y, int imageWidth, int imageHeight );
+	
+	void				GL_BindTexture( int index, idImage* image );
+	
+	void				GL_CopyFrameBuffer( idImage* image, int x, int y, int imageWidth, int imageHeight );
 	void				GL_Clear( bool color, bool depth, bool stencil, byte stencilValue, float r, float g, float b, float a );
-
+	
 	void				GL_DepthBoundsTest( const float zmin, const float zmax );
 	void				GL_PolygonOffset( float scale, float bias );
-
+	
 	void				GL_Scissor( int x /* left*/, int y /* bottom */, int w, int h );
 	void				GL_Viewport( int x /* left */, int y /* bottom */, int w, int h );
-	ID_INLINE void		GL_Scissor( const idScreenRect & rect ) { GL_Scissor( rect.x1, rect.y1, rect.x2 - rect.x1 + 1, rect.y2 - rect.y1 + 1 ); }
-	ID_INLINE void		GL_Viewport( const idScreenRect & rect ) { GL_Viewport( rect.x1, rect.y1, rect.x2 - rect.x1 + 1, rect.y2 - rect.y1 + 1 ); }
-
+	ID_INLINE void		GL_Scissor( const idScreenRect& rect )
+	{
+		GL_Scissor( rect.x1, rect.y1, rect.x2 - rect.x1 + 1, rect.y2 - rect.y1 + 1 );
+	}
+	ID_INLINE void		GL_Viewport( const idScreenRect& rect )
+	{
+		GL_Viewport( rect.x1, rect.y1, rect.x2 - rect.x1 + 1, rect.y2 - rect.y1 + 1 );
+	}
+	
 	void				GL_Color( float r, float g, float b, float a );
-	ID_INLINE void		GL_Color( float r, float g, float b ) { GL_Color( r, g, b, 1.0f ); }
-	void				GL_Color( float * color );
-
+	ID_INLINE void		GL_Color( float r, float g, float b )
+	{
+		GL_Color( r, g, b, 1.0f );
+	}
+	void				GL_Color( float* color );
+	
 private:
 	void				BindProgram( int index );
 	void				CommitCurrent( uint64 stateBits, idImage * target );
@@ -492,28 +498,30 @@ private:
 
 private:
 	void				Clear();
-
+	
 	void				CreateInstance();
-
-	void				EnumeratePhysicalDevices();
-	void				SelectPhysicalDevice();
-
+	
+	void				SelectSuitablePhysicalDevice();
+	
 	void				CreateLogicalDeviceAndQueues();
-
+	
 	void				CreateSemaphores();
-
+	
 	void				CreateQueryPool();
-
+	
 	void				CreateSurface();
-
+	
+	void				CreateCommandPool();
+	void				CreateCommandBuffer();
+	
 	void				CreateSwapChain();
 	void				DestroySwapChain();
-
+	
 	void				CreateRenderProgs();
 	void				DestroyRenderProgs();
-
+	
 private:
-	void				DBG_SimpleSurfaceSetup( const drawSurf_t * drawSurf );
+	void				DBG_SimpleSurfaceSetup( const drawSurf_t* drawSurf );
 	void				DBG_SimpleWorldSetup();
 	void				DBG_ShowDestinationAlpha();
 	void				DBG_ColorByStencilBuffer();
@@ -524,19 +532,19 @@ private:
 	void				DBG_EnterWeaponDepthHack();
 	void				DBG_EnterModelDepthHack( float depth );
 	void				DBG_LeaveDepthHack();
-	void				DBG_RenderDrawSurfListWithFunction( drawSurf_t **drawSurfs, int numDrawSurfs );
+	void				DBG_RenderDrawSurfListWithFunction( drawSurf_t** drawSurfs, int numDrawSurfs );
 	void				DBG_ShowSilhouette();
-	void				DBG_ShowTris( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowSurfaceInfo( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowViewEntitys( viewEntity_t *vModels );
-	void				DBG_ShowTexturePolarity( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowUnsmoothedTangents( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowTangentSpace( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowVertexColor( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowNormals( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowTextureVectors( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowDominantTris( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_ShowEdges( drawSurf_t **drawSurfs, int numDrawSurfs );
+	void				DBG_ShowTris( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowSurfaceInfo( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowViewEntitys( viewEntity_t* vModels );
+	void				DBG_ShowTexturePolarity( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowUnsmoothedTangents( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowTangentSpace( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowVertexColor( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowNormals( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowTextureVectors( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowDominantTris( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_ShowEdges( drawSurf_t** drawSurfs, int numDrawSurfs );
 	void				DBG_ShowLights();
 	void				DBG_ShowPortals();
 	void				DBG_ShowDebugText();
@@ -546,32 +554,32 @@ private:
 	void				DBG_TestGamma();
 	void				DBG_TestGammaBias();
 	void				DBG_TestImage();
-	void				DBG_ShowTrace( drawSurf_t **drawSurfs, int numDrawSurfs );
-	void				DBG_RenderDebugTools( drawSurf_t **drawSurfs, int numDrawSurfs );
-
+	void				DBG_ShowTrace( drawSurf_t** drawSurfs, int numDrawSurfs );
+	void				DBG_RenderDebugTools( drawSurf_t** drawSurfs, int numDrawSurfs );
+	
 public:
-	backEndCounters_t	m_pc;
-
+	backEndCounters_t	pc;
+	
 	// surfaces used for code-based drawing
-	drawSurf_t			m_unitSquareSurface;
-	drawSurf_t			m_zeroOneCubeSurface;
-	drawSurf_t			m_testImageSurface;
-
+	drawSurf_t			unitSquareSurface;
+	drawSurf_t			zeroOneCubeSurface;
+	drawSurf_t			testImageSurface;
+	
 private:
-	uint64				m_glStateBits;
-
-	const viewDef_t *	m_viewDef;
+	uint64				glStateBits;
+	
+	const viewDef_t* 	viewDef;
 	idImage *			m_currentRenderTarget;
 	
-	const viewEntity_t*	m_currentSpace;			// for detecting when a matrix must change
-	idScreenRect		m_currentScissor;		// for scissor clipping, local inside renderView viewport
-
-	bool				m_currentRenderCopied;	// true if any material has already referenced _currentRender
-
-	idRenderMatrix		m_prevMVP;				// world MVP from previous frame for motion blur
-
-	unsigned short		m_gammaTable[ 256 ];	// brightness / gamma modify this
-
+	const viewEntity_t*	currentSpace;			// for detecting when a matrix must change
+	idScreenRect		currentScissor;		// for scissor clipping, local inside renderView viewport
+	
+	bool				currentRenderCopied;	// true if any material has already referenced _currentRender
+	
+	idRenderMatrix		prevMVP;				// world MVP from previous frame for motion blur
+	
+	unsigned short		gammaTable[ 256 ];	// brightness / gamma modify this
+	
 private:
 	int					m_currentRp;
 	int					m_currentDescSet;
@@ -587,33 +595,38 @@ private:
 	idUniformBuffer *	m_parmBuffers[ NUM_FRAME_DATA ];
 
 private:
-	VkInstance						m_instance;
-	VkPhysicalDevice				m_physicalDevice;
-	VkPhysicalDeviceFeatures		m_physicalDeviceFeatures;
-
-	idList< const char * >			m_instanceExtensions;
-	idList< const char * >			m_deviceExtensions;
-	idList< const char * >			m_validationLayers;
-
-	VkSurfaceKHR					m_surface;
-	VkPresentModeKHR				m_presentMode;
-
-	int								m_fullscreen;
-	VkSwapchainKHR					m_swapchain;
-	VkFormat						m_swapchainFormat;
-	VkExtent2D						m_swapchainExtent;
-	uint32							m_currentSwapIndex;
+	
+	idList< const char* >			instanceExtensions;
+	idList< const char* >			deviceExtensions;
+	idList< const char* >			validationLayers;
+	
+	VkSurfaceKHR					surface;
+	VkPresentModeKHR				presentMode;
+	
+	int								fullscreen;
+	VkSwapchainKHR					swapchain;
+	VkFormat						swapchainFormat;
+	VkExtent2D						swapchainExtent;
+	uint32							currentSwapIndex;
 
 	idImage *						m_depthAttachment;
 	idImage *						m_resolveAttachment;
 
-	idArray< VkSemaphore, NUM_FRAME_DATA >		m_acquireSemaphores;
-	idArray< VkSemaphore, NUM_FRAME_DATA >		m_renderCompleteSemaphores;
 	idList< idImage * >							m_swapchainImages;
-
-	idArray< uint32, NUM_FRAME_DATA >			m_queryIndex;
-	idArray< idArray< uint64, NUM_TIMESTAMP_QUERIES >, NUM_FRAME_DATA >	m_queryResults;
-	idArray< VkQueryPool, NUM_FRAME_DATA >		m_queryPools;
+	
+	idArray< VkImage, NUM_FRAME_DATA >			swapchainImages;
+	idArray< VkImageView, NUM_FRAME_DATA >		swapchainViews;
+	idArray< VkFramebuffer, NUM_FRAME_DATA >	frameBuffers;
+	
+	idArray< VkCommandBuffer, NUM_FRAME_DATA >	commandBuffers;
+	idArray< VkFence, NUM_FRAME_DATA >			commandBufferFences;
+	idArray< bool, NUM_FRAME_DATA >				commandBufferRecorded;
+	idArray< VkSemaphore, NUM_FRAME_DATA >		acquireSemaphores;
+	idArray< VkSemaphore, NUM_FRAME_DATA >		renderCompleteSemaphores;
+	
+	idArray< uint32, NUM_FRAME_DATA >			queryIndex;
+	idArray< idArray< uint64, NUM_TIMESTAMP_QUERIES >, NUM_FRAME_DATA >	queryResults;
+	idArray< VkQueryPool, NUM_FRAME_DATA >		queryPools;
 };
 
 #endif
