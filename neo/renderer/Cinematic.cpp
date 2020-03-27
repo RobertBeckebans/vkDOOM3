@@ -159,7 +159,7 @@ idSndWindow::InitFromFile
 bool idSndWindow::InitFromFile( const char* qpath, bool looping )
 {
 	idStr fname = qpath;
-	
+
 	fname.ToLower();
 	if( !fname.Icmp( "waveform" ) )
 	{

@@ -43,72 +43,72 @@ const char* GLSLParmNames[ RENDERPARM_TOTAL ] =
 	"rpWindowCoord",
 	"rpDiffuseModifier",
 	"rpSpecularModifier",
-	
+
 	"rpLocalLightOrigin",
 	"rpLocalViewOrigin",
-	
+
 	"rpLightProjectionS",
 	"rpLightProjectionT",
 	"rpLightProjectionQ",
 	"rpLightFalloffS",
-	
+
 	"rpBumpMatrixS",
 	"rpBumpMatrixT",
-	
+
 	"rpDiffuseMatrixS",
 	"rpDiffuseMatrixT",
-	
+
 	"rpSpecularMatrixS",
 	"rpSpecularMatrixT",
-	
+
 	"rpVertexColorModulate",
 	"rpVertexColorAdd",
-	
+
 	"rpColor",
 	"rpViewOrigin",
 	"rpGlobalEyePos",
-	
+
 	"rpMVPmatrixX",
 	"rpMVPmatrixY",
 	"rpMVPmatrixZ",
 	"rpMVPmatrixW",
-	
+
 	"rpModelMatrixX",
 	"rpModelMatrixY",
 	"rpModelMatrixZ",
 	"rpModelMatrixW",
-	
+
 	"rpProjectionMatrixX",
 	"rpProjectionMatrixY",
 	"rpProjectionMatrixZ",
 	"rpProjectionMatrixW",
-	
+
 	"rpModelViewMatrixX",
 	"rpModelViewMatrixY",
 	"rpModelViewMatrixZ",
 	"rpModelViewMatrixW",
-	
+
 	"rpTextureMatrixS",
 	"rpTextureMatrixT",
-	
+
 	"rpTexGen0S",
 	"rpTexGen0T",
 	"rpTexGen0Q",
 	"rpTexGen0Enabled",
-	
+
 	"rpTexGen1S",
 	"rpTexGen1T",
 	"rpTexGen1Q",
 	"rpTexGen1Enabled",
-	
+
 	"rpWobbleSkyX",
 	"rpWobbleSkyY",
 	"rpWobbleSkyZ",
-	
+
 	"rpOverbright",
 	"rpEnableSkinning",
 	"rpAlphaTest",
-	
+
 	"rpUser0",
 	"rpUser1",
 	"rpUser2",
@@ -164,7 +164,7 @@ int idRenderProgManager::FindShader( const char* name, rpStage_t stage )
 {
 	idStr shaderName( name );
 	shaderName.StripFileExtension();
-	
+
 	for( int i = 0; i < shaders.Num(); i++ )
 	{
 		shader_t& shader = shaders[ i ];
@@ -208,10 +208,10 @@ void RpPrintState( uint64 stateBits )
 			break;
 	}
 	idLib::Printf( "\n" );
-	
+
 	// polygon mode
 	idLib::Printf( "PolygonMode: %s\n", ( stateBits & GLS_POLYMODE_LINE ) ? "LINE" : "FILL" );
-	
+
 	// color mask
 	idLib::Printf( "ColorMask: " );
 	idLib::Printf( ( stateBits & GLS_REDMASK ) ? "_" : "R" );
@@ -219,7 +219,7 @@ void RpPrintState( uint64 stateBits )
 	idLib::Printf( ( stateBits & GLS_BLUEMASK ) ? "_" : "B" );
 	idLib::Printf( ( stateBits & GLS_ALPHAMASK ) ? "_" : "A" );
 	idLib::Printf( "\n" );
-	
+
 	// blend
 	idLib::Printf( "Blend: src=" );
 	switch( stateBits & GLS_SRCBLEND_BITS )
@@ -283,7 +283,7 @@ void RpPrintState( uint64 stateBits )
 			idLib::Printf( "NA" );
 	}
 	idLib::Printf( "\n" );
-	
+
 	// depth func
 	idLib::Printf( "DepthFunc: " );
 	switch( stateBits & GLS_DEPTHFUNC_BITS )
@@ -305,16 +305,16 @@ void RpPrintState( uint64 stateBits )
 			break;
 	}
 	idLib::Printf( "\n" );
-	
+
 	// depth mask
 	idLib::Printf( "DepthWrite: %s\n", ( stateBits & GLS_DEPTHMASK ) ? "FALSE" : "TRUE" );
-	
+
 	// depth bounds
 	idLib::Printf( "DepthBounds: %s\n", ( stateBits & GLS_DEPTH_TEST_MASK ) ? "TRUE" : "FALSE" );
-	
+
 	// depth bias
 	idLib::Printf( "DepthBias: %s\n", ( stateBits & GLS_POLYGON_OFFSET ) ? "TRUE" : "FALSE" );
-	
+
 	// stencil
 	auto printStencil = [&]( stencilFace_t face, uint64 bits, uint64 mask, uint64 ref )
 	{
@@ -458,7 +458,7 @@ void RpPrintState( uint64 stateBits )
 		}
 		idLib::Printf( ", mask=%llu, ref=%llu\n", mask, ref );
 	};
-	
+
 	uint32 mask = uint32( ( stateBits & GLS_STENCIL_FUNC_MASK_BITS ) >> GLS_STENCIL_FUNC_MASK_SHIFT );
 	uint32 ref = uint32( ( stateBits & GLS_STENCIL_FUNC_REF_BITS ) >> GLS_STENCIL_FUNC_REF_SHIFT );
 	if( stateBits & GLS_SEPARATE_STENCIL )

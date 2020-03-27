@@ -85,11 +85,11 @@ typedef struct unz_file_info_s
 	unsigned long size_filename;        /* filename length                 2 unsigned chars */
 	unsigned long size_file_extra;      /* extra field length              2 unsigned chars */
 	unsigned long size_file_comment;    /* file comment length             2 unsigned chars */
-	
+
 	unsigned long disk_num_start;       /* disk number start               2 unsigned chars */
 	unsigned long internal_fa;          /* internal file attributes        2 unsigned chars */
 	unsigned long external_fa;          /* external file attributes        4 unsigned chars */
-	
+
 	tm_unz tmu_date;
 } unz_file_info;
 
@@ -105,14 +105,14 @@ typedef struct
 {
 	char*  read_buffer;         /* internal buffer for compressed data */
 	z_stream stream;            /* zLib stream structure for inflate */
-	
+
 	unsigned long pos_in_zipfile;       /* position in unsigned char on the zipfile, for fseek*/
 	unsigned long stream_initialised;   /* flag set if stream structure is initialised*/
-	
+
 	unsigned long offset_local_extrafield;/* offset of the static extra field */
 	unsigned int  size_local_extrafield;/* size of the static extra field */
 	unsigned long pos_local_extrafield;   /* position in the static extra field in read*/
-	
+
 	unsigned long crc32;                /* crc32 of all data uncompressed */
 	unsigned long crc32_wait;           /* crc32 we must obtain after decompress all */
 	unsigned long rest_read_compressed; /* number of unsigned char to be decompressed */
@@ -134,7 +134,7 @@ typedef struct
 	unsigned long pos_in_central_dir;   /* pos of the current file in the central dir*/
 	unsigned long current_file_ok;      /* flag about the usability of the current file*/
 	unsigned long central_pos;          /* position of the beginning of the central dir*/
-	
+
 	unsigned long size_central_dir;     /* size of the central directory  */
 	unsigned long offset_central_dir;   /* offset of start of central directory with
 								   respect to the starting disk number */

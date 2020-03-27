@@ -19,13 +19,13 @@
  * again with a suitable JMESSAGE definition (see jerror.c for an example).
  */
 #ifndef JMESSAGE
-#ifndef JERROR_H
-/* First time through, define the enum list */
-#define JMAKE_ENUM_LIST
-#else
-/* Repeated inclusions of this file are no-ops unless JMESSAGE is defined */
-#define JMESSAGE(code,string)
-#endif /* JERROR_H */
+	#ifndef JERROR_H
+		/* First time through, define the enum list */
+		#define JMAKE_ENUM_LIST
+	#else
+		/* Repeated inclusions of this file are no-ops unless JMESSAGE is defined */
+		#define JMESSAGE(code,string)
+	#endif /* JERROR_H */
 #endif /* JMESSAGE */
 
 #ifdef JMAKE_ENUM_LIST
@@ -38,7 +38,7 @@ typedef enum
 #endif /* JMAKE_ENUM_LIST */
 
 	JMESSAGE( JMSG_NOMESSAGE, "Bogus message code %d" ) /* Must be first entry! */
-	
+
 	/* For maintenance convenience, list is alphabetical by message code name */
 	JMESSAGE( JERR_ARITH_NOTIMPL,
 			  "Sorry, there are legal restrictions on arithmetic coding" )
@@ -171,9 +171,9 @@ typedef enum
 			  "Corrupt JPEG data: found marker 0x%02x instead of RST%d" )
 	JMESSAGE( JWRN_NOT_SEQUENTIAL, "Invalid SOS parameters for sequential JPEG" )
 	JMESSAGE( JWRN_TOO_MUCH_DATA, "Application transferred too many scanlines" )
-	
+
 #ifdef JMAKE_ENUM_LIST
-	
+
 	JMSG_LASTMSGCODE
 } J_MESSAGE_CODE;
 

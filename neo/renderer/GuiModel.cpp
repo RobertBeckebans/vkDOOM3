@@ -100,7 +100,7 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 	memcpy( guiSpace->modelViewMatrix, modelViewMatrix, sizeof( guiSpace->modelViewMatrix ) );
 	guiSpace->weaponDepthHack = depthHack;
 	guiSpace->isGuiSurface = true;
-	
+
 	// If this is an in-game gui, we need to be able to find the matrix again for head mounted
 	// display bypass matrix fixup.
 	if( linkAsEntity )
@@ -108,7 +108,7 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 		guiSpace->next = tr.viewDef->viewEntitys;
 		tr.viewDef->viewEntitys = guiSpace;
 	}
-	
+
 	//---------------------------
 	// make a tech5 renderMatrix
 	//---------------------------
@@ -119,7 +119,7 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 	{
 		idRenderMatrix::ApplyDepthHack( guiSpace->mvp );
 	}
-	
+
 	// add the surfaces to this view
 	for( int i = 0; i < surfaces.Num(); i++ )
 	{
@@ -128,10 +128,10 @@ void idGuiModel::EmitSurfaces( float modelMatrix[16], float modelViewMatrix[16],
 		{
 			continue;
 		}
-		
+
 		const idMaterial* shader = guiSurf.material;
 		drawSurf_t* drawSurf = ( drawSurf_t* )renderSystem->FrameAlloc( sizeof( *drawSurf ), FRAME_ALLOC_DRAW_SURFACE );
-		
+
 		drawSurf->numIndexes = guiSurf.numIndexes;
 		drawSurf->ambientCache = vertexBlock;
 		// build a vertCacheHandle_t that points inside the allocated block
@@ -170,9 +170,9 @@ EmitToCurrentView
 void idGuiModel::EmitToCurrentView( float modelMatrix[16], bool depthHack )
 {
 	float	modelViewMatrix[16];
-	
+
 	R_MatrixMultiply( modelMatrix, tr.viewDef->worldSpace.modelViewMatrix, modelViewMatrix );
-	
+
 	EmitSurfaces( modelMatrix, modelViewMatrix, depthHack, true /* link as entity */ );
 }
 
@@ -191,23 +191,23 @@ viewDef_t* idGuiModel::EmitFullScreen()
 	{
 		return NULL;
 	}
-	
+
 	SCOPED_PROFILE_EVENT( "Gui::EmitFullScreen" );
-	
+
 	viewDef_t* viewDef = ( viewDef_t* )renderSystem->ClearedFrameAlloc( sizeof( *viewDef ), FRAME_ALLOC_VIEW_DEF );
 	viewDef->is2Dgui = true;
 	tr.GetCroppedViewport( &viewDef->viewport );
-	
+
 	viewDef->scissor.x1 = 0;
 	viewDef->scissor.y1 = 0;
 	viewDef->scissor.x2 = viewDef->viewport.x2 - viewDef->viewport.x1;
 	viewDef->scissor.y2 = viewDef->viewport.y2 - viewDef->viewport.y1;
-	
+
 	viewDef->projectionMatrix[0 * 4 + 0] = 2.0f / SCREEN_WIDTH;
 	viewDef->projectionMatrix[0 * 4 + 1] = 0.0f;
 	viewDef->projectionMatrix[0 * 4 + 2] = 0.0f;
 	viewDef->projectionMatrix[0 * 4 + 3] = 0.0f;
-	
+
 	viewDef->projectionMatrix[1 * 4 + 0] = 0.0f;
 #if defined( ID_VULKAN )
 	viewDef->projectionMatrix[1 * 4 + 1] = 2.0f / SCREEN_HEIGHT;
@@ -216,12 +216,12 @@ viewDef_t* idGuiModel::EmitFullScreen()
 #endif
 	viewDef->projectionMatrix[1 * 4 + 2] = 0.0f;
 	viewDef->projectionMatrix[1 * 4 + 3] = 0.0f;
-	
+
 	viewDef->projectionMatrix[2 * 4 + 0] = 0.0f;
 	viewDef->projectionMatrix[2 * 4 + 1] = 0.0f;
 	viewDef->projectionMatrix[2 * 4 + 2] = -1.0f;
 	viewDef->projectionMatrix[2 * 4 + 3] = 0.0f;
-	
+
 	viewDef->projectionMatrix[3 * 4 + 0] = -1.0f;
 #if defined( ID_VULKAN)
 	viewDef->projectionMatrix[3 * 4 + 1] = -1.0f;
@@ -230,32 +230,32 @@ viewDef_t* idGuiModel::EmitFullScreen()
 #endif
 	viewDef->projectionMatrix[3 * 4 + 2] = 0.0f;
 	viewDef->projectionMatrix[3 * 4 + 3] = 1.0f;
-	
+
 	// make a tech5 renderMatrix for faster culling
 	idRenderMatrix::Transpose( *( idRenderMatrix* )viewDef->projectionMatrix, viewDef->projectionRenderMatrix );
-	
+
 	viewDef->worldSpace.modelMatrix[0 * 4 + 0] = 1.0f;
 	viewDef->worldSpace.modelMatrix[1 * 4 + 1] = 1.0f;
 	viewDef->worldSpace.modelMatrix[2 * 4 + 2] = 1.0f;
 	viewDef->worldSpace.modelMatrix[3 * 4 + 3] = 1.0f;
-	
+
 	viewDef->worldSpace.modelViewMatrix[0 * 4 + 0] = 1.0f;
 	viewDef->worldSpace.modelViewMatrix[1 * 4 + 1] = 1.0f;
 	viewDef->worldSpace.modelViewMatrix[2 * 4 + 2] = 1.0f;
 	viewDef->worldSpace.modelViewMatrix[3 * 4 + 3] = 1.0f;
-	
+
 	viewDef->maxDrawSurfs = surfaces.Num();
 	viewDef->drawSurfs = ( drawSurf_t** )renderSystem->FrameAlloc( viewDef->maxDrawSurfs * sizeof( viewDef->drawSurfs[0] ), FRAME_ALLOC_DRAW_SURFACE_POINTER );
 	viewDef->numDrawSurfs = 0;
-	
+
 	viewDef_t* oldViewDef = tr.viewDef;
 	tr.viewDef = viewDef;
-	
+
 	EmitSurfaces( viewDef->worldSpace.modelMatrix, viewDef->worldSpace.modelViewMatrix,
 				  false /* depthHack */ , false /* link as entity */ );
-				  
+
 	tr.viewDef = oldViewDef;
-	
+
 	return viewDef;
 }
 
@@ -267,7 +267,7 @@ AdvanceSurf
 void idGuiModel::AdvanceSurf()
 {
 	guiModelSurface_t	s;
-	
+
 	if( surfaces.Num() )
 	{
 		s.material = surf->material;
@@ -278,13 +278,13 @@ void idGuiModel::AdvanceSurf()
 		s.material = tr.defaultMaterial;
 		s.glState = 0;
 	}
-	
+
 	// advance indexes so the pointer to each surface will be 16 byte aligned
 	numIndexes = ALIGN( numIndexes, 8 );
-	
+
 	s.numIndexes = 0;
 	s.firstIndex = numIndexes;
-	
+
 	surfaces.Append( s );
 	surf = &surfaces[ surfaces.Num() - 1 ];
 }
@@ -320,7 +320,7 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 		}
 		return NULL;
 	}
-	
+
 	// break the current surface if we are changing to a new material or we can't
 	// fit the data into our allocated block
 	if( material != surf->material || glState != surf->glState )
@@ -332,15 +332,15 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 		surf->material = material;
 		surf->glState = glState;
 	}
-	
+
 	int startVert = numVerts;
 	int startIndex = numIndexes;
-	
+
 	numVerts += vertCount;
 	numIndexes += indexCount;
-	
+
 	surf->numIndexes += indexCount;
-	
+
 	if( ( startIndex & 1 ) || ( indexCount & 1 ) )
 	{
 		// slow for write combined memory!
@@ -357,6 +357,6 @@ idDrawVert* idGuiModel::AllocTris( int vertCount, const triIndex_t* tempIndexes,
 			WriteIndexPair( indexPointer + startIndex + i, startVert + tempIndexes[i], startVert + tempIndexes[i + 1] );
 		}
 	}
-	
+
 	return vertexPointer + startVert;
 }

@@ -49,7 +49,7 @@ class idRenderTexture
 public:
 	idRenderTexture();
 	~idRenderTexture();
-	
+
 	ID_INLINE int			GetWidth() const
 	{
 		return ( colorImage != NULL ) ? colorImage->GetUploadWidth() : depthImage->GetUploadWidth();
@@ -58,7 +58,7 @@ public:
 	{
 		return ( colorImage != NULL ) ? colorImage->GetUploadHeight() : depthImage->GetUploadHeight();
 	}
-	
+
 	ID_INLINE idImage* 		GetColorImage() const
 	{
 		return colorImage;
@@ -67,18 +67,18 @@ public:
 	{
 		return depthImage;
 	}
-	
-	
+
+
 	void					Resize( int width, int height );
-	
+
 	void					MakeCurrent( int level = 0, int side = 0 );
-	
+
 private:
 	idImage* 			colorImage;
 	idImage* 			depthImage;
 	int					targetWidth;
 	int					targetHeight;
-	
+
 };
 
 #endif //!__RENDERTEXTURE_H__

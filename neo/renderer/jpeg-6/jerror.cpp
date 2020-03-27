@@ -24,7 +24,7 @@ extern void jpg_Error( const char* fmt, ... );
 extern void jpg_Printf( const char* fmt, ... );
 
 #ifndef EXIT_FAILURE        /* define exit() codes if not provided */
-#define EXIT_FAILURE  1
+	#define EXIT_FAILURE  1
 #endif
 
 
@@ -37,7 +37,7 @@ extern void jpg_Printf( const char* fmt, ... );
  */
 
 #ifdef NEED_SHORT_EXTERNAL_NAMES
-#define jpeg_std_message_table  jMsgTable
+	#define jpeg_std_message_table  jMsgTable
 #endif
 
 #define JMESSAGE( code, string )   string,
@@ -66,13 +66,13 @@ METHODDEF void
 error_exit( j_common_ptr cinfo )
 {
 	char buffer[JMSG_LENGTH_MAX];
-	
+
 	/* Create the message */
 	( *cinfo->err->format_message )( cinfo, buffer );
-	
+
 	/* Let the memory manager delete any temp files before we die */
 	jpeg_destroy( cinfo );
-	
+
 	jpg_Error( "%s\n", buffer );
 }
 
@@ -87,10 +87,10 @@ METHODDEF void
 output_message( j_common_ptr cinfo )
 {
 	char buffer[JMSG_LENGTH_MAX];
-	
+
 	/* Create the message */
 	( *cinfo->err->format_message )( cinfo, buffer );
-	
+
 	/* Send it to stderr, adding a newline */
 	jpg_Printf( "%s\n", buffer );
 }
@@ -111,7 +111,7 @@ METHODDEF void
 emit_message( j_common_ptr cinfo, int msg_level )
 {
 	struct jpeg_error_mgr* err = cinfo->err;
-	
+
 	if( msg_level < 0 )
 	{
 		/* It's a warning message.  Since corrupt files may generate many warnings,
@@ -152,7 +152,7 @@ format_message( j_common_ptr cinfo, char* buffer )
 	const char* msgptr;
 	char ch;
 	boolean isstring;
-	
+
 	/* Look up message string in proper table */
 	if( ( msg_code > 0 ) && ( msg_code <= err->last_jpeg_message ) )
 	{
@@ -164,14 +164,14 @@ format_message( j_common_ptr cinfo, char* buffer )
 	{
 		msgtext = err->addon_message_table[msg_code - err->first_addon_message];
 	}
-	
+
 	/* Defend against bogus message number */
 	if( msgtext == NULL )
 	{
 		err->msg_parm.i[0] = msg_code;
 		msgtext = err->jpeg_message_table[0];
 	}
-	
+
 	/* Check for string parameter, as indicated by %s in the message text */
 	isstring = FALSE;
 	msgptr = msgtext;
@@ -186,7 +186,7 @@ format_message( j_common_ptr cinfo, char* buffer )
 			break;
 		}
 	}
-	
+
 	/* Format the message into the passed buffer */
 	if( isstring )
 	{
@@ -238,18 +238,18 @@ jpeg_std_error( struct jpeg_error_mgr* err )
 	err->output_message = output_message;
 	err->format_message = format_message;
 	err->reset_error_mgr = reset_error_mgr;
-	
+
 	err->trace_level = 0;   /* default = no tracing */
 	err->nuwarnings = 0;  /* no warnings emitted yet */
 	err->msg_code = 0;      /* may be useful as a flag for "no error" */
-	
+
 	/* Initialize message table pointers */
 	err->jpeg_message_table = jpeg_std_message_table;
 	err->last_jpeg_message = ( int ) JMSG_LASTMSGCODE - 1;
-	
+
 	err->addon_message_table = NULL;
 	err->first_addon_message = 0;/* for safety */
 	err->last_addon_message = 0;
-	
+
 	return err;
 }

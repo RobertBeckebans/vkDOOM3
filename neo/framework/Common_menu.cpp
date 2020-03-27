@@ -86,7 +86,7 @@ void idCommonLocal::OnStartHosting( idMatchParameters& parms )
 	{
 		return; // This is the party lobby or a SP match
 	}
-	
+
 	// If we were searching for a random match but didn't find one, we'll need to select parameters now
 	if( parms.gameMap < 0 )
 	{
@@ -149,15 +149,15 @@ void idCommonLocal::StartMenu( bool playIntro )
 	{
 		return;
 	}
-	
+
 	if( game )
 	{
 		game->Shell_Show( true );
 		game->Shell_SyncWithSession();
 	}
-	
+
 	console->Close();
-	
+
 }
 
 /*
@@ -187,17 +187,17 @@ bool idCommonLocal::MenuEvent( const sysEvent_t* event )
 	{
 		return true;
 	}
-	
+
 	if( game && game->Shell_IsActive() )
 	{
 		return game->Shell_HandleGuiEvent( event );
 	}
-	
+
 	if( game )
 	{
 		return game->HandlePlayerGuiEvent( event );
 	}
-	
+
 	return false;
 }
 

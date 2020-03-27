@@ -55,7 +55,7 @@ reloadImages <all>
 void R_ReloadImages_f( const idCmdArgs& args )
 {
 	bool all = false;
-	
+
 	if( args.Argc() == 2 )
 	{
 		if( !idStr::Icmp( args.Argv( 1 ), "all" ) )
@@ -68,7 +68,7 @@ void R_ReloadImages_f( const idCmdArgs& args )
 			return;
 		}
 	}
-	
+
 	globalImages->ReloadImages( all );
 }
 
@@ -87,10 +87,10 @@ R_QsortImageSizes
 static int R_QsortImageSizes( const void* a, const void* b )
 {
 	const sortedImage_t*	ea, *eb;
-	
+
 	ea = ( sortedImage_t* )a;
 	eb = ( sortedImage_t* )b;
-	
+
 	if( ea->size > eb->size )
 	{
 		return -1;
@@ -110,10 +110,10 @@ R_QsortImageName
 static int R_QsortImageName( const void* a, const void* b )
 {
 	const sortedImage_t*	ea, *eb;
-	
+
 	ea = ( sortedImage_t* )a;
 	eb = ( sortedImage_t* )b;
-	
+
 	return idStr::Icmp( ea->image->GetName(), eb->image->GetName() );
 }
 
@@ -135,10 +135,10 @@ void R_ListImages_f( const idCmdArgs& args )
 	bool	duplicated = false;
 	bool	overSized = false;
 	bool	sortByName = false;
-	
+
 	if( args.Argc() == 1 )
 	{
-	
+
 	}
 	else if( args.Argc() == 2 )
 	{
@@ -176,27 +176,27 @@ void R_ListImages_f( const idCmdArgs& args )
 	{
 		failed = true;
 	}
-	
+
 	if( failed )
 	{
 		idLib::Printf( "usage: listImages [ sorted | namesort | unloaded | duplicated | showOverSized ]\n" );
 		return;
 	}
-	
+
 	const char* header = "       -w-- -h-- filt -fmt-- wrap  size --name-------\n";
 	idLib::Printf( "\n%s", header );
-	
+
 	totalSize = 0;
-	
+
 	idList< idImage* >& images = globalImages->images;
 	const int numImages = images.Num();
-	
+
 	sortedImage_t* sortedArray = ( sortedImage_t* )alloca( sizeof( sortedImage_t ) * numImages );
-	
+
 	for( i = 0 ; i < numImages; i++ )
 	{
 		image = images[ i ];
-		
+
 		if( uncompressedOnly )
 		{
 			if( image->IsCompressed() )
@@ -208,7 +208,7 @@ void R_ListImages_f( const idCmdArgs& args )
 		{
 			continue;
 		}
-		
+
 		// only print duplicates (from mismatched wrap / clamp, etc)
 		if( duplicated )
 		{
@@ -225,7 +225,7 @@ void R_ListImages_f( const idCmdArgs& args )
 				continue;
 			}
 		}
-		
+
 		if( sorted || sortByName )
 		{
 			sortedArray[count].image = image;
@@ -240,7 +240,7 @@ void R_ListImages_f( const idCmdArgs& args )
 		totalSize += image->StorageSize();
 		count++;
 	}
-	
+
 	if( sorted || sortByName )
 	{
 		if( sortByName )
@@ -264,7 +264,7 @@ void R_ListImages_f( const idCmdArgs& args )
 			}
 		}
 	}
-	
+
 	idLib::Printf( "%s", header );
 	idLib::Printf( " %i images (%i total)\n", count, numImages );
 	idLib::Printf( " %5.1f total megabytes of images\n\n\n", totalSize / ( 1024 * 1024.0 ) );
@@ -284,13 +284,13 @@ idImage* idImageManager::AllocImage( const char* name )
 	{
 		idLib::Error( "idImageManager::AllocImage: \"%s\" is too long\n", name );
 	}
-	
+
 	int hash = idStr( name ).FileNameHash();
-	
+
 	idImage* image = new( TAG_IMAGE ) idImage( name );
-	
+
 	imageHash.Add( hash, images.Append( image ) );
-	
+
 	return image;
 }
 
@@ -326,7 +326,7 @@ idImage* idImageManager::ImageFromFunction( const char* _name, void ( *generator
 	idStr name = _name;
 	name.Replace( ".tga", "" );
 	name.BackSlashesToSlashes();
-	
+
 	// see if the image already exists
 	int hash = name.FileNameHash();
 	for( int i = imageHash.First( hash ); i != -1; i = imageHash.Next( i ) )
@@ -341,16 +341,16 @@ idImage* idImageManager::ImageFromFunction( const char* _name, void ( *generator
 			return image;
 		}
 	}
-	
+
 	// create the image and issue the callback
 	idImage*	 image = AllocImage( name );
-	
+
 	image->generatorFunction = generatorFunction;
-	
+
 	// check for precompressed, load is from the front end
 	image->referencedOutsideLevelLoad = true;
 	image->ActuallyLoadImage( false );
-	
+
 	return image;
 }
 
@@ -379,12 +379,12 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	{
 		usage = TD_LIGHT;
 	}
-	
+
 	// strip any .tga file extensions from anywhere in the _name, including image program parameters
 	idStrStatic< MAX_OSPATH > name = _name;
 	name.Replace( ".tga", "" );
 	name.BackSlashesToSlashes();
-	
+
 	//
 	// see if the image is already loaded, unless we
 	// are in a reloadImages call
@@ -404,7 +404,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 			{
 				idLib::Error( "Image '%s' has been referenced with conflicting cube map states", _name );
 			}
-			
+
 			if( image->filter != filter || image->repeat != repeat )
 			{
 				// we might want to have the system reset these parameters on every bind and
@@ -416,10 +416,10 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 				// If an image is used differently then we need 2 copies of it because usage affects the way it's compressed and swizzled
 				continue;
 			}
-			
+
 			image->usage = usage;
 			image->levelLoadReferenced = true;
-			
+
 			if( ( !insideLevelLoad  || preloadingMapImages ) && !image->IsLoaded() )
 			{
 				image->referencedOutsideLevelLoad = ( !insideLevelLoad && !preloadingMapImages );
@@ -429,7 +429,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 			return image;
 		}
 	}
-	
+
 	//
 	// create a new image
 	//
@@ -438,9 +438,9 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	image->usage = usage;
 	image->filter = filter;
 	image->repeat = repeat;
-	
+
 	image->levelLoadReferenced = true;
-	
+
 	// load it if we aren't in a level preload
 	if( !insideLevelLoad || preloadingMapImages )
 	{
@@ -452,7 +452,7 @@ idImage*	idImageManager::ImageFromFile( const char* _name, textureFilter_t filte
 	{
 		declManager->MediaPrint( "%s\n", image->GetName() );
 	}
-	
+
 	return image;
 }
 
@@ -467,7 +467,7 @@ idImage* idImageManager::ScratchImage( const char* name, const idImageOpts& opts
 	{
 		idLib::FatalError( "idImageManager::ScratchImage" );
 	}
-	
+
 	idImage* image = GetImage( name );
 	if( image == NULL )
 	{
@@ -477,11 +477,11 @@ idImage* idImageManager::ScratchImage( const char* name, const idImageOpts& opts
 	{
 		image->PurgeImage();
 	}
-	
+
 	image->opts = opts;
 	image->AllocImage();
 	image->referencedOutsideLevelLoad = true;
-	
+
 	return image;
 }
 
@@ -498,12 +498,12 @@ idImage* idImageManager::GetImage( const char* _name ) const
 		declManager->MediaPrint( "DEFAULTED\n" );
 		return globalImages->defaultImage;
 	}
-	
+
 	// strip any .tga file extensions from anywhere in the _name, including image program parameters
 	idStr name = _name;
 	name.Replace( ".tga", "" );
 	name.BackSlashesToSlashes();
-	
+
 	//
 	// look in loaded images
 	//
@@ -516,7 +516,7 @@ idImage* idImageManager::GetImage( const char* _name ) const
 			return image;
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -563,10 +563,10 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 		idLib::Printf( " 1: forward 2:right 3:back 4:left 5:up 6:down\n" );
 		return;
 	}
-	
+
 	idStr	baseName = args.Argv( 1 );
 	common->SetRefreshOnPrint( true );
-	
+
 	for( int frameNum = 1 ; frameNum < 10000 ; frameNum++ )
 	{
 		char	filename[MAX_IMAGE_NAME];
@@ -577,16 +577,16 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 		for( side = 0 ; side < 6 ; side++ )
 		{
 			sprintf( filename, "%s%i%04i.tga", baseName.c_str(), orderRemap[side], frameNum );
-			
+
 			idLib::Printf( "reading %s\n", filename );
 			R_LoadImage( filename, &pics[side], &width, &height, NULL, true );
-			
+
 			if( !pics[side] )
 			{
 				idLib::Printf( "not found.\n" );
 				break;
 			}
-			
+
 			// convert from "camera" images to native cube map images
 			switch( side )
 			{
@@ -612,7 +612,7 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 					break;
 			}
 		}
-		
+
 		if( side != 6 )
 		{
 			for( int i = 0 ; i < side ; side++ )
@@ -621,7 +621,7 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 			}
 			break;
 		}
-		
+
 		idTempArray<byte> buf( width * height * 6 * 4 );
 		byte*	combined = ( byte* )buf.Ptr();
 		for( side = 0 ; side < 6 ; side++ )
@@ -630,7 +630,7 @@ void R_CombineCubeImages_f( const idCmdArgs& args )
 			Mem_Free( pics[side] );
 		}
 		sprintf( filename, "%sCM%04i.tga", baseName.c_str(), frameNum );
-		
+
 		idLib::Printf( "writing %s\n", filename );
 		R_WriteTGA( filename, combined, width, height * 6 );
 	}
@@ -647,13 +647,13 @@ void idImageManager::Init()
 
 	images.Resize( 1024, 1024 );
 	imageHash.ResizeIndex( 1024 );
-	
+
 	CreateIntrinsicImages();
-	
+
 	cmdSystem->AddCommand( "reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images" );
 	cmdSystem->AddCommand( "listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images" );
 	cmdSystem->AddCommand( "combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression" );
-	
+
 	// should forceLoadImages be here?
 }
 
@@ -666,7 +666,7 @@ void idImageManager::Shutdown()
 {
 	images.DeleteContents( true );
 	imageHash.Clear();
-	
+
 }
 
 /*
@@ -678,17 +678,17 @@ Frees all images used by the previous level
 void idImageManager::BeginLevelLoad()
 {
 	insideLevelLoad = true;
-	
+
 	for( int i = 0 ; i < images.Num() ; i++ )
 	{
 		idImage*	image = images[ i ];
-		
+
 		// generator function images are always kept around
 		if( image->generatorFunction )
 		{
 			continue;
 		}
-		
+
 		if( !image->referencedOutsideLevelLoad && image->IsLoaded() )
 		{
 			image->PurgeImage();
@@ -698,7 +698,7 @@ void idImageManager::BeginLevelLoad()
 		{
 			//idLib::Printf( "not purging %s\n", image->GetName() );
 		}
-		
+
 		image->levelLoadReferenced = false;
 	}
 }
@@ -742,7 +742,7 @@ void idImageManager::Preload( const idPreloadManifest& manifest, const bool& map
 		preloadingMapImages = mapPreload;
 		int	start = Sys_Milliseconds();
 		int numLoaded = 0;
-		
+
 		//fileSystem->StartPreload( preloadImageFiles );
 		for( int i = 0; i < manifest.NumResources(); i++ )
 		{
@@ -774,9 +774,9 @@ int idImageManager::LoadLevelImages( bool pacifier )
 		if( pacifier )
 		{
 			common->UpdateLevelLoadPacifier();
-			
+
 		}
-		
+
 		idImage*	image = images[ i ];
 		if( image->generatorFunction )
 		{
@@ -799,11 +799,11 @@ idImageManager::EndLevelLoad
 void idImageManager::EndLevelLoad()
 {
 	insideLevelLoad = false;
-	
+
 	idLib::Printf( "----- idImageManager::EndLevelLoad -----\n" );
 	int start = Sys_Milliseconds();
 	int	loadCount = LoadLevelImages( true );
-	
+
 	int	end = Sys_Milliseconds();
 	idLib::Printf( "%5i images loaded in %5.1f seconds\n", loadCount, ( end - start ) * 0.001 );
 	idLib::Printf( "----------------------------------------\n" );
@@ -820,21 +820,21 @@ void idImageManager::PrintMemInfo( MemInfo_t* mi )
 	int i, j, total = 0;
 	int* sortIndex;
 	idFile* f;
-	
+
 	f = fileSystem->OpenFileWrite( mi->filebase + "_images.txt" );
 	if( !f )
 	{
 		return;
 	}
-	
+
 	// sort first
 	sortIndex = new( TAG_IMAGE ) int[images.Num()];
-	
+
 	for( i = 0; i < images.Num(); i++ )
 	{
 		sortIndex[i] = i;
 	}
-	
+
 	for( i = 0; i < images.Num() - 1; i++ )
 	{
 		for( j = i + 1; j < images.Num(); j++ )
@@ -847,22 +847,22 @@ void idImageManager::PrintMemInfo( MemInfo_t* mi )
 			}
 		}
 	}
-	
+
 	// print next
 	for( i = 0; i < images.Num(); i++ )
 	{
 		idImage* im = images[sortIndex[i]];
 		int size;
-		
+
 		size = im->StorageSize();
 		total += size;
-		
+
 		f->Printf( "%s %3i %s\n", idStr::FormatNumber( size ).c_str(), im->refCount, im->GetName() );
 	}
-	
+
 	delete [] sortIndex;
 	mi->imageAssetsTotal = total;
-	
+
 	f->Printf( "\nTotal image bytes allocated: %s\n", idStr::FormatNumber( total ).c_str() );
 	fileSystem->CloseFile( f );
 }

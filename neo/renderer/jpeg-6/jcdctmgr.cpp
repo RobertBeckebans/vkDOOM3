@@ -22,17 +22,17 @@
 typedef struct
 {
 	struct jpeg_forward_dct pub;/* public fields */
-	
+
 	/* Pointer to the DCT routine actually in use */
 	forward_DCT_method_ptr do_dct;
-	
+
 	/* The actual post-DCT divisors --- not identical to the quant table
 	 * entries, because of scaling (especially for an unnormalized DCT).
 	 * Each table is given in normal array order; note that this must
 	 * be converted from the zigzag order of the quantization tables.
 	 */
 	DCTELEM* divisors[NUM_QUANT_TBLS];
-	
+
 #ifdef DCT_FLOAT_SUPPORTED
 	/* Same as above for the floating-point case. */
 	float_DCT_method_ptr do_float_dct;
@@ -60,7 +60,7 @@ start_pass_fdctmgr( j_compress_ptr cinfo )
 	jpeg_component_info* compptr;
 	JQUANT_TBL* qtbl;
 	//DCTELEM * dtbl;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -117,7 +117,7 @@ start_pass_fdctmgr( j_compress_ptr cinfo )
 					4520,  6270,  5906,  5315,  4520,  3552,  2446,  1247
 				};
 				SHIFT_TEMPS
-				
+
 				if( fdct->divisors[qtblno] == NULL )
 				{
 					fdct->divisors[qtblno] = ( DCTELEM* )
@@ -153,7 +153,7 @@ start_pass_fdctmgr( j_compress_ptr cinfo )
 					1.0, 1.387039845, 1.306562965, 1.175875602,
 					1.0, 0.785694958, 0.541196100, 0.275899379
 				};
-				
+
 				if( fdct->float_divisors[qtblno] == NULL )
 				{
 					fdct->float_divisors[qtblno] = ( FAST_FLOAT* )
@@ -204,9 +204,9 @@ forward_DCT( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	DCTELEM* divisors = fdct->divisors[compptr->quant_tbl_no];
 	DCTELEM workspace[DCTSIZE2];/* work area for FDCT subroutine */
 	JDIMENSION bi;
-	
+
 	sample_data += start_row;/* fold in the vertical offset once */
-	
+
 	for( bi = 0; bi < nublocks; bi++, start_col += DCTSIZE )
 	{
 		/* Load data into workspace, applying unsigned->signed conversion */
@@ -214,7 +214,7 @@ forward_DCT( j_compress_ptr cinfo, jpeg_component_info* compptr,
 			register DCTELEM* workspaceptr;
 			register JSAMPROW elemptr;
 			register int elemr;
-			
+
 			workspaceptr = workspace;
 			for( elemr = 0; elemr < DCTSIZE; elemr++ )
 			{
@@ -239,16 +239,16 @@ forward_DCT( j_compress_ptr cinfo, jpeg_component_info* compptr,
 #endif
 			}
 		}
-		
+
 		/* Perform the DCT */
 		( *do_dct )( workspace );
-		
+
 		/* Quantize/descale the coefficients, and store into coef_blocks[] */
 		{
 			register DCTELEM temp, qval;
 			register int i;
 			register JCOEFPTR output_ptr = coef_blocks[bi];
-			
+
 			for( i = 0; i < DCTSIZE2; i++ )
 			{
 				qval = divisors[i];
@@ -304,9 +304,9 @@ forward_DCT_float( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	FAST_FLOAT* divisors = fdct->float_divisors[compptr->quant_tbl_no];
 	FAST_FLOAT workspace[DCTSIZE2];/* work area for FDCT subroutine */
 	JDIMENSION bi;
-	
+
 	sample_data += start_row;/* fold in the vertical offset once */
-	
+
 	for( bi = 0; bi < nublocks; bi++, start_col += DCTSIZE )
 	{
 		/* Load data into workspace, applying unsigned->signed conversion */
@@ -314,7 +314,7 @@ forward_DCT_float( j_compress_ptr cinfo, jpeg_component_info* compptr,
 			register FAST_FLOAT* workspaceptr;
 			register JSAMPROW elemptr;
 			register int elemr;
-			
+
 			workspaceptr = workspace;
 			for( elemr = 0; elemr < DCTSIZE; elemr++ )
 			{
@@ -340,16 +340,16 @@ forward_DCT_float( j_compress_ptr cinfo, jpeg_component_info* compptr,
 #endif
 			}
 		}
-		
+
 		/* Perform the DCT */
 		( *do_dct )( workspace );
-		
+
 		/* Quantize/descale the coefficients, and store into coef_blocks[] */
 		{
 			register FAST_FLOAT temp;
 			register int i;
 			register JCOEFPTR output_ptr = coef_blocks[bi];
-			
+
 			for( i = 0; i < DCTSIZE2; i++ )
 			{
 				/* Apply the quantization and scaling factor */
@@ -378,13 +378,13 @@ jinit_forward_dct( j_compress_ptr cinfo )
 {
 	my_fdct_ptr fdct;
 	int i;
-	
+
 	fdct = ( my_fdct_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_fdct_controller ) );
 	cinfo->fdct = ( struct jpeg_forward_dct* ) fdct;
 	fdct->pub.start_pass = start_pass_fdctmgr;
-	
+
 	switch( cinfo->dct_method )
 	{
 #ifdef DCT_ISLOW_SUPPORTED
@@ -409,7 +409,7 @@ jinit_forward_dct( j_compress_ptr cinfo )
 			ERREXIT( cinfo, JERR_NOT_COMPILED );
 			break;
 	}
-	
+
 	/* Mark divisor tables unallocated */
 	for( i = 0; i < NUM_QUANT_TBLS; i++ )
 	{

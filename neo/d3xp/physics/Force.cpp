@@ -63,7 +63,7 @@ idForce::DeletePhysics
 void idForce::DeletePhysics( const idPhysics* phys )
 {
 	int i;
-	
+
 	for( i = 0; i < forceList.Num(); i++ )
 	{
 		forceList[i]->RemovePhysics( phys );

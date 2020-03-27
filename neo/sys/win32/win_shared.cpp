@@ -62,13 +62,13 @@ Sys_Microseconds
 uint64 Sys_Microseconds()
 {
 	static uint64 ticksPerMicrosecondTimes1024 = 0;
-	
+
 	if( ticksPerMicrosecondTimes1024 == 0 )
 	{
 		ticksPerMicrosecondTimes1024 = ( ( uint64 )Sys_ClockTicksPerSecond() << 10 ) / 1000000;
 		assert( ticksPerMicrosecondTimes1024 > 0 );
 	}
-	
+
 	return ( ( uint64 )( ( int64 )Sys_GetClockTicks() << 10 ) ) / ticksPerMicrosecondTimes1024;
 }
 
@@ -139,31 +139,31 @@ returns in megabytes
 int Sys_GetVideoRam()
 {
 	unsigned int retSize = 64;
-	
+
 	CComPtr<IWbemLocator> spLoc = NULL;
 	HRESULT hr = CoCreateInstance( CLSID_WbemLocator, 0, CLSCTX_SERVER, IID_IWbemLocator, ( LPVOID* ) &spLoc );
 	if( hr != S_OK || spLoc == NULL )
 	{
 		return retSize;
 	}
-	
+
 	CComBSTR bstrNamespace( _T( "\\\\.\\root\\CIMV2" ) );
 	CComPtr<IWbemServices> spServices;
-	
+
 	// Connect to CIM
 	hr = spLoc->ConnectServer( bstrNamespace, NULL, NULL, 0, NULL, 0, 0, &spServices );
 	if( hr != WBEM_S_NO_ERROR )
 	{
 		return retSize;
 	}
-	
+
 	// Switch the security level to IMPERSONATE so that provider will grant access to system-level objects.
 	hr = CoSetProxyBlanket( spServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );
 	if( hr != S_OK )
 	{
 		return retSize;
 	}
-	
+
 	// Get the vid controller
 	CComPtr<IEnumWbemClassObject> spEnumInst = NULL;
 	hr = spServices->CreateInstanceEnum( CComBSTR( "Win32_VideoController" ), WBEM_FLAG_SHALLOW, NULL, &spEnumInst );
@@ -171,11 +171,11 @@ int Sys_GetVideoRam()
 	{
 		return retSize;
 	}
-	
+
 	ULONG uNumOfInstances = 0;
 	CComPtr<IWbemClassObject> spInstance = NULL;
 	hr = spEnumInst->Next( 10000, 1, &spInstance, &uNumOfInstances );
-	
+
 	if( hr == S_OK && spInstance )
 	{
 		// Get properties from the object
@@ -205,32 +205,32 @@ void Sys_GetCurrentMemoryStatus( sysMemoryStats_t& stats )
 {
 	MEMORYSTATUSEX statex = {};
 	unsigned __int64 work;
-	
+
 	statex.dwLength = sizeof( statex );
 	GlobalMemoryStatusEx( &statex );
-	
+
 	memset( &stats, 0, sizeof( stats ) );
-	
+
 	stats.memoryLoad = statex.dwMemoryLoad;
-	
+
 	work = statex.ullTotalPhys >> 20;
 	stats.totalPhysical = *( int* )&work;
-	
+
 	work = statex.ullAvailPhys >> 20;
 	stats.availPhysical = *( int* )&work;
-	
+
 	work = statex.ullAvailPageFile >> 20;
 	stats.availPageFile = *( int* )&work;
-	
+
 	work = statex.ullTotalPageFile >> 20;
 	stats.totalPageFile = *( int* )&work;
-	
+
 	work = statex.ullTotalVirtual >> 20;
 	stats.totalVirtual = *( int* )&work;
-	
+
 	work = statex.ullAvailVirtual >> 20;
 	stats.availVirtual = *( int* )&work;
-	
+
 	work = statex.ullAvailExtendedVirtual >> 20;
 	stats.availExtendedVirtual = *( int* )&work;
 }
@@ -274,18 +274,18 @@ char* Sys_GetCurrentUser()
 {
 	static char s_userName[1024];
 	unsigned long size = sizeof( s_userName );
-	
-	
+
+
 	if( !GetUserName( s_userName, &size ) )
 	{
 		strcpy( s_userName, "player" );
 	}
-	
+
 	if( !s_userName[0] )
 	{
 		strcpy( s_userName, "player" );
 	}
-	
+
 	return s_userName;
 }
 
@@ -392,11 +392,11 @@ void Sym_Init( long addr )
 {
 	TCHAR moduleName[MAX_STRING_CHARS];
 	MEMORY_BASIC_INFORMATION mbi;
-	
+
 	VirtualQuery( ( void* )addr, &mbi, sizeof( mbi ) );
-	
+
 	GetModuleFileName( ( HMODULE )mbi.AllocationBase, moduleName, sizeof( moduleName ) );
-	
+
 	char* ext = moduleName + strlen( moduleName );
 	while( ext > moduleName && *ext != '.' )
 	{
@@ -410,7 +410,7 @@ void Sym_Init( long addr )
 	{
 		strcpy( ext, ".map" );
 	}
-	
+
 	module_t* module = ( module_t* ) malloc( sizeof( module_t ) );
 	module->name = ( char* ) malloc( strlen( moduleName ) + 1 );
 	strcpy( module->name, moduleName );
@@ -418,25 +418,25 @@ void Sym_Init( long addr )
 	module->symbols = NULL;
 	module->next = modules;
 	modules = module;
-	
+
 	FILE* fp = fopen( moduleName, "rb" );
 	if( fp == NULL )
 	{
 		return;
 	}
-	
+
 	int pos = ftell( fp );
 	fseek( fp, 0, SEEK_END );
 	int length = ftell( fp );
 	fseek( fp, pos, SEEK_SET );
-	
+
 	char* text = ( char* ) malloc( length + 1 );
 	fread( text, 1, length, fp );
 	text[length] = '\0';
 	fclose( fp );
-	
+
 	const char* ptr = text;
-	
+
 	// skip up to " Address" on a new line
 	while( *ptr != '\0' )
 	{
@@ -448,18 +448,18 @@ void Sym_Init( long addr )
 		}
 		SkipRestOfLine( &ptr );
 	}
-	
+
 	int symbolAddress;
 	int symbolLength;
 	char symbolName[MAX_STRING_CHARS];
 	symbol_t* symbol;
-	
+
 	// parse symbols
 	while( *ptr != '\0' )
 	{
-	
+
 		SkipWhiteSpace( &ptr );
-		
+
 		ParseHexNumber( &ptr );
 		if( *ptr == ':' )
 		{
@@ -470,9 +470,9 @@ void Sym_Init( long addr )
 			break;
 		}
 		ParseHexNumber( &ptr );
-		
+
 		SkipWhiteSpace( &ptr );
-		
+
 		// parse symbol name
 		symbolLength = 0;
 		while( *ptr != '\0' && *ptr != ' ' )
@@ -484,14 +484,14 @@ void Sym_Init( long addr )
 			}
 		}
 		symbolName[symbolLength++] = '\0';
-		
+
 		SkipWhiteSpace( &ptr );
-		
+
 		// parse symbol address
 		symbolAddress = ParseHexNumber( &ptr );
-		
+
 		SkipRestOfLine( &ptr );
-		
+
 		symbol = ( symbol_t* ) malloc( sizeof( symbol_t ) );
 		symbol->name = ( char* ) malloc( symbolLength );
 		strcpy( symbol->name, symbolName );
@@ -499,7 +499,7 @@ void Sym_Init( long addr )
 		symbol->next = module->symbols;
 		module->symbols = symbol;
 	}
-	
+
 	free( text );
 }
 
@@ -512,7 +512,7 @@ void Sym_Shutdown()
 {
 	module_t* m;
 	symbol_t* s;
-	
+
 	for( m = modules; m != NULL; m = modules )
 	{
 		modules = m->next;
@@ -538,9 +538,9 @@ void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 	MEMORY_BASIC_INFORMATION mbi;
 	module_t* m;
 	symbol_t* s;
-	
+
 	VirtualQuery( ( void* )addr, &mbi, sizeof( mbi ) );
-	
+
 	for( m = modules; m != NULL; m = m->next )
 	{
 		if( m->address == ( int ) mbi.AllocationBase )
@@ -553,12 +553,12 @@ void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 		Sym_Init( addr );
 		m = modules;
 	}
-	
+
 	for( s = m->symbols; s != NULL; s = s->next )
 	{
 		if( s->address == addr )
 		{
-		
+
 			char undName[MAX_STRING_CHARS];
 			if( UnDecorateSymbolName( s->name, undName, sizeof( undName ), UNDECORATE_FLAGS ) )
 			{
@@ -580,7 +580,7 @@ void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 			return;
 		}
 	}
-	
+
 	sprintf( funcName, "0x%08x", addr );
 	module = "";
 }
@@ -601,18 +601,18 @@ void Sym_Init( long addr )
 	TCHAR moduleName[MAX_STRING_CHARS];
 	TCHAR modShortNameBuf[MAX_STRING_CHARS];
 	MEMORY_BASIC_INFORMATION mbi;
-	
+
 	if( lastAllocationBase != -1 )
 	{
 		Sym_Shutdown();
 	}
-	
+
 	VirtualQuery( ( void* )addr, &mbi, sizeof( mbi ) );
-	
+
 	GetModuleFileName( ( HMODULE )mbi.AllocationBase, moduleName, sizeof( moduleName ) );
 	_splitpath( moduleName, NULL, NULL, modShortNameBuf, NULL );
 	lastModule = modShortNameBuf;
-	
+
 	processHandle = GetCurrentProcess();
 	if( !SymInitialize( processHandle, NULL, FALSE ) )
 	{
@@ -623,9 +623,9 @@ void Sym_Init( long addr )
 		SymCleanup( processHandle );
 		return;
 	}
-	
+
 	SymSetOptions( SymGetOptions() & ~SYMOPT_UNDNAME );
-	
+
 	lastAllocationBase = ( DWORD ) mbi.AllocationBase;
 }
 
@@ -649,14 +649,14 @@ Sym_GetFuncInfo
 void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 {
 	MEMORY_BASIC_INFORMATION mbi;
-	
+
 	VirtualQuery( ( void* )addr, &mbi, sizeof( mbi ) );
-	
+
 	if( ( DWORD ) mbi.AllocationBase != lastAllocationBase )
 	{
 		Sym_Init( addr );
 	}
-	
+
 	BYTE symbolBuffer[ sizeof( IMAGEHLP_SYMBOL ) + MAX_STRING_CHARS ];
 	PIMAGEHLP_SYMBOL pSymbol = ( PIMAGEHLP_SYMBOL )&symbolBuffer[0];
 	pSymbol->SizeOfStruct = sizeof( symbolBuffer );
@@ -664,7 +664,7 @@ void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 	pSymbol->Address = 0;
 	pSymbol->Flags = 0;
 	pSymbol->Size = 0;
-	
+
 	DWORD symDisplacement = 0;
 	if( SymGetSymFromAddr( processHandle, addr, &symDisplacement, pSymbol ) )
 	{
@@ -692,7 +692,7 @@ void Sym_GetFuncInfo( long addr, idStr& module, idStr& funcName )
 					   NULL
 					 );
 		LocalFree( lpMsgBuf );
-		
+
 		// Couldn't retrieve symbol (no debug info?, can't load dbghelp.dll?)
 		sprintf( funcName, "0x%08x", addr );
 		module = "";
@@ -750,7 +750,7 @@ address_t GetFuncAddr( address_t midPtPtr )
 		midPtPtr--;
 	}
 	while( true );
-	
+
 	return midPtPtr;
 }
 
@@ -763,7 +763,7 @@ address_t GetCallerAddr( long _ebp )
 {
 	long midPtPtr;
 	long res = 0;
-	
+
 	__asm
 	{
 		mov		eax, _ebp
@@ -792,7 +792,7 @@ void Sys_GetCallStack( address_t* callStack, const int callStackSize )
 #if 1 //def _DEBUG
 	int i;
 	long m_ebp;
-	
+
 	__asm
 	{
 		mov eax, ebp
@@ -830,7 +830,7 @@ const char* Sys_GetCallStackStr( const address_t* callStack, const int callStack
 	static char string[MAX_STRING_CHARS * 2];
 	int index, i;
 	idStr module, funcName;
-	
+
 	index = 0;
 	for( i = callStackSize - 1; i >= 0; i-- )
 	{
@@ -848,7 +848,7 @@ Sys_GetCallStackCurStr
 const char* Sys_GetCallStackCurStr( int depth )
 {
 	address_t* callStack;
-	
+
 	callStack = ( address_t* ) _alloca( depth * sizeof( address_t ) );
 	Sys_GetCallStack( callStack, depth );
 	return Sys_GetCallStackStr( callStack, depth );
@@ -864,10 +864,10 @@ const char* Sys_GetCallStackCurAddressStr( int depth )
 	static char string[MAX_STRING_CHARS * 2];
 	address_t* callStack;
 	int index, i;
-	
+
 	callStack = ( address_t* ) _alloca( depth * sizeof( address_t ) );
 	Sys_GetCallStack( callStack, depth );
-	
+
 	index = 0;
 	for( i = depth - 1; i >= 0; i-- )
 	{

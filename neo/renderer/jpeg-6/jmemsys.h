@@ -21,14 +21,14 @@
 /* Short forms of external names for systems with brain-damaged linkers. */
 
 #ifdef NEED_SHORT_EXTERNAL_NAMES
-#define jpeg_get_small		jGetSmall
-#define jpeg_free_small		jFreeSmall
-#define jpeg_get_large		jGetLarge
-#define jpeg_free_large		jFreeLarge
-#define jpeg_meavailable	jMemAvail
-#define jpeg_open_backing_store	jOpenBackStore
-#define jpeg_meinit		jMemInit
-#define jpeg_meterm		jMemTerm
+	#define jpeg_get_small		jGetSmall
+	#define jpeg_free_small		jFreeSmall
+	#define jpeg_get_large		jGetLarge
+	#define jpeg_free_large		jFreeLarge
+	#define jpeg_meavailable	jMemAvail
+	#define jpeg_open_backing_store	jOpenBackStore
+	#define jpeg_meinit		jMemInit
+	#define jpeg_meterm		jMemTerm
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 
@@ -73,7 +73,7 @@ EXTERN void jpeg_free_large JPP( ( j_common_ptr cinfo, void FAR* object,
  */
 
 #ifndef MAX_ALLOC_CHUNK		/* may be overridden in jconfig.h */
-#define MAX_ALLOC_CHUNK  1000000000L
+	#define MAX_ALLOC_CHUNK  1000000000L
 #endif
 
 /*
@@ -142,7 +142,7 @@ typedef struct backing_store_struct
 										  long file_offset, long byte_count ) );
 	JMETHOD( void, close_backing_store, ( j_common_ptr cinfo,
 										  backing_store_ptr info ) );
-										  
+
 	/* Private fields for system-dependent backing-store management */
 #ifdef USE_MSDOS_MEMMGR
 	/* For the MS-DOS manager (jmemdos.c), we need: */

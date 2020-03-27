@@ -60,7 +60,7 @@ typedef JMETHOD( void, downsample1_ptr,
 typedef struct
 {
 	struct jpeg_downsampler pub;/* public fields */
-	
+
 	/* Downsampling method pointers, one per component */
 	downsample1_ptr methods[MAX_COMPONENTS];
 } my_downsampler;
@@ -93,7 +93,7 @@ expand_right_edge( JSAMPARRAY image_data, int nurows,
 	register int count;
 	int row;
 	int numcols = ( int )( output_cols - input_cols );
-	
+
 	if( numcols > 0 )
 	{
 		for( row = 0; row < nurows; row++ )
@@ -124,7 +124,7 @@ sep_downsample( j_compress_ptr cinfo,
 	int ci;
 	jpeg_component_info* compptr;
 	JSAMPARRAY in_ptr, out_ptr;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -151,19 +151,19 @@ int_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	JDIMENSION output_cols = compptr->width_in_blocks * DCTSIZE;
 	JSAMPROW inptr, outptr;
 	INT32 outvalue;
-	
+
 	h_expand = cinfo->max_h_samp_factor / compptr->h_samp_factor;
 	v_expand = cinfo->max_v_samp_factor / compptr->v_samp_factor;
 	numpix = h_expand * v_expand;
 	numpix2 = numpix / 2;
-	
+
 	/* Expand input data enough to let all the output samples be generated
 	 * by the standard loop.  Special-casing padded output would be more
 	 * efficient.
 	 */
 	expand_right_edge( input_data, cinfo->max_v_samp_factor,
 					   cinfo->image_width, output_cols * h_expand );
-					   
+
 	inrow = 0;
 	for( outrow = 0; outrow < compptr->v_samp_factor; outrow++ )
 	{
@@ -227,14 +227,14 @@ h2v1_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	JDIMENSION output_cols = compptr->width_in_blocks * DCTSIZE;
 	register JSAMPROW inptr, outptr;
 	register int bias;
-	
+
 	/* Expand input data enough to let all the output samples be generated
 	 * by the standard loop.  Special-casing padded output would be more
 	 * efficient.
 	 */
 	expand_right_edge( input_data, cinfo->max_v_samp_factor,
 					   cinfo->image_width, output_cols * 2 );
-					   
+
 	for( outrow = 0; outrow < compptr->v_samp_factor; outrow++ )
 	{
 		outptr = output_data[outrow];
@@ -266,14 +266,14 @@ h2v2_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	JDIMENSION output_cols = compptr->width_in_blocks * DCTSIZE;
 	register JSAMPROW inptr0, inptr1, outptr;
 	register int bias;
-	
+
 	/* Expand input data enough to let all the output samples be generated
 	 * by the standard loop.  Special-casing padded output would be more
 	 * efficient.
 	 */
 	expand_right_edge( input_data, cinfo->max_v_samp_factor,
 					   cinfo->image_width, output_cols * 2 );
-					   
+
 	inrow = 0;
 	for( outrow = 0; outrow < compptr->v_samp_factor; outrow++ )
 	{
@@ -312,14 +312,14 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	JDIMENSION output_cols = compptr->width_in_blocks * DCTSIZE;
 	register JSAMPROW inptr0, inptr1, above_ptr, below_ptr, outptr;
 	INT32 membersum, neighsum, memberscale, neighscale;
-	
+
 	/* Expand input data enough to let all the output samples be generated
 	 * by the standard loop.  Special-casing padded output would be more
 	 * efficient.
 	 */
 	expand_right_edge( input_data - 1, cinfo->max_v_samp_factor + 2,
 					   cinfo->image_width, output_cols * 2 );
-					   
+
 	/* We don't bother to form the individual "smoothed" input pixel values;
 	 * we can directly compute the output which is the average of the four
 	 * smoothed values.  Each of the four member pixels contributes a fraction
@@ -332,10 +332,10 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	 * factors are scaled by 2^16 = 65536.
 	 * Also recall that SF = smoothing_factor / 1024.
 	 */
-	
+
 	memberscale = 16384 - cinfo->smoothing_factor * 80;/* scaled (1-5*SF)/4 */
 	neighscale = cinfo->smoothing_factor * 16;/* scaled SF/4 */
-	
+
 	inrow = 0;
 	for( outrow = 0; outrow < compptr->v_samp_factor; outrow++ )
 	{
@@ -344,7 +344,7 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 		inptr1 = input_data[inrow + 1];
 		above_ptr = input_data[inrow - 1];
 		below_ptr = input_data[inrow + 2];
-		
+
 		/* Special case for first column: pretend column -1 is same as column 0 */
 		membersum = GETJSAMPLE( *inptr0 ) + GETJSAMPLE( inptr0[1] ) +
 					GETJSAMPLE( *inptr1 ) + GETJSAMPLE( inptr1[1] );
@@ -361,7 +361,7 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 		inptr1 += 2;
 		above_ptr += 2;
 		below_ptr += 2;
-		
+
 		for( colctr = output_cols - 2; colctr > 0; colctr-- )
 		{
 			/* sum of pixels directly mapped to this output element */
@@ -386,7 +386,7 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 			above_ptr += 2;
 			below_ptr += 2;
 		}
-		
+
 		/* Special case for last column */
 		membersum = GETJSAMPLE( *inptr0 ) + GETJSAMPLE( inptr0[1] ) +
 					GETJSAMPLE( *inptr1 ) + GETJSAMPLE( inptr1[1] );
@@ -399,7 +399,7 @@ h2v2_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 					GETJSAMPLE( below_ptr[-1] ) + GETJSAMPLE( below_ptr[1] );
 		membersum = membersum * memberscale + neighsum * neighscale;
 		*outptr = ( JSAMPLE )( ( membersum + 32768 ) >> 16 );
-		
+
 		inrow += 2;
 	}
 }
@@ -421,30 +421,30 @@ fullsize_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 	register JSAMPROW inptr, above_ptr, below_ptr, outptr;
 	INT32 membersum, neighsum, memberscale, neighscale;
 	int colsum, lastcolsum, nextcolsum;
-	
+
 	/* Expand input data enough to let all the output samples be generated
 	 * by the standard loop.  Special-casing padded output would be more
 	 * efficient.
 	 */
 	expand_right_edge( input_data - 1, cinfo->max_v_samp_factor + 2,
 					   cinfo->image_width, output_cols );
-					   
+
 	/* Each of the eight neighbor pixels contributes a fraction SF to the
 	 * smoothed pixel, while the main pixel contributes (1-8*SF).  In order
 	 * to use integer arithmetic, these factors are multiplied by 2^16 = 65536.
 	 * Also recall that SF = smoothing_factor / 1024.
 	 */
-	
+
 	memberscale = 65536L - cinfo->smoothing_factor * 512L;/* scaled 1-8*SF */
 	neighscale = cinfo->smoothing_factor * 64;/* scaled SF */
-	
+
 	for( outrow = 0; outrow < compptr->v_samp_factor; outrow++ )
 	{
 		outptr = output_data[outrow];
 		inptr = input_data[outrow];
 		above_ptr = input_data[outrow - 1];
 		below_ptr = input_data[outrow + 1];
-		
+
 		/* Special case for first column */
 		colsum = GETJSAMPLE( *above_ptr++ ) + GETJSAMPLE( *below_ptr++ ) +
 				 GETJSAMPLE( *inptr );
@@ -456,7 +456,7 @@ fullsize_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 		*outptr++ = ( JSAMPLE )( ( membersum + 32768 ) >> 16 );
 		lastcolsum = colsum;
 		colsum = nextcolsum;
-		
+
 		for( colctr = output_cols - 2; colctr > 0; colctr-- )
 		{
 			membersum = GETJSAMPLE( *inptr++ );
@@ -470,13 +470,13 @@ fullsize_smooth_downsample( j_compress_ptr cinfo, jpeg_component_info* compptr,
 			lastcolsum = colsum;
 			colsum = nextcolsum;
 		}
-		
+
 		/* Special case for last column */
 		membersum = GETJSAMPLE( *inptr );
 		neighsum = lastcolsum + ( colsum - membersum ) + colsum;
 		membersum = membersum * memberscale + neighsum * neighscale;
 		*outptr = ( JSAMPLE )( ( membersum + 32768 ) >> 16 );
-		
+
 	}
 }
 
@@ -495,7 +495,7 @@ jinit_downsampler( j_compress_ptr cinfo )
 	int ci;
 	jpeg_component_info* compptr;
 	boolean smoothok = TRUE;
-	
+
 	downsample = ( my_downsample_ptr )
 				 ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 						 SIZEOF( my_downsampler ) );
@@ -503,12 +503,12 @@ jinit_downsampler( j_compress_ptr cinfo )
 	downsample->pub.start_pass = start_pass_downsample;
 	downsample->pub.downsample = sep_downsample;
 	downsample->pub.need_context_rows = FALSE;
-	
+
 	if( cinfo->CCIR601_sampling )
 	{
 		ERREXIT( cinfo, JERR_CCIR601_NOTIMPL );
 	}
-	
+
 	/* Verify we can handle the sampling factors, and set up method pointers */
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
@@ -556,7 +556,7 @@ jinit_downsampler( j_compress_ptr cinfo )
 			ERREXIT( cinfo, JERR_FRACT_SAMPLE_NOTIMPL );
 		}
 	}
-	
+
 #ifdef INPUT_SMOOTHING_SUPPORTED
 	if( ( cinfo->smoothing_factor ) && ( !smoothok ) )
 	{

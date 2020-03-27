@@ -114,18 +114,18 @@
 typedef struct
 {
 	struct jpeg_d_main_controller pub;/* public fields */
-	
+
 	/* Pointer to allocated workspace (M or M+2 row groups). */
 	JSAMPARRAY buffer[MAX_COMPONENTS];
-	
+
 	boolean    buffer_full; /* Have we gotten an iMCU row from decoder? */
 	JDIMENSION rowgroup_ctr;/* counts row groups output to postprocessor */
-	
+
 	/* Remaining fields are only used in the context case. */
-	
+
 	/* These are the master pointers to the funny-order pointer lists. */
 	JSAMPIMAGE xbuffer[2];  /* pointers to weird pointer lists */
-	
+
 	int        whichptr;/* indicates which pointer set is now in use */
 	int        context_state; /* process_data state machine status */
 	JDIMENSION rowgroups_avail; /* row groups available to postprocessor */
@@ -165,7 +165,7 @@ alloc_funny_pointers( j_decompress_ptr cinfo )
 	int M = cinfo->min_DCT_scaled_size;
 	jpeg_component_info* compptr;
 	JSAMPARRAY xbuf;
-	
+
 	/* Get top-level space for component array pointers.
 	 * We alloc both arrays with one call to save a few cycles.
 	 */
@@ -173,7 +173,7 @@ alloc_funny_pointers( j_decompress_ptr cinfo )
 					   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 							   cinfo->nucomponents * 2 * SIZEOF( JSAMPARRAY ) );
 	main->xbuffer[1] = main->xbuffer[0] + cinfo->nucomponents;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -207,7 +207,7 @@ make_funny_pointers( j_decompress_ptr cinfo )
 	int M = cinfo->min_DCT_scaled_size;
 	jpeg_component_info* compptr;
 	JSAMPARRAY buf, xbuf0, xbuf1;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -251,7 +251,7 @@ set_wraparound_pointers( j_decompress_ptr cinfo )
 	int M = cinfo->min_DCT_scaled_size;
 	jpeg_component_info* compptr;
 	JSAMPARRAY xbuf0, xbuf1;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -281,7 +281,7 @@ set_bottopointers( j_decompress_ptr cinfo )
 	int ci, i, rgroup, iMCUheight, rows_left;
 	jpeg_component_info* compptr;
 	JSAMPARRAY xbuf;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{
@@ -321,7 +321,7 @@ METHODDEF void
 start_pass_main( j_decompress_ptr cinfo, J_BUF_MODE pass_mode )
 {
 	my_main_ptr main = ( my_main_ptr ) cinfo->main;
-	
+
 	switch( pass_mode )
 	{
 		case JBUF_PASS_THRU:
@@ -366,7 +366,7 @@ process_data_simple_main( j_decompress_ptr cinfo,
 {
 	my_main_ptr main = ( my_main_ptr ) cinfo->main;
 	JDIMENSION rowgroups_avail;
-	
+
 	/* Read input data if we haven't filled the main buffer yet */
 	if( !main->buffer_full )
 	{
@@ -376,19 +376,19 @@ process_data_simple_main( j_decompress_ptr cinfo,
 		}               /* suspension forced, can do nothing more */
 		main->buffer_full = TRUE;/* OK, we have an iMCU row to work with */
 	}
-	
+
 	/* There are always min_DCT_scaled_size row groups in an iMCU row. */
 	rowgroups_avail = ( JDIMENSION ) cinfo->min_DCT_scaled_size;
 	/* Note: at the bottom of the image, we may pass extra garbage row groups
 	 * to the postprocessor.  The postprocessor has to check for bottom
 	 * of image anyway (at row resolution), so no point in us doing it too.
 	 */
-	
+
 	/* Feed the postprocessor */
 	( *cinfo->post->post_process_data )( cinfo, main->buffer,
 										 &main->rowgroup_ctr, rowgroups_avail,
 										 output_buf, out_row_ctr, out_rows_avail );
-										 
+
 	/* Has postprocessor consumed all the data yet? If so, mark buffer empty */
 	if( main->rowgroup_ctr >= rowgroups_avail )
 	{
@@ -409,7 +409,7 @@ process_data_context_main( j_decompress_ptr cinfo,
 						   JDIMENSION out_rows_avail )
 {
 	my_main_ptr main = ( my_main_ptr ) cinfo->main;
-	
+
 	/* Read input data if we haven't filled the main buffer yet */
 	if( !main->buffer_full )
 	{
@@ -421,7 +421,7 @@ process_data_context_main( j_decompress_ptr cinfo,
 		main->buffer_full = TRUE;/* OK, we have an iMCU row to work with */
 		main->iMCU_row_ctr++; /* count rows received */
 	}
-	
+
 	/* Postprocessor typically will not swallow all the input data it is handed
 	 * in one call (due to filling the output buffer first).  Must be prepared
 	 * to exit and restart.  This switch lets us keep track of how far we got.
@@ -514,18 +514,18 @@ jinit_d_main_controller( j_decompress_ptr cinfo, boolean need_full_buffer )
 	my_main_ptr main;
 	int ci, rgroup, ngroups;
 	jpeg_component_info* compptr;
-	
+
 	main = ( my_main_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_main_controller ) );
 	cinfo->main = ( struct jpeg_d_main_controller* ) main;
 	main->pub.start_pass = start_pass_main;
-	
+
 	if( need_full_buffer )   /* shouldn't happen */
 	{
 		ERREXIT( cinfo, JERR_BAD_BUFFER_MODE );
 	}
-	
+
 	/* Allocate the workspace.
 	 * ngroups is the number of row groups we need.
 	 */
@@ -542,7 +542,7 @@ jinit_d_main_controller( j_decompress_ptr cinfo, boolean need_full_buffer )
 	{
 		ngroups = cinfo->min_DCT_scaled_size;
 	}
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->nucomponents;
 			ci++, compptr++ )
 	{

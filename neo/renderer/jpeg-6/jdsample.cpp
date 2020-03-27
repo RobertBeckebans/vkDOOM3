@@ -33,7 +33,7 @@ typedef JMETHOD( void, upsample1_ptr,
 typedef struct
 {
 	struct jpeg_upsampler pub;  /* public fields */
-	
+
 	/* Color conversion buffer.  When using separate upsampling and color
 	 * conversion steps, this buffer holds one upsampled row group until it
 	 * has been color converted and output.
@@ -42,16 +42,16 @@ typedef struct
 	 * simply set to point to the input data array, thereby avoiding copying.
 	 */
 	JSAMPARRAY color_buf[MAX_COMPONENTS];
-	
+
 	/* Per-component upsampling method pointers */
 	upsample1_ptr methods[MAX_COMPONENTS];
-	
+
 	int        next_row_out; /* counts rows emitted from color_buf */
 	JDIMENSION rows_to_go;  /* counts rows remaining in image */
-	
+
 	/* Height of an input row group for each component. */
 	int rowgroup_height[MAX_COMPONENTS];
-	
+
 	/* These arrays save pixel expansion factors so that int_expand need not
 	 * recompute them each time.  They are unused for other upsampling methods.
 	 */
@@ -70,7 +70,7 @@ METHODDEF void
 start_pass_upsample( j_decompress_ptr cinfo )
 {
 	my_upsample_ptr upsample = ( my_upsample_ptr ) cinfo->upsample;
-	
+
 	/* Mark the conversion buffer empty */
 	upsample->next_row_out = cinfo->max_v_samp_factor;
 	/* Initialize total-height counter for detecting bottom of image */
@@ -97,7 +97,7 @@ sep_upsample( j_decompress_ptr cinfo,
 	int ci;
 	jpeg_component_info* compptr;
 	JDIMENSION nurows;
-	
+
 	/* Fill the conversion buffer, if it's empty */
 	if( upsample->next_row_out >= cinfo->max_v_samp_factor )
 	{
@@ -113,9 +113,9 @@ sep_upsample( j_decompress_ptr cinfo,
 		}
 		upsample->next_row_out = 0;
 	}
-	
+
 	/* Color-convert and emit rows */
-	
+
 	/* How many we have in the buffer: */
 	nurows = ( JDIMENSION )( cinfo->max_v_samp_factor - upsample->next_row_out );
 	/* Not more than the distance to the end of the image.  Need this test
@@ -131,12 +131,12 @@ sep_upsample( j_decompress_ptr cinfo,
 	{
 		nurows = out_rows_avail;
 	}
-	
+
 	( *cinfo->cconvert->color_convert )( cinfo, upsample->color_buf,
 										 ( JDIMENSION ) upsample->next_row_out,
 										 output_buf + *out_row_ctr,
 										 ( int ) nurows );
-										 
+
 	/* Adjust counts */
 	*out_row_ctr += nurows;
 	upsample->rows_to_go -= nurows;
@@ -206,10 +206,10 @@ int_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 	JSAMPROW outend;
 	int h_expand, v_expand;
 	int inrow, outrow;
-	
+
 	h_expand = upsample->h_expand[compptr->component_index];
 	v_expand = upsample->v_expand[compptr->component_index];
-	
+
 	inrow = outrow = 0;
 	while( outrow < cinfo->max_v_samp_factor )
 	{
@@ -251,7 +251,7 @@ h2v1_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 	register JSAMPLE invalue;
 	JSAMPROW outend;
 	int inrow;
-	
+
 	for( inrow = 0; inrow < cinfo->max_v_samp_factor; inrow++ )
 	{
 		inptr = input_data[inrow];
@@ -281,7 +281,7 @@ h2v2_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 	register JSAMPLE invalue;
 	JSAMPROW outend;
 	int inrow, outrow;
-	
+
 	inrow = outrow = 0;
 	while( outrow < cinfo->max_v_samp_factor )
 	{
@@ -326,7 +326,7 @@ h2v1_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 	register int invalue;
 	register JDIMENSION colctr;
 	int inrow;
-	
+
 	for( inrow = 0; inrow < cinfo->max_v_samp_factor; inrow++ )
 	{
 		inptr = input_data[inrow];
@@ -335,7 +335,7 @@ h2v1_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 		invalue = GETJSAMPLE( *inptr++ );
 		*outptr++ = ( JSAMPLE ) invalue;
 		*outptr++ = ( JSAMPLE )( ( invalue * 3 + GETJSAMPLE( *inptr ) + 2 ) >> 2 );
-		
+
 		for( colctr = compptr->downsampled_width - 2; colctr > 0; colctr-- )
 		{
 			/* General case: 3/4 * nearer pixel + 1/4 * further pixel */
@@ -343,7 +343,7 @@ h2v1_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 			*outptr++ = ( JSAMPLE )( ( invalue + GETJSAMPLE( inptr[-2] ) + 1 ) >> 2 );
 			*outptr++ = ( JSAMPLE )( ( invalue + GETJSAMPLE( *inptr ) + 2 ) >> 2 );
 		}
-		
+
 		/* Special case for last column */
 		invalue = GETJSAMPLE( *inptr );
 		*outptr++ = ( JSAMPLE )( ( invalue * 3 + GETJSAMPLE( inptr[-1] ) + 1 ) >> 2 );
@@ -373,7 +373,7 @@ h2v2_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 #endif
 	register JDIMENSION colctr;
 	int inrow, outrow, v;
-	
+
 	inrow = outrow = 0;
 	while( outrow < cinfo->max_v_samp_factor )
 	{
@@ -390,7 +390,7 @@ h2v2_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 				inptr1 = input_data[inrow + 1];
 			}
 			outptr = output_data[outrow++];
-			
+
 			/* Special case for first column */
 			thiscolsum = GETJSAMPLE( *inptr0++ ) * 3 + GETJSAMPLE( *inptr1++ );
 			nextcolsum = GETJSAMPLE( *inptr0++ ) * 3 + GETJSAMPLE( *inptr1++ );
@@ -398,7 +398,7 @@ h2v2_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 			*outptr++ = ( JSAMPLE )( ( thiscolsum * 3 + nextcolsum + 7 ) >> 4 );
 			lastcolsum = thiscolsum;
 			thiscolsum = nextcolsum;
-			
+
 			for( colctr = compptr->downsampled_width - 2; colctr > 0; colctr-- )
 			{
 				/* General case: 3/4 * nearer pixel + 1/4 * further pixel in each */
@@ -409,7 +409,7 @@ h2v2_fancy_upsample( j_decompress_ptr cinfo, jpeg_component_info* compptr,
 				lastcolsum = thiscolsum;
 				thiscolsum = nextcolsum;
 			}
-			
+
 			/* Special case for last column */
 			*outptr++ = ( JSAMPLE )( ( thiscolsum * 3 + lastcolsum + 8 ) >> 4 );
 			*outptr++ = ( JSAMPLE )( ( thiscolsum * 4 + 7 ) >> 4 );
@@ -431,7 +431,7 @@ jinit_upsampler( j_decompress_ptr cinfo )
 	jpeg_component_info* compptr;
 	boolean need_buffer, do_fancy;
 	int h_in_group, v_in_group, h_out_group, v_out_group;
-	
+
 	upsample = ( my_upsample_ptr )
 			   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 					   SIZEOF( my_upsampler ) );
@@ -439,17 +439,17 @@ jinit_upsampler( j_decompress_ptr cinfo )
 	upsample->pub.start_pass = start_pass_upsample;
 	upsample->pub.upsample = sep_upsample;
 	upsample->pub.need_context_rows = FALSE;/* until we find out differently */
-	
+
 	if( cinfo->CCIR601_sampling )   /* this isn't supported */
 	{
 		ERREXIT( cinfo, JERR_CCIR601_NOTIMPL );
 	}
-	
+
 	/* jdmainct.c doesn't support context rows when min_DCT_scaled_size = 1,
 	 * so don't ask for it.
 	 */
 	do_fancy = cinfo->do_fancy_upsampling && cinfo->min_DCT_scaled_size > 1;
-	
+
 	/* Verify we can handle the sampling factors, select per-component methods,
 	 * and create storage as needed.
 	 */

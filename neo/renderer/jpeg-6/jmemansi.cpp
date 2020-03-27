@@ -18,12 +18,12 @@
 #include "jmemsys.h"     /* import the system-dependent declarations */
 
 #ifndef HAVE_STDLIB_H       /* <stdlib.h> should declare malloc(),free() */
-extern void* malloc JPP( ( size_t size ) );
-extern void free JPP( ( void* ptr ) );
+	extern void* malloc JPP( ( size_t size ) );
+	extern void free JPP( ( void* ptr ) );
 #endif
 
 #ifndef SEEK_SET        /* pre-ANSI systems may not define this; */
-#define SEEK_SET  0     /* if not, assume 0 is correct */
+	#define SEEK_SET  0     /* if not, assume 0 is correct */
 #endif
 
 
@@ -74,7 +74,7 @@ jpeg_free_large( j_common_ptr cinfo, void FAR* object, size_t sizeofobject )
  */
 
 #ifndef DEFAULT_MAX_MEM     /* so can override from makefile */
-#define DEFAULT_MAX_MEM     1000000L /* default: one megabyte */
+	#define DEFAULT_MAX_MEM     1000000L /* default: one megabyte */
 #endif
 
 GLOBAL long

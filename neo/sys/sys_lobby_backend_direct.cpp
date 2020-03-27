@@ -53,10 +53,10 @@ idLobbyBackendDirect::StartHosting
 void idLobbyBackendDirect::StartHosting( const idMatchParameters& p, float skillLevel, lobbyBackendType_t type )
 {
 	NET_VERBOSE_PRINT( "idLobbyBackendDirect::StartHosting\n" );
-	
+
 	isLocal = MatchTypeIsLocal( p.matchFlags );
 	isHost	= true;
-	
+
 	state	= STATE_READY;
 	isLocal = true;
 }
@@ -70,7 +70,7 @@ void idLobbyBackendDirect::StartFinding( const idMatchParameters& p, int numPart
 {
 	isLocal = MatchTypeIsLocal( p.matchFlags );
 	isHost	= false;
-	
+
 	if( lobbyToSessionCB->CanJoinLocalHost() )
 	{
 		state = STATE_READY;
@@ -109,7 +109,7 @@ void idLobbyBackendDirect::JoinFromConnectInfo( const lobbyConnectInfo_t& connec
 	{
 		address = connectInfo.netAddr;
 	}
-	
+
 	state		= STATE_READY;
 	isLocal		= false;
 	isHost		= false;
@@ -172,7 +172,7 @@ idLobbyBackendDirect::GetConnectInfo
 lobbyConnectInfo_t idLobbyBackendDirect::GetConnectInfo()
 {
 	lobbyConnectInfo_t connectInfo;
-	
+
 	// If we aren't the host, this lobby should have been joined through JoinFromConnectInfo
 	if( IsHost() )
 	{
@@ -181,9 +181,9 @@ lobbyConnectInfo_t idLobbyBackendDirect::GetConnectInfo()
 		Sys_StringToNetAdr( ip, &address, false );
 		address.port = net_port.GetInteger();
 	}
-	
+
 	connectInfo.netAddr = address;
-	
+
 	return connectInfo;
 }
 

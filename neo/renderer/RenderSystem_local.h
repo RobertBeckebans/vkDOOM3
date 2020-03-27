@@ -54,7 +54,7 @@ public:
 	// internal functions
 	idRenderSystemLocal();
 	virtual					~idRenderSystemLocal();
-	
+
 	virtual void			Init();
 	virtual void			Shutdown();
 	virtual bool			IsInitialized() const
@@ -62,98 +62,98 @@ public:
 		return bInitialized;
 	}
 	virtual void			VidRestart();
-	
+
 	virtual bool			IsFullScreen() const;
 	virtual int				GetWidth() const;
 	virtual int				GetHeight() const;
 	virtual float			GetPixelAspect() const;
-	
+
 	virtual idRenderWorld* 	AllocRenderWorld();
 	virtual void			ReCreateWorldReferences();
 	virtual void			FreeWorldDerivedData();
 	virtual void			CheckWorldsForEntityDefsUsingModel( idRenderModel* model );
 	virtual void			FreeRenderWorld( idRenderWorld* rw );
-	
+
 	virtual void			BeginLevelLoad();
 	virtual void			EndLevelLoad();
 	virtual void			Preload( const idPreloadManifest& manifest, const char* mapName );
 	virtual void			LoadLevelImages();
-	
+
 	virtual void* 			FrameAlloc( int bytes, frameAllocType_t type = FRAME_ALLOC_UNKNOWN );
 	virtual void* 			ClearedFrameAlloc( int bytes, frameAllocType_t type = FRAME_ALLOC_UNKNOWN );
-	
+
 	// Render
 	virtual void			SetRenderView( const renderView_t* renderView )
 	{
 		primaryRenderView = *renderView;
 	}
 	virtual void			RenderScene( idRenderWorld* world, const renderView_t* renderView );
-	
+
 	virtual idFont* 		RegisterFont( const char* fontName );
-	
+
 	virtual void			SetColor( const idVec4& color );
 	virtual uint32			GetColor();
-	
+
 	virtual void			SetGLState( const uint64 glState ) ;
-	
+
 	virtual void			DrawFilled( const idVec4& color, float x, float y, float w, float h );
 	virtual void			DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, const idMaterial* material );
 	virtual void			DrawStretchPic( const idVec4& topLeft, const idVec4& topRight, const idVec4& bottomRight, const idVec4& bottomLeft, const idMaterial* material );
 	virtual void			DrawStretchTri( const idVec2& p1, const idVec2& p2, const idVec2& p3, const idVec2& t1, const idVec2& t2, const idVec2& t3, const idMaterial* material );
 	virtual void			DrawStretchFX( float x, float y, float w, float h, float s1, float t1, float s2, float t2, const idMaterial* material );
 	virtual idDrawVert* 	AllocTris( int numVerts, const triIndex_t* indexes, int numIndexes, const idMaterial* material );
-	
+
 	virtual void			DrawSmallChar( int x, int y, int ch );
 	virtual void			DrawSmallStringExt( int x, int y, const char* string, const idVec4& setColor, bool forceColor );
 	virtual void			DrawBigChar( int x, int y, int ch );
 	virtual void			DrawBigStringExt( int x, int y, const char* string, const idVec4& setColor, bool forceColor );
-	
+
 	virtual void			SwapCommandBuffers( frameTiming_t* frameTiming );
 	virtual void			SwapAndRenderCommandBuffers( frameTiming_t* frameTiming );
 	virtual void			SwapCommandBuffers_FinishRendering( frameTiming_t* frameTiming );
 	virtual void			SwapCommandBuffers_FinishCommandBuffers();
 	virtual void			RenderCommandBuffers();
-	
+
 	virtual void			TakeScreenshot( int width, int height, const char* fileName, int downSample, renderView_t* ref );
 	virtual void			CropRenderSize( int width, int height );
 	virtual void			CaptureRenderToImage( const char* imageName, bool clearColorAfterCopy = false );
 	virtual void			CaptureRenderToFile( const char* fileName, bool fixAlpha );
 	virtual void			UnCrop();
-	
+
 	virtual void			GetCroppedViewport( idScreenRect* viewport );
 	virtual void			PerformResolutionScaling( int& newWidth, int& newHeight );
-	
+
 	virtual void			ReloadSurface();
-	
+
 	virtual void			PrintMemInfo( MemInfo_t* mi );
 	virtual void			PrintRenderEntityDefs();
 	virtual void			PrintRenderLightDefs();
-	
+
 private:
 	void					Clear();
-	
+
 	// Setup
 	void					InitMaterials();
 	void					InitFrameData();
 	void					ShutdownFrameData();
 	void					ToggleSmpFrame();
-	
+
 	void					AddDrawViewCmd( viewDef_t* parms, bool guiOnly );
-	
+
 	// Render
 	void					RenderView( viewDef_t* parms );
 	void					RenderGuiSurf( idUserInterface* gui, const drawSurf_t* drawSurf );
-	
+
 	// Lights
 	void					AddLights();
-	
+
 	// Models
 	void					AddModels();
-	
+
 	// Guis
 	void					EmitFullscreenGui();
 	void					AddInGameGuis( const drawSurf_t* const drawSurfs[], const int numDrawSurfs );
-	
+
 	// Subview
 	bool					GenerateSubViews( const drawSurf_t* const drawSurfs[], const int numDrawSurfs );
 	bool					GenerateSurfaceSubview( const drawSurf_t* drawSurf );
@@ -163,30 +163,30 @@ private:
 	viewDef_t* 				MirrorViewBySurface( const drawSurf_t* drawSurf );
 	void					XrayRender( const drawSurf_t* surf, textureStage_t* stage, idScreenRect scissor );
 	viewDef_t* 				XrayViewBySurface( const drawSurf_t* drawSurf );
-	
+
 	// Screenshot
 	void					ReadTiledPixels( int width, int height, byte* buffer, renderView_t* ref = NULL );
-	
+
 	void					PrintPerformanceCounters();
-	
+
 public:
 	int						frameCount;			// incremented every frame
 	int						viewCount;			// incremented every view (twice a scene if subviewed)
 	// and every R_MarkFragments call
-	
+
 	idRenderWorld* 			primaryWorld;
 	renderView_t			primaryRenderView;
 	viewDef_t* 				primaryView;
 	// many console commands need to know which world they should operate on
-	
+
 	const idMaterial* 		whiteMaterial;
 	const idMaterial* 		charSetMaterial;
 	const idMaterial* 		defaultPointLight;
 	const idMaterial* 		defaultProjectedLight;
 	const idMaterial* 		defaultMaterial;
-	
+
 	viewDef_t* 				viewDef;
-	
+
 	struct performanceCounters_t
 	{
 		int		c_box_cull_in;
@@ -212,42 +212,42 @@ public:
 		int		c_guiSurfs;
 		int		frontEndMicroSec;		// sum of time in all RE_RenderScene's in a frame
 	} pc;
-	
+
 private:
 	bool					bInitialized;
 	bool					takingScreenshot;
-	
+
 	idList< idRenderWorld* >	worlds;
-	
+
 	srfTriangles_t* 		unitSquareTriangles;
 	srfTriangles_t* 		zeroOneCubeTriangles;
 	srfTriangles_t* 		testImageTriangles;
-	
+
 	// these are allocated at buffer swap time, but
 	// the back end should only use the ones in the backEnd stucture,
 	// which are copied over from the frame that was just swapped.
 	drawSurf_t				unitSquareSurface;
 	drawSurf_t				zeroOneCubeSurface;
 	drawSurf_t				testImageSurface;
-	
+
 	idScreenRect			renderCrops[ MAX_RENDER_CROPS ];
 	int						currentRenderCrop;
-	
+
 	// GUI drawing variables for surface creation
 	int						guiRecursionLevel;	// to prevent infinite overruns
 	uint32					currentColorNativeBytesOrder;
 	uint64					currentGLState;
 	//
-	
+
 	idList< idFont*, TAG_FONT >	fonts;
-	
+
 	// GUI drawing variables for surface creation
 	class idGuiModel* 		guiModel;
-	
+
 	idParallelJobList* 		frontEndJobList;
-	
+
 	idRenderBackend			backend;
-	
+
 	idFrameData				smpFrameData[ NUM_FRAME_DATA ];
 	idFrameData* 			frameData;
 	uint32					smpFrame;

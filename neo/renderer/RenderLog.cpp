@@ -118,7 +118,7 @@ idRenderLog::idRenderLog()
 	indentString[0] = '\0';
 	indentLevel = 0;
 	logFile = NULL;
-	
+
 	frameStartTime = 0;
 	closeBlockTime = 0;
 	logLevel = 0;
@@ -135,17 +135,17 @@ void idRenderLog::StartFrame()
 	{
 		return;
 	}
-	
+
 	// open a new logfile
 	indentLevel = 0;
 	indentString[0] = '\0';
 	activeLevel = r_logLevel.GetInteger();
-	
+
 	struct tm*		newtime;
 	time_t			aclock;
-	
+
 	char ospath[ MAX_OSPATH ];
-	
+
 	char qpath[128];
 	sprintf( qpath, "renderlogPC_%04i.txt", r_logFile.GetInteger() );
 	idStr finalPath = fileSystem->RelativePathToOSPath( qpath );
@@ -161,15 +161,15 @@ void idRenderLog::StartFrame()
 		}
 	}
 	*/
-	
+
 	common->SetRefreshOnPrint( false );	// problems are caused if this print causes a refresh...
-	
+
 	if( logFile != NULL )
 	{
 		fileSystem->CloseFile( logFile );
 		logFile = NULL;
 	}
-	
+
 	logFile = fileSystem->OpenFileWrite( ospath );
 	if( logFile == NULL )
 	{
@@ -177,14 +177,14 @@ void idRenderLog::StartFrame()
 		return;
 	}
 	idLib::Printf( "Opened logfile %s\n", ospath );
-	
+
 	// write the time out to the top of the file
 	time( &aclock );
 	newtime = localtime( &aclock );
 	const char* str = asctime( newtime );
 	logFile->Printf( "// %s", str );
 	logFile->Printf( "// %s\n\n", com_version.GetString() );
-	
+
 	frameStartTime = Sys_Microseconds();
 	closeBlockTime = frameStartTime;
 	OpenBlock( "Frame" );
@@ -282,12 +282,12 @@ void idRenderLog::Printf( const char* fmt, ... )
 	{
 		return;
 	}
-	
+
 	if( logFile == NULL )
 	{
 		return;
 	}
-	
+
 	va_list marker;
 	logFile->Printf( "%s", indentString );
 	va_start( marker, fmt );
@@ -307,12 +307,12 @@ void idRenderLog::Printf_NoIndent( const char* fmt, ... )
 	{
 		return;
 	}
-	
+
 	if( logFile == NULL )
 	{
 		return;
 	}
-	
+
 	va_list marker;
 	va_start( marker, fmt );
 	logFile->VPrintf( fmt, marker );
@@ -328,7 +328,7 @@ void idRenderLog::LogOpenBlock( renderLogIndentLabel_t label, const char* fmt, v
 {
 
 	uint64 now = Sys_Microseconds();
-	
+
 	if( logFile != NULL )
 	{
 		if( now - closeBlockTime >= 1000 )
@@ -339,15 +339,15 @@ void idRenderLog::LogOpenBlock( renderLogIndentLabel_t label, const char* fmt, v
 		logFile->VPrintf( fmt, args );
 		logFile->Printf( " {\n" );
 	}
-	
+
 	Indent( label );
-	
+
 	if( logLevel >= MAX_LOG_LEVELS )
 	{
 		idLib::Warning( "logLevel %d >= MAX_LOG_LEVELS", logLevel );
 	}
-	
-	
+
+
 	logLevel++;
 }
 
@@ -359,12 +359,12 @@ idRenderLog::LogCloseBlock
 void idRenderLog::LogCloseBlock( renderLogIndentLabel_t label )
 {
 	closeBlockTime = Sys_Microseconds();
-	
+
 	assert( logLevel > 0 );
 	logLevel--;
-	
+
 	Outdent( label );
-	
+
 	if( logFile != NULL )
 	{
 	}

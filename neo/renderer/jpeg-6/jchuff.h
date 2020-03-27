@@ -22,8 +22,8 @@ typedef struct
 /* Short forms of external names for systems with brain-damaged linkers. */
 
 #ifdef NEED_SHORT_EXTERNAL_NAMES
-#define jpeg_make_c_derived_tbl	jMkCDerived
-#define jpeg_gen_optimal_table	jGenOptTbl
+	#define jpeg_make_c_derived_tbl	jMkCDerived
+	#define jpeg_gen_optimal_table	jGenOptTbl
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 /* Expand a Huffman table definition into the derived format */

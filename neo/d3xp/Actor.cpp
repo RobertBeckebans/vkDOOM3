@@ -73,14 +73,14 @@ void idAnimState::Save( idSaveGame* savefile ) const
 {
 
 	savefile->WriteObject( self );
-	
+
 	// Save the entity owner of the animator
 	savefile->WriteObject( animator->GetEntity() );
-	
+
 	savefile->WriteObject( thread );
-	
+
 	savefile->WriteString( state );
-	
+
 	savefile->WriteInt( animBlendFrames );
 	savefile->WriteInt( lastAnimBlendFrames );
 	savefile->WriteInt( channel );
@@ -96,18 +96,18 @@ idAnimState::Restore
 void idAnimState::Restore( idRestoreGame* savefile )
 {
 	savefile->ReadObject( reinterpret_cast<idClass*&>( self ) );
-	
+
 	idEntity* animowner;
 	savefile->ReadObject( reinterpret_cast<idClass*&>( animowner ) );
 	if( animowner )
 	{
 		animator = animowner->GetAnimator();
 	}
-	
+
 	savefile->ReadObject( reinterpret_cast<idClass*&>( thread ) );
-	
+
 	savefile->ReadString( state );
-	
+
 	savefile->ReadInt( animBlendFrames );
 	savefile->ReadInt( lastAnimBlendFrames );
 	savefile->ReadInt( channel );
@@ -127,7 +127,7 @@ void idAnimState::Init( idActor* owner, idAnimator* _animator, int animchannel )
 	self = owner;
 	animator = _animator;
 	channel = animchannel;
-	
+
 	if( !thread )
 	{
 		thread = new idThread();
@@ -156,25 +156,25 @@ idAnimState::SetState
 void idAnimState::SetState( const char* statename, int blendFrames )
 {
 	const function_t* func;
-	
+
 	func = self->scriptObject.GetFunction( statename );
 	if( !func )
 	{
 		assert( 0 );
 		gameLocal.Error( "Can't find function '%s' in object '%s'", statename, self->scriptObject.GetTypeName() );
 	}
-	
+
 	state = statename;
 	disabled = false;
 	animBlendFrames = blendFrames;
 	lastAnimBlendFrames = blendFrames;
 	thread->CallFunction( self, func, true );
-	
+
 	animBlendFrames = blendFrames;
 	lastAnimBlendFrames = blendFrames;
 	disabled = false;
 	idleAnim = false;
-	
+
 	if( ai_debugScript.GetInteger() == self->entityNumber )
 	{
 		gameLocal.Printf( "%d: %s: Animstate: %s\n", gameLocal.time, self->name.c_str(), state.c_str() );
@@ -248,7 +248,7 @@ idAnimState::AnimDone
 bool idAnimState::AnimDone( int blendFrames ) const
 {
 	int animDoneTime;
-	
+
 	animDoneTime = animator->CurrentAnim( channel )->GetEndTime();
 	if( animDoneTime < 0 )
 	{
@@ -283,13 +283,13 @@ idAnimState::GetAnimFlags
 animFlags_t idAnimState::GetAnimFlags() const
 {
 	animFlags_t flags;
-	
+
 	memset( &flags, 0, sizeof( flags ) );
 	if( !disabled && !AnimDone( 0 ) )
 	{
 		flags = animator->GetAnimFlags( animator->CurrentAnim( channel )->AnimNum() );
 	}
-	
+
 	return flags;
 }
 
@@ -334,7 +334,7 @@ bool idAnimState::UpdateState()
 	{
 		return false;
 	}
-	
+
 	if( ai_debugScript.GetInteger() == self->entityNumber )
 	{
 		thread->EnableDebugInfo();
@@ -343,9 +343,9 @@ bool idAnimState::UpdateState()
 	{
 		thread->DisableDebugInfo();
 	}
-	
+
 	thread->Execute();
-	
+
 	return true;
 }
 
@@ -460,12 +460,12 @@ idActor::idActor
 idActor::idActor()
 {
 	viewAxis.Identity();
-	
+
 	scriptThread		= NULL;		// initialized by ConstructScriptObject, which is called by idEntity::Spawn
-	
+
 	use_combat_bbox		= false;
 	head				= NULL;
-	
+
 	team				= 0;
 	rank				= 0;
 	fovDot				= 0.0f;
@@ -473,39 +473,39 @@ idActor::idActor()
 	pain_debounce_time	= 0;
 	pain_delay			= 0;
 	pain_threshold		= 0;
-	
+
 	state				= NULL;
 	idealState			= NULL;
-	
+
 	leftEyeJoint		= INVALID_JOINT;
 	rightEyeJoint		= INVALID_JOINT;
 	soundJoint			= INVALID_JOINT;
-	
+
 	modelOffset.Zero();
 	deltaViewAngles.Zero();
-	
+
 	painTime			= 0;
 	allowPain			= false;
 	allowEyeFocus		= false;
-	
+
 	waitState			= "";
-	
+
 	blink_anim			= NULL;
 	blink_time			= 0;
 	blink_min			= 0;
 	blink_max			= 0;
-	
+
 	finalBoss			= false;
 	damageNotByFists	= false;		// for killed by fists achievement
-	
+
 	attachments.SetGranularity( 1 );
-	
+
 	enemyNode.SetOwner( this );
 	enemyList.SetOwner( this );
-	
+
 	aimAssistNode.SetOwner( this );
 	aimAssistNode.AddToEnd( gameLocal.aimAssistEntities );
-	
+
 	damageCap = -1;
 }
 
@@ -518,21 +518,21 @@ idActor::~idActor()
 {
 	int i;
 	idEntity* ent;
-	
+
 	DeconstructScriptObject();
 	scriptObject.Free();
-	
+
 	StopSound( SND_CHANNEL_ANY, false );
-	
+
 	delete combatModel;
 	combatModel = NULL;
-	
+
 	if( head.GetEntity() )
 	{
 		head.GetEntity()->ClearBody();
 		head.GetEntity()->PostEventMS( &EV_Remove, 0 );
 	}
-	
+
 	// remove any attached entities
 	for( i = 0; i < attachments.Num(); i++ )
 	{
@@ -542,9 +542,9 @@ idActor::~idActor()
 			ent->PostEventMS( &EV_Remove, 0 );
 		}
 	}
-	
+
 	aimAssistNode.Remove();
-	
+
 	ShutdownThreads();
 }
 
@@ -559,50 +559,50 @@ void idActor::Spawn()
 	idStr			jointName;
 	float			fovDegrees;
 	copyJoints_t	copyJoint;
-	
+
 	animPrefix	= "";
 	state		= NULL;
 	idealState	= NULL;
-	
+
 	spawnArgs.GetInt( "rank", "0", rank );
 	spawnArgs.GetInt( "team", "0", team );
 	spawnArgs.GetVector( "offsetModel", "0 0 0", modelOffset );
-	
+
 	spawnArgs.GetBool( "use_combat_bbox", "0", use_combat_bbox );
-	
+
 	viewAxis = GetPhysics()->GetAxis();
-	
+
 	spawnArgs.GetFloat( "fov", "90", fovDegrees );
 	SetFOV( fovDegrees );
-	
+
 	pain_debounce_time	= 0;
-	
+
 	pain_delay		= SEC2MS( spawnArgs.GetFloat( "pain_delay" ) );
 	pain_threshold	= spawnArgs.GetInt( "pain_threshold" );
-	
+
 	LoadAF();
-	
+
 	walkIK.Init( this, IK_ANIM, modelOffset );
-	
+
 	// the animation used to be set to the IK_ANIM at this point, but that was fixed, resulting in
 	// attachments not binding correctly, so we're stuck setting the IK_ANIM before attaching things.
 	animator.ClearAllAnims( gameLocal.time, 0 );
 	animator.SetFrame( ANIMCHANNEL_ALL, animator.GetAnim( IK_ANIM ), 0, 0, 0 );
-	
+
 	// spawn any attachments we might have
 	const idKeyValue* kv = spawnArgs.MatchPrefix( "def_attach", NULL );
 	while( kv )
 	{
 		idDict args;
-		
+
 		args.Set( "classname", kv->GetValue().c_str() );
-		
+
 		// make items non-touchable so the player can't take them out of the character's hands
 		args.Set( "no_touch", "1" );
-		
+
 		// don't let them drop to the floor
 		args.Set( "dropToFloor", "0" );
-		
+
 		gameLocal.SpawnEntityDef( args, &ent );
 		if( !ent )
 		{
@@ -614,13 +614,13 @@ void idActor::Spawn()
 		}
 		kv = spawnArgs.MatchPrefix( "def_attach", kv );
 	}
-	
+
 	SetupDamageGroups();
 	SetupHead();
-	
+
 	// clear the bind anim
 	animator.ClearAllAnims( gameLocal.time, 0 );
-	
+
 	idEntity* headEnt = head.GetEntity();
 	idAnimator* headAnimator;
 	if( headEnt )
@@ -631,7 +631,7 @@ void idActor::Spawn()
 	{
 		headAnimator = &animator;
 	}
-	
+
 	if( headEnt )
 	{
 		// set up the list of joints to copy to the head
@@ -642,7 +642,7 @@ void idActor::Spawn()
 				// probably clearing out inherited key, so skip it
 				continue;
 			}
-			
+
 			jointName = kv->GetKey();
 			if( jointName.StripLeadingOnce( "copy_joint_world " ) )
 			{
@@ -653,14 +653,14 @@ void idActor::Spawn()
 				jointName.StripLeadingOnce( "copy_joint " );
 				copyJoint.mod = JOINTMOD_LOCAL_OVERRIDE;
 			}
-			
+
 			copyJoint.from = animator.GetJointHandle( jointName );
 			if( copyJoint.from == INVALID_JOINT )
 			{
 				gameLocal.Warning( "Unknown copy_joint '%s' on entity %s", jointName.c_str(), name.c_str() );
 				continue;
 			}
-			
+
 			jointName = kv->GetValue();
 			copyJoint.to = headAnimator->GetJointHandle( jointName );
 			if( copyJoint.to == INVALID_JOINT )
@@ -668,17 +668,17 @@ void idActor::Spawn()
 				gameLocal.Warning( "Unknown copy_joint '%s' on head of entity %s", jointName.c_str(), name.c_str() );
 				continue;
 			}
-			
+
 			copyJoints.Append( copyJoint );
 		}
 	}
-	
+
 	// set up blinking
 	blink_anim = headAnimator->GetAnim( "blink" );
 	blink_time = 0;	// it's ok to blink right away
 	blink_min = SEC2MS( spawnArgs.GetFloat( "blink_min", "0.5" ) );
 	blink_max = SEC2MS( spawnArgs.GetFloat( "blink_max", "8" ) );
-	
+
 	// set up the head anim if necessary
 	int headAnim = headAnimator->GetAnim( "def_head" );
 	if( headAnim )
@@ -692,7 +692,7 @@ void idActor::Spawn()
 			headAnimator->CycleAnim( ANIMCHANNEL_HEAD, headAnim, gameLocal.time, 0 );
 		}
 	}
-	
+
 	if( spawnArgs.GetString( "sound_bone", "", jointName ) )
 	{
 		soundJoint = animator.GetJointHandle( jointName );
@@ -701,9 +701,9 @@ void idActor::Spawn()
 			gameLocal.Warning( "idAnimated '%s' at (%s): cannot find joint '%s' for sound playback", name.c_str(), GetPhysics()->GetOrigin().ToString( 0 ), jointName.c_str() );
 		}
 	}
-	
+
 	finalBoss = spawnArgs.GetBool( "finalBoss" );
-	
+
 	FinishSetup();
 }
 
@@ -715,7 +715,7 @@ idActor::FinishSetup
 void idActor::FinishSetup()
 {
 	const char*	scriptObjectName;
-	
+
 	// setup script object
 	if( spawnArgs.GetString( "scriptobject", NULL, &scriptObjectName ) )
 	{
@@ -723,10 +723,10 @@ void idActor::FinishSetup()
 		{
 			gameLocal.Error( "Script object '%s' not found on entity '%s'.", scriptObjectName, name.c_str() );
 		}
-		
+
 		ConstructScriptObject();
 	}
-	
+
 	SetupBody();
 }
 
@@ -744,12 +744,12 @@ void idActor::SetupHead()
 	jointHandle_t		damageJoint;
 	int					i;
 	const idKeyValue*	sndKV;
-	
+
 	if( common->IsClient() )
 	{
 		return;
 	}
-	
+
 	headModel = spawnArgs.GetString( "def_head", "" );
 	if( headModel[ 0 ] )
 	{
@@ -759,7 +759,7 @@ void idActor::SetupHead()
 		{
 			gameLocal.Error( "Joint '%s' not found for 'head_joint' on '%s'", jointName.c_str(), name.c_str() );
 		}
-		
+
 		// set the damage joint to be part of the head damage group
 		damageJoint = joint;
 		for( i = 0; i < damageGroups.Num(); i++ )
@@ -770,7 +770,7 @@ void idActor::SetupHead()
 				break;
 			}
 		}
-		
+
 		// copy any sounds in case we have frame commands on the head
 		idDict	args;
 		sndKV = spawnArgs.MatchPrefix( "snd_", NULL );
@@ -779,23 +779,23 @@ void idActor::SetupHead()
 			args.Set( sndKV->GetKey(), sndKV->GetValue() );
 			sndKV = spawnArgs.MatchPrefix( "snd_", sndKV );
 		}
-		
+
 		// copy slowmo param to the head
 		args.SetBool( "slowmo", spawnArgs.GetBool( "slowmo", "1" ) );
-		
-		
+
+
 		headEnt = static_cast<idAFAttachment*>( gameLocal.SpawnEntityType( idAFAttachment::Type, &args ) );
 		headEnt->SetName( va( "%s_head", name.c_str() ) );
 		headEnt->SetBody( this, headModel, damageJoint );
 		head = headEnt;
-		
+
 		idStr xSkin;
 		if( spawnArgs.GetString( "skin_head_xray", "", xSkin ) )
 		{
 			headEnt->xraySkin = declManager->FindSkin( xSkin.c_str() );
 			headEnt->UpdateModel();
 		}
-		
+
 		idVec3		origin;
 		idMat3		axis;
 		idAttachInfo& attach = attachments.Alloc();
@@ -822,14 +822,14 @@ void idActor::CopyJointsFromBodyToHead()
 	idMat3		mat;
 	idMat3		axis;
 	idVec3		pos;
-	
+
 	if( !headEnt )
 	{
 		return;
 	}
-	
+
 	headAnimator = headEnt->GetAnimator();
-	
+
 	// copy the animation from the body to the head
 	for( i = 0; i < copyJoints.Num(); i++ )
 	{
@@ -873,41 +873,41 @@ void idActor::Save( idSaveGame* savefile ) const
 {
 	idActor* ent;
 	int i;
-	
+
 	savefile->WriteInt( team );
 	savefile->WriteInt( rank );
 	savefile->WriteMat3( viewAxis );
-	
+
 	savefile->WriteInt( enemyList.Num() );
 	for( ent = enemyList.Next(); ent != NULL; ent = ent->enemyNode.Next() )
 	{
 		savefile->WriteObject( ent );
 	}
-	
+
 	savefile->WriteFloat( fovDot );
 	savefile->WriteVec3( eyeOffset );
 	savefile->WriteVec3( modelOffset );
 	savefile->WriteAngles( deltaViewAngles );
-	
+
 	savefile->WriteInt( pain_debounce_time );
 	savefile->WriteInt( pain_delay );
 	savefile->WriteInt( pain_threshold );
-	
+
 	savefile->WriteInt( damageGroups.Num() );
 	for( i = 0; i < damageGroups.Num(); i++ )
 	{
 		savefile->WriteString( damageGroups[ i ] );
 	}
-	
+
 	savefile->WriteInt( damageScale.Num() );
 	for( i = 0; i < damageScale.Num(); i++ )
 	{
 		savefile->WriteFloat( damageScale[ i ] );
 	}
-	
+
 	savefile->WriteBool( use_combat_bbox );
 	head.Save( savefile );
-	
+
 	savefile->WriteInt( copyJoints.Num() );
 	for( i = 0; i < copyJoints.Num(); i++ )
 	{
@@ -915,79 +915,79 @@ void idActor::Save( idSaveGame* savefile ) const
 		savefile->WriteJoint( copyJoints[i].from );
 		savefile->WriteJoint( copyJoints[i].to );
 	}
-	
+
 	savefile->WriteJoint( leftEyeJoint );
 	savefile->WriteJoint( rightEyeJoint );
 	savefile->WriteJoint( soundJoint );
-	
+
 	walkIK.Save( savefile );
-	
+
 	savefile->WriteString( animPrefix );
 	savefile->WriteString( painAnim );
-	
+
 	savefile->WriteInt( blink_anim );
 	savefile->WriteInt( blink_time );
 	savefile->WriteInt( blink_min );
 	savefile->WriteInt( blink_max );
-	
+
 	// script variables
 	savefile->WriteObject( scriptThread );
-	
+
 	savefile->WriteString( waitState );
-	
+
 	headAnim.Save( savefile );
 	torsoAnim.Save( savefile );
 	legsAnim.Save( savefile );
-	
+
 	savefile->WriteBool( allowPain );
 	savefile->WriteBool( allowEyeFocus );
-	
+
 	savefile->WriteInt( painTime );
-	
+
 	savefile->WriteInt( attachments.Num() );
 	for( i = 0; i < attachments.Num(); i++ )
 	{
 		attachments[i].ent.Save( savefile );
 		savefile->WriteInt( attachments[i].channel );
 	}
-	
+
 	savefile->WriteBool( finalBoss );
-	
+
 	idToken token;
-	
+
 	//FIXME: this is unneccesary
 	if( state )
 	{
 		idLexer src( state->Name(), idStr::Length( state->Name() ), "idAI::Save" );
-		
+
 		src.ReadTokenOnLine( &token );
 		src.ExpectTokenString( "::" );
 		src.ReadTokenOnLine( &token );
-		
+
 		savefile->WriteString( token );
 	}
 	else
 	{
 		savefile->WriteString( "" );
 	}
-	
+
 	if( idealState )
 	{
 		idLexer src( idealState->Name(), idStr::Length( idealState->Name() ), "idAI::Save" );
-		
+
 		src.ReadTokenOnLine( &token );
 		src.ExpectTokenString( "::" );
 		src.ReadTokenOnLine( &token );
-		
+
 		savefile->WriteString( token );
 	}
 	else
 	{
 		savefile->WriteString( "" );
 	}
-	
+
 	savefile->WriteInt( damageCap );
-	
+
 }
 
 /*
@@ -1001,11 +1001,11 @@ void idActor::Restore( idRestoreGame* savefile )
 {
 	int i, num;
 	idActor* ent;
-	
+
 	savefile->ReadInt( team );
 	savefile->ReadInt( rank );
 	savefile->ReadMat3( viewAxis );
-	
+
 	savefile->ReadInt( num );
 	for( i = 0; i < num; i++ )
 	{
@@ -1016,16 +1016,16 @@ void idActor::Restore( idRestoreGame* savefile )
 			ent->enemyNode.AddToEnd( enemyList );
 		}
 	}
-	
+
 	savefile->ReadFloat( fovDot );
 	savefile->ReadVec3( eyeOffset );
 	savefile->ReadVec3( modelOffset );
 	savefile->ReadAngles( deltaViewAngles );
-	
+
 	savefile->ReadInt( pain_debounce_time );
 	savefile->ReadInt( pain_delay );
 	savefile->ReadInt( pain_threshold );
-	
+
 	savefile->ReadInt( num );
 	damageGroups.SetGranularity( 1 );
 	damageGroups.SetNum( num );
@@ -1033,17 +1033,17 @@ void idActor::Restore( idRestoreGame* savefile )
 	{
 		savefile->ReadString( damageGroups[ i ] );
 	}
-	
+
 	savefile->ReadInt( num );
 	damageScale.SetNum( num );
 	for( i = 0; i < num; i++ )
 	{
 		savefile->ReadFloat( damageScale[ i ] );
 	}
-	
+
 	savefile->ReadBool( use_combat_bbox );
 	head.Restore( savefile );
-	
+
 	savefile->ReadInt( num );
 	copyJoints.SetNum( num );
 	for( i = 0; i < num; i++ )
@@ -1054,34 +1054,34 @@ void idActor::Restore( idRestoreGame* savefile )
 		savefile->ReadJoint( copyJoints[i].from );
 		savefile->ReadJoint( copyJoints[i].to );
 	}
-	
+
 	savefile->ReadJoint( leftEyeJoint );
 	savefile->ReadJoint( rightEyeJoint );
 	savefile->ReadJoint( soundJoint );
-	
+
 	walkIK.Restore( savefile );
-	
+
 	savefile->ReadString( animPrefix );
 	savefile->ReadString( painAnim );
-	
+
 	savefile->ReadInt( blink_anim );
 	savefile->ReadInt( blink_time );
 	savefile->ReadInt( blink_min );
 	savefile->ReadInt( blink_max );
-	
+
 	savefile->ReadObject( reinterpret_cast<idClass*&>( scriptThread ) );
-	
+
 	savefile->ReadString( waitState );
-	
+
 	headAnim.Restore( savefile );
 	torsoAnim.Restore( savefile );
 	legsAnim.Restore( savefile );
-	
+
 	savefile->ReadBool( allowPain );
 	savefile->ReadBool( allowEyeFocus );
-	
+
 	savefile->ReadInt( painTime );
-	
+
 	savefile->ReadInt( num );
 	for( i = 0; i < num; i++ )
 	{
@@ -1089,23 +1089,23 @@ void idActor::Restore( idRestoreGame* savefile )
 		attach.ent.Restore( savefile );
 		savefile->ReadInt( attach.channel );
 	}
-	
+
 	savefile->ReadBool( finalBoss );
-	
+
 	idStr statename;
-	
+
 	savefile->ReadString( statename );
 	if( statename.Length() > 0 )
 	{
 		state = GetScriptFunction( statename );
 	}
-	
+
 	savefile->ReadString( statename );
 	if( statename.Length() > 0 )
 	{
 		idealState = GetScriptFunction( statename );
 	}
-	
+
 	savefile->ReadInt( damageCap );
 }
 
@@ -1118,13 +1118,13 @@ void idActor::Hide()
 {
 	idEntity* ent;
 	idEntity* next;
-	
+
 	idAFEntity_Base::Hide();
 	if( head.GetEntity() )
 	{
 		head.GetEntity()->Hide();
 	}
-	
+
 	for( ent = GetNextTeamEntity(); ent != NULL; ent = next )
 	{
 		next = ent->GetNextTeamEntity();
@@ -1149,7 +1149,7 @@ void idActor::Show()
 {
 	idEntity* ent;
 	idEntity* next;
-	
+
 	idAFEntity_Base::Show();
 	if( head.GetEntity() )
 	{
@@ -1167,8 +1167,8 @@ void idActor::Show()
 				{
 					static_cast<idLight*>( ent )->On();
 				}
-				
-				
+
+
 			}
 		}
 	}
@@ -1194,9 +1194,9 @@ void idActor::ProjectOverlay( const idVec3& origin, const idVec3& dir, float siz
 {
 	idEntity* ent;
 	idEntity* next;
-	
+
 	idEntity::ProjectOverlay( origin, dir, size, material );
-	
+
 	for( ent = GetNextTeamEntity(); ent != NULL; ent = next )
 	{
 		next = ent->GetNextTeamEntity();
@@ -1218,7 +1218,7 @@ idActor::LoadAF
 bool idActor::LoadAF()
 {
 	idStr fileName;
-	
+
 	if( !spawnArgs.GetString( "ragdoll", "*unknown*", fileName ) || !fileName.Length() )
 	{
 		return false;
@@ -1235,19 +1235,19 @@ idActor::SetupBody
 void idActor::SetupBody()
 {
 	const char* jointname;
-	
+
 	animator.ClearAllAnims( gameLocal.time, 0 );
 	animator.ClearAllJoints();
-	
+
 	idEntity* headEnt = head.GetEntity();
 	if( headEnt )
 	{
 		jointname = spawnArgs.GetString( "bone_leftEye" );
 		leftEyeJoint = headEnt->GetAnimator()->GetJointHandle( jointname );
-		
+
 		jointname = spawnArgs.GetString( "bone_rightEye" );
 		rightEyeJoint = headEnt->GetAnimator()->GetJointHandle( jointname );
-		
+
 		// set up the eye height.  check if it's specified in the def.
 		if( !spawnArgs.GetFloat( "eye_height", "0", eyeOffset.z ) )
 		{
@@ -1276,10 +1276,10 @@ void idActor::SetupBody()
 	{
 		jointname = spawnArgs.GetString( "bone_leftEye" );
 		leftEyeJoint = animator.GetJointHandle( jointname );
-		
+
 		jointname = spawnArgs.GetString( "bone_rightEye" );
 		rightEyeJoint = animator.GetJointHandle( jointname );
-		
+
 		// set up the eye height.  check if it's specified in the def.
 		if( !spawnArgs.GetFloat( "eye_height", "0", eyeOffset.z ) )
 		{
@@ -1303,9 +1303,9 @@ void idActor::SetupBody()
 		}
 		headAnim.Init( this, &animator, ANIMCHANNEL_HEAD );
 	}
-	
+
 	waitState = "";
-	
+
 	torsoAnim.Init( this, &animator, ANIMCHANNEL_TORSO );
 	legsAnim.Init( this, &animator, ANIMCHANNEL_LEGS );
 }
@@ -1322,7 +1322,7 @@ void idActor::CheckBlink()
 	{
 		return;
 	}
-	
+
 	idEntity* headEnt = head.GetEntity();
 	if( headEnt )
 	{
@@ -1332,7 +1332,7 @@ void idActor::CheckBlink()
 	{
 		animator.PlayAnim( ANIMCHANNEL_EYELIDS, blink_anim, gameLocal.time, 1 );
 	}
-	
+
 	// set the next blink time
 	blink_time = gameLocal.time + blink_min + gameLocal.random.RandomFloat() * ( blink_max - blink_min );
 }
@@ -1391,7 +1391,7 @@ void idActor::ShutdownThreads()
 	headAnim.Shutdown();
 	torsoAnim.Shutdown();
 	legsAnim.Shutdown();
-	
+
 	if( scriptThread )
 	{
 		scriptThread->EndThread();
@@ -1425,13 +1425,13 @@ Can be overridden by subclasses when a thread doesn't need to be allocated.
 idThread* idActor::ConstructScriptObject()
 {
 	const function_t* constructor;
-	
+
 	// make sure we have a scriptObject
 	if( !scriptObject.HasObject() )
 	{
 		gameLocal.Error( "No scriptobject set on '%s'.  Check the '%s' entityDef.", name.c_str(), GetEntityDefName() );
 	}
-	
+
 	if( !scriptThread )
 	{
 		// create script thread
@@ -1444,20 +1444,20 @@ idThread* idActor::ConstructScriptObject()
 	{
 		scriptThread->EndThread();
 	}
-	
+
 	// call script object's constructor
 	constructor = scriptObject.GetConstructor();
 	if( !constructor )
 	{
 		gameLocal.Error( "Missing constructor on '%s' for entity '%s'", scriptObject.GetTypeName(), name.c_str() );
 	}
-	
+
 	// init the script object's data
 	scriptObject.ClearObject();
-	
+
 	// just set the current function on the script.  we'll execute in the subclasses.
 	scriptThread->CallFunction( this, constructor, true );
-	
+
 	return scriptThread;
 }
 
@@ -1469,13 +1469,13 @@ idActor::GetScriptFunction
 const function_t* idActor::GetScriptFunction( const char* funcname )
 {
 	const function_t* func;
-	
+
 	func = scriptObject.GetFunction( funcname );
 	if( !func )
 	{
 		scriptThread->Error( "Unknown function '%s' in '%s'", funcname, scriptObject.GetTypeName() );
 	}
-	
+
 	return func;
 }
 
@@ -1491,12 +1491,12 @@ void idActor::SetState( const function_t* newState )
 		gameLocal.Error( "idActor::SetState: Null state" );
 		return;
 	}
-	
+
 	if( ai_debugScript.GetInteger() == entityNumber )
 	{
 		gameLocal.Printf( "%d: %s: State: %s\n", gameLocal.time, name.c_str(), newState->Name() );
 	}
-	
+
 	state = newState;
 	idealState = state;
 	scriptThread->CallFunction( this, state, true );
@@ -1510,7 +1510,7 @@ idActor::SetState
 void idActor::SetState( const char* statename )
 {
 	const function_t* newState;
-	
+
 	newState = GetScriptFunction( statename );
 	SetState( newState );
 }
@@ -1523,7 +1523,7 @@ idActor::UpdateScript
 void idActor::UpdateScript()
 {
 	int	i;
-	
+
 	if( ai_debugScript.GetInteger() == entityNumber )
 	{
 		scriptThread->EnableDebugInfo();
@@ -1532,7 +1532,7 @@ void idActor::UpdateScript()
 	{
 		scriptThread->DisableDebugInfo();
 	}
-	
+
 	// a series of state changes can happen in a single frame.
 	// this loop limits them in case we've entered an infinite loop.
 	for( i = 0; i < 20; i++ )
@@ -1541,20 +1541,20 @@ void idActor::UpdateScript()
 		{
 			SetState( idealState );
 		}
-		
+
 		// don't call script until it's done waiting
 		if( scriptThread->IsWaiting() )
 		{
 			break;
 		}
-		
+
 		scriptThread->Execute();
 		if( idealState == state )
 		{
 			break;
 		}
 	}
-	
+
 	if( i == 20 )
 	{
 		scriptThread->Warning( "idActor::UpdateScript: exited loop to prevent lockup" );
@@ -1639,21 +1639,21 @@ bool idActor::CheckFOV( const idVec3& pos ) const
 	{
 		return true;
 	}
-	
+
 	float	dot;
 	idVec3	delta;
-	
+
 	delta = pos - GetEyePosition();
-	
+
 	// get our gravity normal
 	const idVec3& gravityDir = GetPhysics()->GetGravityNormal();
-	
+
 	// infinite vertical vision, so project it onto our orientation plane
 	delta -= gravityDir * ( gravityDir * delta );
-	
+
 	delta.Normalize();
 	dot = viewAxis[ 0 ] * delta;
-	
+
 	return ( dot >= fovDot );
 }
 
@@ -1667,12 +1667,12 @@ bool idActor::CanSee( idEntity* ent, bool useFov ) const
 	trace_t		tr;
 	idVec3		eye;
 	idVec3		toPos;
-	
+
 	if( ent->IsHidden() )
 	{
 		return false;
 	}
-	
+
 	if( ent->IsType( idActor::Type ) )
 	{
 		toPos = ( ( idActor* )ent )->GetEyePosition();
@@ -1681,20 +1681,20 @@ bool idActor::CanSee( idEntity* ent, bool useFov ) const
 	{
 		toPos = ent->GetPhysics()->GetOrigin();
 	}
-	
+
 	if( useFov && !CheckFOV( toPos ) )
 	{
 		return false;
 	}
-	
+
 	eye = GetEyePosition();
-	
+
 	gameLocal.clip.TracePoint( tr, eye, toPos, MASK_OPAQUE, this );
 	if( tr.fraction >= 1.0f || ( gameLocal.GetTraceEntity( tr ) == ent ) )
 	{
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -1707,11 +1707,11 @@ bool idActor::PointVisible( const idVec3& point ) const
 {
 	trace_t results;
 	idVec3 start, end;
-	
+
 	start = GetEyePosition();
 	end = point;
 	end[2] += 1.0f;
-	
+
 	gameLocal.clip.TracePoint( results, start, end, MASK_OPAQUE, this );
 	return ( results.fraction >= 1.0f );
 }
@@ -1756,7 +1756,7 @@ idActor::SetCombatModel
 void idActor::SetCombatModel()
 {
 	idAFAttachment* headEnt;
-	
+
 	if( !use_combat_bbox )
 	{
 		if( combatModel )
@@ -1768,7 +1768,7 @@ void idActor::SetCombatModel()
 		{
 			combatModel = new( TAG_PHYSICS_CLIP_ENTITY ) idClipModel( modelDefHandle );
 		}
-		
+
 		headEnt = head.GetEntity();
 		if( headEnt )
 		{
@@ -1795,12 +1795,12 @@ idActor::LinkCombat
 void idActor::LinkCombat()
 {
 	idAFAttachment* headEnt;
-	
+
 	if( fl.hidden || use_combat_bbox )
 	{
 		return;
 	}
-	
+
 	if( combatModel )
 	{
 		combatModel->Link( gameLocal.clip, this, 0, renderEntity.origin, renderEntity.axis, modelDefHandle );
@@ -1820,7 +1820,7 @@ idActor::UnlinkCombat
 void idActor::UnlinkCombat()
 {
 	idAFAttachment* headEnt;
-	
+
 	if( combatModel )
 	{
 		combatModel->Unlink();
@@ -1842,53 +1842,53 @@ bool idActor::StartRagdoll()
 	float slomoStart, slomoEnd;
 	float jointFrictionDent, jointFrictionDentStart, jointFrictionDentEnd;
 	float contactFrictionDent, contactFrictionDentStart, contactFrictionDentEnd;
-	
+
 	// if no AF loaded
 	if( !af.IsLoaded() )
 	{
 		return false;
 	}
-	
+
 	// if the AF is already active
 	if( af.IsActive() )
 	{
 		return true;
 	}
-	
+
 	// disable the monster bounding box
 	GetPhysics()->DisableClip();
-	
+
 	// start using the AF
 	af.StartFromCurrentPose( spawnArgs.GetInt( "velocityTime", "0" ) );
-	
+
 	slomoStart = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_slomoStart", "-1.6" );
 	slomoEnd = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_slomoEnd", "0.8" );
-	
+
 	// do the first part of the death in slow motion
 	af.GetPhysics()->SetTimeScaleRamp( slomoStart, slomoEnd );
-	
+
 	jointFrictionDent = spawnArgs.GetFloat( "ragdoll_jointFrictionDent", "0.1" );
 	jointFrictionDentStart = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_jointFrictionStart", "0.2" );
 	jointFrictionDentEnd = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_jointFrictionEnd", "1.2" );
-	
+
 	// set joint friction dent
 	af.GetPhysics()->SetJointFrictionDent( jointFrictionDent, jointFrictionDentStart, jointFrictionDentEnd );
-	
+
 	contactFrictionDent = spawnArgs.GetFloat( "ragdoll_contactFrictionDent", "0.1" );
 	contactFrictionDentStart = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_contactFrictionStart", "1.0" );
 	contactFrictionDentEnd = MS2SEC( gameLocal.time ) + spawnArgs.GetFloat( "ragdoll_contactFrictionEnd", "2.0" );
-	
+
 	// set contact friction dent
 	af.GetPhysics()->SetContactFrictionDent( contactFrictionDent, contactFrictionDentStart, contactFrictionDentEnd );
-	
+
 	// drop any items the actor is holding
 	idMoveableItem::DropItems( this, "death", NULL );
-	
+
 	// drop any articulated figures the actor is holding
 	idAFEntity_Base::DropAFs( this, "death", NULL );
-	
+
 	RemoveAttachments();
-	
+
 	return true;
 }
 
@@ -1921,13 +1921,13 @@ bool idActor::UpdateAnimationControllers()
 	{
 		animator.ClearAFPose();
 	}
-	
+
 	if( walkIK.IsInitialized() )
 	{
 		walkIK.Evaluate();
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -1940,7 +1940,7 @@ void idActor::RemoveAttachments()
 {
 	int i;
 	idEntity* ent;
-	
+
 	// remove any attached entities
 	for( i = 0; i < attachments.Num(); i++ )
 	{
@@ -1966,21 +1966,21 @@ void idActor::Attach( idEntity* ent )
 	idAttachInfo&	attach = attachments.Alloc();
 	idAngles		angleOffset;
 	idVec3			originOffset;
-	
+
 	jointName = ent->spawnArgs.GetString( "joint" );
 	joint = animator.GetJointHandle( jointName );
 	if( joint == INVALID_JOINT )
 	{
 		gameLocal.Error( "Joint '%s' not found for attaching '%s' on '%s'", jointName.c_str(), ent->GetClassname(), name.c_str() );
 	}
-	
+
 	angleOffset = ent->spawnArgs.GetAngles( "angles" );
 	originOffset = ent->spawnArgs.GetVector( "origin" );
-	
+
 	attach.channel = animator.GetChannelForJoint( joint );
 	GetJointWorldTransform( joint, gameLocal.time, origin, axis );
 	attach.ent = ent;
-	
+
 	ent->SetOrigin( origin + originOffset * renderEntity.axis );
 	idMat3 rotate = angleOffset.ToMat3();
 	idMat3 newAxis = rotate * axis;
@@ -1998,11 +1998,11 @@ void idActor::Teleport( const idVec3& origin, const idAngles& angles, idEntity* 
 {
 	GetPhysics()->SetOrigin( origin + idVec3( 0, 0, CM_CLIP_EPSILON ) );
 	GetPhysics()->SetLinearVelocity( vec3_origin );
-	
+
 	viewAxis = angles.ToMat3();
-	
+
 	UpdateVisuals();
-	
+
 	if( !IsHidden() )
 	{
 		// kill anything at the new position
@@ -2038,7 +2038,7 @@ idActor::HasEnemies
 bool idActor::HasEnemies() const
 {
 	idActor* ent;
-	
+
 	for( ent = enemyList.Next(); ent != NULL; ent = ent->enemyNode.Next() )
 	{
 		if( !ent->fl.hidden )
@@ -2046,7 +2046,7 @@ bool idActor::HasEnemies() const
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -2062,7 +2062,7 @@ idActor* idActor::ClosestEnemyToPoint( const idVec3& pos )
 	float		bestDistSquared;
 	float		distSquared;
 	idVec3		delta;
-	
+
 	bestDistSquared = idMath::INFINITY;
 	bestEnt = NULL;
 	for( ent = enemyList.Next(); ent != NULL; ent = ent->enemyNode.Next() )
@@ -2079,7 +2079,7 @@ idActor* idActor::ClosestEnemyToPoint( const idVec3& pos )
 			bestDistSquared = distSquared;
 		}
 	}
-	
+
 	return bestEnt;
 }
 
@@ -2092,7 +2092,7 @@ idActor* idActor::EnemyWithMostHealth()
 {
 	idActor*		ent;
 	idActor*		bestEnt;
-	
+
 	int most = -9999;
 	bestEnt = NULL;
 	for( ent = enemyList.Next(); ent != NULL; ent = ent->enemyNode.Next() )
@@ -2125,19 +2125,19 @@ void idActor::GetAASLocation( idAAS* aas, idVec3& pos, int& areaNum ) const
 {
 	idVec3		size;
 	idBounds	bounds;
-	
+
 	GetFloorPos( 64.0f, pos );
 	if( !aas )
 	{
 		areaNum = 0;
 		return;
 	}
-	
+
 	size = aas->GetSettings()->boundingBoxes[0][1];
 	bounds[0] = -size;
 	size.z = 32.0f;
 	bounds[1] = size;
-	
+
 	areaNum = aas->PointReachableAreaNum( pos, bounds, AREA_REACHABLE_WALK );
 	if( areaNum )
 	{
@@ -2159,35 +2159,35 @@ idActor::SetAnimState
 void idActor::SetAnimState( int channel, const char* statename, int blendFrames )
 {
 	const function_t* func;
-	
+
 	func = scriptObject.GetFunction( statename );
 	if( !func )
 	{
 		assert( 0 );
 		gameLocal.Error( "Can't find function '%s' in object '%s'", statename, scriptObject.GetTypeName() );
 	}
-	
+
 	switch( channel )
 	{
 		case ANIMCHANNEL_HEAD :
 			headAnim.SetState( statename, blendFrames );
 			allowEyeFocus = true;
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.SetState( statename, blendFrames );
 			legsAnim.Enable( blendFrames );
 			allowPain = true;
 			allowEyeFocus = true;
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.SetState( statename, blendFrames );
 			torsoAnim.Enable( blendFrames );
 			allowPain = true;
 			allowEyeFocus = true;
 			break;
-			
+
 		default:
 			gameLocal.Error( "idActor::SetAnimState: Unknown anim group" );
 			break;
@@ -2206,15 +2206,15 @@ const char* idActor::GetAnimState( int channel ) const
 		case ANIMCHANNEL_HEAD :
 			return headAnim.state;
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			return torsoAnim.state;
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			return legsAnim.state;
 			break;
-			
+
 		default:
 			gameLocal.Error( "idActor::GetAnimState: Unknown anim group" );
 			return NULL;
@@ -2237,26 +2237,26 @@ bool idActor::InAnimState( int channel, const char* statename ) const
 				return true;
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			if( torsoAnim.state == statename )
 			{
 				return true;
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			if( legsAnim.state == statename )
 			{
 				return true;
 			}
 			break;
-			
+
 		default:
 			gameLocal.Error( "idActor::InAnimState: Unknown anim group" );
 			break;
 	}
-	
+
 	return false;
 }
 
@@ -2309,7 +2309,7 @@ int idActor::GetAnim( int channel, const char* animname )
 	int			anim;
 	const char* temp;
 	idAnimator* animatorPtr;
-	
+
 	if( channel == ANIMCHANNEL_HEAD )
 	{
 		if( !head.GetEntity() )
@@ -2322,7 +2322,7 @@ int idActor::GetAnim( int channel, const char* animname )
 	{
 		animatorPtr = &animator;
 	}
-	
+
 	if( animPrefix.Length() )
 	{
 		temp = va( "%s_%s", animPrefix.c_str(), animname );
@@ -2332,9 +2332,9 @@ int idActor::GetAnim( int channel, const char* animname )
 			return anim;
 		}
 	}
-	
+
 	anim = animatorPtr->GetAnim( animname );
-	
+
 	return anim;
 }
 
@@ -2352,7 +2352,7 @@ void idActor::SyncAnimChannels( int channel, int syncToChannel, int blendFrames 
 	int				starttime;
 	int				blendTime;
 	int				cycle;
-	
+
 	blendTime = FRAME2MS( blendFrames );
 	if( channel == ANIMCHANNEL_HEAD )
 	{
@@ -2473,7 +2473,7 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 	{
 		return;
 	}
-	
+
 	if( !inflictor )
 	{
 		inflictor = gameLocal.world;
@@ -2482,43 +2482,43 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 	{
 		attacker = gameLocal.world;
 	}
-	
+
 	if( finalBoss && idStr::FindText( GetEntityDefName(), "monster_boss_cyberdemon" ) == 0 && !inflictor->IsType( idSoulCubeMissile::Type ) )
 	{
 		return;
 	}
-	
+
 	// for killed by fists achievement
 	if( attacker->IsType( idPlayer::Type ) && idStr::Cmp( "damage_fists", damageDefName ) )
 	{
 		damageNotByFists = true;
 	}
-	
+
 	SetTimeState ts( timeGroup );
-	
+
 	// Helltime boss is immune to all projectiles except the helltime killer
 	if( finalBoss && idStr::Icmp( GetEntityDefName(), "monster_hunter_helltime" ) == 0 &&  idStr::Icmp( inflictor->GetEntityDefName(), "projectile_helltime_killer" ) )
 	{
 		return;
 	}
-	
+
 	// Maledict is immume to the falling asteroids
 	if( !idStr::Icmp( GetEntityDefName(), "monster_boss_d3xp_maledict" ) &&
 			( !idStr::Icmp( damageDefName, "damage_maledict_asteroid" ) || !idStr::Icmp( damageDefName, "damage_maledict_asteroid_splash" ) ) )
 	{
 		return;
 	}
-	
+
 	const idDict* damageDef = gameLocal.FindEntityDefDict( damageDefName );
 	if( damageDef == NULL )
 	{
 		gameLocal.Error( "Unknown damageDef '%s'", damageDefName );
 		return;
 	}
-	
+
 	int	damage = damageDef->GetInt( "damage" ) * damageScale;
 	damage = GetDamageForLocation( damage, location );
-	
+
 	// inform the attacker that they hit someone
 	if( attacker )
 	{
@@ -2528,20 +2528,20 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 	{
 		int oldHealth = health;
 		health -= damage;
-		
+
 		//Check the health against any damage cap that is currently set
 		if( damageCap >= 0 && health < damageCap )
 		{
 			health = damageCap;
 		}
-		
+
 		if( health <= 0 )
 		{
 			if( health < -999 )
 			{
 				health = -999;
 			}
-			
+
 			if( oldHealth > 0 )
 			{
 				idPlayer* player = NULL;
@@ -2549,7 +2549,7 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 				{
 					player = static_cast< idPlayer* >( attacker );
 				}
-				
+
 				if( player != NULL )
 				{
 					if( !damageNotByFists && player->GetExpansionType() == GAME_BASE )
@@ -2608,7 +2608,7 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 							player->GetAchievementManager().EventCompletesAchievement( ACHIEVEMENT_GRABBER_KILL_20_ENEMY );
 						}
 					}
-					
+
 					idProjectile* projectile = NULL;
 					if( inflictor != NULL && inflictor->IsType( idProjectile::Type ) )
 					{
@@ -2637,14 +2637,14 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 							}
 						}
 					}
-					
+
 					if( player->health == 1 && player->team != this->team )  	// make sure it doesn't unlock if you kill a friendly dude when you have 1 heath....
 					{
 						player->GetAchievementManager().EventCompletesAchievement( ACHIEVEMENT_KILL_MONSTER_WITH_1_HEALTH_LEFT );
 					}
 				}
 			}
-			
+
 			Killed( inflictor, attacker, damage, dir, location );
 			if( ( health < -20 ) && spawnArgs.GetBool( "gib" ) && damageDef->GetBool( "gib" ) )
 			{
@@ -2663,7 +2663,7 @@ void idActor::Damage( idEntity* inflictor, idEntity* attacker, const idVec3& dir
 		{
 			// clear impacts
 			af.Rest();
-			
+
 			// physics is turned off by calling af.Rest()
 			BecomeActive( TH_PHYSICS );
 		}
@@ -2691,19 +2691,19 @@ bool idActor::Pain( idEntity* inflictor, idEntity* attacker, int damage, const i
 	{
 		// clear impacts
 		af.Rest();
-		
+
 		// physics is turned off by calling af.Rest()
 		BecomeActive( TH_PHYSICS );
 	}
-	
+
 	if( gameLocal.time < pain_debounce_time )
 	{
 		return false;
 	}
-	
+
 	// don't play pain sounds more than necessary
 	pain_debounce_time = gameLocal.time + pain_delay;
-	
+
 	if( health > 75 )
 	{
 		StartSound( "snd_pain_small", SND_CHANNEL_VOICE, 0, false, NULL );
@@ -2720,21 +2720,21 @@ bool idActor::Pain( idEntity* inflictor, idEntity* attacker, int damage, const i
 	{
 		StartSound( "snd_pain_huge", SND_CHANNEL_VOICE, 0, false, NULL );
 	}
-	
+
 	if( !allowPain || ( gameLocal.time < painTime ) )
 	{
 		// don't play a pain anim
 		return false;
 	}
-	
+
 	if( pain_threshold && ( damage < pain_threshold ) )
 	{
 		return false;
 	}
-	
+
 	// set the pain anim
 	idStr damageGroup = GetDamageGroup( location );
-	
+
 	painAnim = "";
 	if( animPrefix.Length() )
 	{
@@ -2750,7 +2750,7 @@ bool idActor::Pain( idEntity* inflictor, idEntity* attacker, int damage, const i
 				}
 			}
 		}
-		
+
 		if( !painAnim.Length() )
 		{
 			sprintf( painAnim, "%s_pain", animPrefix.c_str() );
@@ -2772,18 +2772,18 @@ bool idActor::Pain( idEntity* inflictor, idEntity* attacker, int damage, const i
 			}
 		}
 	}
-	
+
 	if( !painAnim.Length() )
 	{
 		painAnim = "pain";
 	}
-	
+
 	if( g_debugDamage.GetBool() )
 	{
 		gameLocal.Printf( "Damage: joint: '%s', zone '%s', anim '%s'\n", animator.GetJointName( ( jointHandle_t )location ),
 						  damageGroup.c_str(), painAnim.c_str() );
 	}
-	
+
 	return true;
 }
 
@@ -2813,7 +2813,7 @@ void idActor::SetupDamageGroups()
 	idList<jointHandle_t>	jointList;
 	int						jointnum;
 	float					scale;
-	
+
 	// create damage zones
 	damageGroups.SetNum( animator.NumJoints() );
 	arg = spawnArgs.MatchPrefix( "damage_zone ", NULL );
@@ -2830,14 +2830,14 @@ void idActor::SetupDamageGroups()
 		jointList.Clear();
 		arg = spawnArgs.MatchPrefix( "damage_zone ", arg );
 	}
-	
+
 	// initilize the damage zones to normal damage
 	damageScale.SetNum( animator.NumJoints() );
 	for( i = 0; i < damageScale.Num(); i++ )
 	{
 		damageScale[ i ] = 1.0f;
 	}
-	
+
 	// set the percentage on damage zones
 	arg = spawnArgs.MatchPrefix( "damage_scale ", NULL );
 	while( arg )
@@ -2867,7 +2867,7 @@ int idActor::GetDamageForLocation( int damage, int location )
 	{
 		return damage;
 	}
-	
+
 	return ( int )ceil( damage * damageScale[ location ] );
 }
 
@@ -2882,7 +2882,7 @@ const char* idActor::GetDamageGroup( int location )
 	{
 		return "";
 	}
-	
+
 	return damageGroups[ location ];
 }
 
@@ -2902,12 +2902,12 @@ void idActor::PlayFootStepSound()
 {
 	const char* sound = NULL;
 	const idMaterial* material;
-	
+
 	if( !GetPhysics()->HasGroundContacts() )
 	{
 		return;
 	}
-	
+
 	// start footstep sound based on material type
 	material = GetPhysics()->GetContact( 0 ).material;
 	if( material != NULL )
@@ -2943,7 +2943,7 @@ idActor::Event_DisableEyeFocus
 void idActor::Event_DisableEyeFocus()
 {
 	allowEyeFocus = false;
-	
+
 	idEntity* headEnt = head.GetEntity();
 	if( headEnt )
 	{
@@ -3074,15 +3074,15 @@ void idActor::Event_StopAnim( int channel, int frames )
 		case ANIMCHANNEL_HEAD :
 			headAnim.StopAnim( frames );
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.StopAnim( frames );
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.StopAnim( frames );
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3099,7 +3099,7 @@ void idActor::Event_PlayAnim( int channel, const char* animname )
 	animFlags_t	flags;
 	idEntity* headEnt;
 	int	anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( !anim )
 	{
@@ -3114,7 +3114,7 @@ void idActor::Event_PlayAnim( int channel, const char* animname )
 		idThread::ReturnInt( 0 );
 		return;
 	}
-	
+
 	switch( channel )
 	{
 		case ANIMCHANNEL_HEAD :
@@ -3139,7 +3139,7 @@ void idActor::Event_PlayAnim( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.idleAnim = false;
 			torsoAnim.PlayAnim( anim );
@@ -3158,7 +3158,7 @@ void idActor::Event_PlayAnim( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.idleAnim = false;
 			legsAnim.PlayAnim( anim );
@@ -3177,7 +3177,7 @@ void idActor::Event_PlayAnim( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		default :
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3194,7 +3194,7 @@ void idActor::Event_PlayCycle( int channel, const char* animname )
 {
 	animFlags_t	flags;
 	int			anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( !anim )
 	{
@@ -3209,7 +3209,7 @@ void idActor::Event_PlayCycle( int channel, const char* animname )
 		idThread::ReturnInt( false );
 		return;
 	}
-	
+
 	switch( channel )
 	{
 		case ANIMCHANNEL_HEAD :
@@ -3227,7 +3227,7 @@ void idActor::Event_PlayCycle( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.idleAnim = false;
 			torsoAnim.CycleAnim( anim );
@@ -3246,7 +3246,7 @@ void idActor::Event_PlayCycle( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.idleAnim = false;
 			legsAnim.CycleAnim( anim );
@@ -3265,11 +3265,11 @@ void idActor::Event_PlayCycle( int channel, const char* animname )
 				}
 			}
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 	}
-	
+
 	idThread::ReturnInt( true );
 }
 
@@ -3281,7 +3281,7 @@ idActor::Event_IdleAnim
 void idActor::Event_IdleAnim( int channel, const char* animname )
 {
 	int anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( !anim )
 	{
@@ -3293,29 +3293,29 @@ void idActor::Event_IdleAnim( int channel, const char* animname )
 		{
 			gameLocal.DPrintf( "missing '%s' animation on '%s' (%s)\n", animname, name.c_str(), GetEntityDefName() );
 		}
-		
+
 		switch( channel )
 		{
 			case ANIMCHANNEL_HEAD :
 				headAnim.BecomeIdle();
 				break;
-				
+
 			case ANIMCHANNEL_TORSO :
 				torsoAnim.BecomeIdle();
 				break;
-				
+
 			case ANIMCHANNEL_LEGS :
 				legsAnim.BecomeIdle();
 				break;
-				
+
 			default:
 				gameLocal.Error( "Unknown anim group" );
 		}
-		
+
 		idThread::ReturnInt( false );
 		return;
 	}
-	
+
 	switch( channel )
 	{
 		case ANIMCHANNEL_HEAD :
@@ -3347,7 +3347,7 @@ void idActor::Event_IdleAnim( int channel, const char* animname )
 				SyncAnimChannels( ANIMCHANNEL_HEAD, ANIMCHANNEL_TORSO, headAnim.animBlendFrames );
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.BecomeIdle();
 			if( legsAnim.GetAnimFlags().prevent_idle_override )
@@ -3367,13 +3367,13 @@ void idActor::Event_IdleAnim( int channel, const char* animname )
 				// sync the anim to the legs
 				SyncAnimChannels( ANIMCHANNEL_TORSO, ANIMCHANNEL_LEGS, torsoAnim.animBlendFrames );
 			}
-			
+
 			if( headAnim.IsIdle() )
 			{
 				SyncAnimChannels( ANIMCHANNEL_HEAD, ANIMCHANNEL_TORSO, torsoAnim.lastAnimBlendFrames );
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.BecomeIdle();
 			if( torsoAnim.GetAnimFlags().prevent_idle_override )
@@ -3398,11 +3398,11 @@ void idActor::Event_IdleAnim( int channel, const char* animname )
 				SyncAnimChannels( ANIMCHANNEL_LEGS, ANIMCHANNEL_TORSO, legsAnim.animBlendFrames );
 			}
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 	}
-	
+
 	idThread::ReturnInt( true );
 }
 
@@ -3414,7 +3414,7 @@ idActor::Event_SetSyncedAnimWeight
 void idActor::Event_SetSyncedAnimWeight( int channel, int anim, float weight )
 {
 	idEntity* headEnt;
-	
+
 	headEnt = head.GetEntity();
 	switch( channel )
 	{
@@ -3436,7 +3436,7 @@ void idActor::Event_SetSyncedAnimWeight( int channel, int anim, float weight )
 				}
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			animator.CurrentAnim( ANIMCHANNEL_TORSO )->SetSyncedAnimWeight( anim, weight );
 			if( legsAnim.IsIdle() )
@@ -3448,7 +3448,7 @@ void idActor::Event_SetSyncedAnimWeight( int channel, int anim, float weight )
 				animator.CurrentAnim( ANIMCHANNEL_ALL )->SetSyncedAnimWeight( anim, weight );
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			animator.CurrentAnim( ANIMCHANNEL_LEGS )->SetSyncedAnimWeight( anim, weight );
 			if( torsoAnim.IsIdle() )
@@ -3460,7 +3460,7 @@ void idActor::Event_SetSyncedAnimWeight( int channel, int anim, float weight )
 				}
 			}
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 	}
@@ -3486,7 +3486,7 @@ void idActor::Event_OverrideAnim( int channel )
 				SyncAnimChannels( ANIMCHANNEL_HEAD, ANIMCHANNEL_LEGS, legsAnim.lastAnimBlendFrames );
 			}
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.Disable();
 			SyncAnimChannels( ANIMCHANNEL_TORSO, ANIMCHANNEL_LEGS, legsAnim.lastAnimBlendFrames );
@@ -3495,12 +3495,12 @@ void idActor::Event_OverrideAnim( int channel )
 				SyncAnimChannels( ANIMCHANNEL_HEAD, ANIMCHANNEL_TORSO, torsoAnim.lastAnimBlendFrames );
 			}
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.Disable();
 			SyncAnimChannels( ANIMCHANNEL_LEGS, ANIMCHANNEL_TORSO, torsoAnim.lastAnimBlendFrames );
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3519,15 +3519,15 @@ void idActor::Event_EnableAnim( int channel, int blendFrames )
 		case ANIMCHANNEL_HEAD :
 			headAnim.Enable( blendFrames );
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.Enable( blendFrames );
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.Enable( blendFrames );
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3547,17 +3547,17 @@ void idActor::Event_SetBlendFrames( int channel, int blendFrames )
 			headAnim.animBlendFrames = blendFrames;
 			headAnim.lastAnimBlendFrames = blendFrames;
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			torsoAnim.animBlendFrames = blendFrames;
 			torsoAnim.lastAnimBlendFrames = blendFrames;
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			legsAnim.animBlendFrames = blendFrames;
 			legsAnim.lastAnimBlendFrames = blendFrames;
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3576,15 +3576,15 @@ void idActor::Event_GetBlendFrames( int channel )
 		case ANIMCHANNEL_HEAD :
 			idThread::ReturnInt( headAnim.animBlendFrames );
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			idThread::ReturnInt( torsoAnim.animBlendFrames );
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			idThread::ReturnInt( legsAnim.animBlendFrames );
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 			break;
@@ -3609,7 +3609,7 @@ idActor::Event_GetAnimState
 void idActor::Event_GetAnimState( int channel )
 {
 	const char* state;
-	
+
 	state = GetAnimState( channel );
 	idThread::ReturnString( state );
 }
@@ -3622,7 +3622,7 @@ idActor::Event_InAnimState
 void idActor::Event_InAnimState( int channel, const char* statename )
 {
 	bool instate;
-	
+
 	instate = InAnimState( channel, statename );
 	idThread::ReturnInt( instate );
 }
@@ -3648,24 +3648,24 @@ idActor::Event_AnimDone
 void idActor::Event_AnimDone( int channel, int blendFrames )
 {
 	bool result;
-	
+
 	switch( channel )
 	{
 		case ANIMCHANNEL_HEAD :
 			result = headAnim.AnimDone( blendFrames );
 			idThread::ReturnInt( result );
 			break;
-			
+
 		case ANIMCHANNEL_TORSO :
 			result = torsoAnim.AnimDone( blendFrames );
 			idThread::ReturnInt( result );
 			break;
-			
+
 		case ANIMCHANNEL_LEGS :
 			result = legsAnim.AnimDone( blendFrames );
 			idThread::ReturnInt( result );
 			break;
-			
+
 		default:
 			gameLocal.Error( "Unknown anim group" );
 	}
@@ -3716,7 +3716,7 @@ idActor::Event_ChooseAnim
 void idActor::Event_ChooseAnim( int channel, const char* animname )
 {
 	int anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( anim )
 	{
@@ -3734,7 +3734,7 @@ void idActor::Event_ChooseAnim( int channel, const char* animname )
 			return;
 		}
 	}
-	
+
 	idThread::ReturnString( "" );
 }
 
@@ -3746,7 +3746,7 @@ idActor::Event_AnimLength
 void idActor::Event_AnimLength( int channel, const char* animname )
 {
 	int anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( anim )
 	{
@@ -3764,7 +3764,7 @@ void idActor::Event_AnimLength( int channel, const char* animname )
 			return;
 		}
 	}
-	
+
 	idThread::ReturnFloat( 0.0f );
 }
 
@@ -3776,7 +3776,7 @@ idActor::Event_AnimDistance
 void idActor::Event_AnimDistance( int channel, const char* animname )
 {
 	int anim;
-	
+
 	anim = GetAnim( channel, animname );
 	if( anim )
 	{
@@ -3794,7 +3794,7 @@ void idActor::Event_AnimDistance( int channel, const char* animname )
 			return;
 		}
 	}
-	
+
 	idThread::ReturnFloat( 0.0f );
 }
 
@@ -3806,7 +3806,7 @@ idActor::Event_HasEnemies
 void idActor::Event_HasEnemies()
 {
 	bool hasEnemy;
-	
+
 	hasEnemy = HasEnemies();
 	idThread::ReturnInt( hasEnemy );
 }
@@ -3819,7 +3819,7 @@ idActor::Event_NextEnemy
 void idActor::Event_NextEnemy( idEntity* ent )
 {
 	idActor* actor;
-	
+
 	if( !ent || ( ent == this ) )
 	{
 		actor = enemyList.Next();
@@ -3830,14 +3830,14 @@ void idActor::Event_NextEnemy( idEntity* ent )
 		{
 			gameLocal.Error( "'%s' cannot be an enemy", ent->name.c_str() );
 		}
-		
+
 		actor = static_cast<idActor*>( ent );
 		if( actor->enemyNode.ListHead() != &enemyList )
 		{
 			gameLocal.Error( "'%s' is not in '%s' enemy list", actor->name.c_str(), name.c_str() );
 		}
 	}
-	
+
 	for( ; actor != NULL; actor = actor->enemyNode.Next() )
 	{
 		if( !actor->fl.hidden )
@@ -3846,7 +3846,7 @@ void idActor::Event_NextEnemy( idEntity* ent )
 			return;
 		}
 	}
-	
+
 	idThread::ReturnEntity( NULL );
 }
 
@@ -3977,7 +3977,7 @@ void idActor::Event_GetDamageGroupScale( const char* groupName )
 			return;
 		}
 	}
-	
+
 	idThread::ReturnFloat( 0 );
 }
 

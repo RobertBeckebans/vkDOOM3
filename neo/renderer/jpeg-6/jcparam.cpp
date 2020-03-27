@@ -32,18 +32,18 @@ jpeg_add_quant_table( j_compress_ptr cinfo, int which_tbl,
 	JQUANT_TBL** qtblptr = &cinfo->quant_tbl_ptrs[which_tbl];
 	int i;
 	long temp;
-	
+
 	/* Safety check to ensure start_compress not called yet. */
 	if( cinfo->global_state != CSTATE_START )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	if( *qtblptr == NULL )
 	{
 		*qtblptr = jpeg_alloc_quant_table( ( j_common_ptr ) cinfo );
 	}
-	
+
 	for( i = 0; i < DCTSIZE2; i++ )
 	{
 		temp = ( ( long ) basic_table[i] * scale_factor + 50L ) / 100L;
@@ -62,7 +62,7 @@ jpeg_add_quant_table( j_compress_ptr cinfo, int which_tbl,
 		}               /* limit to baseline range if requested */
 		( *qtblptr )->quantval[i] = ( UINT16 ) temp;
 	}
-	
+
 	/* Initialize sent_table FALSE so table will be written to JPEG file. */
 	( *qtblptr )->sent_table = FALSE;
 }
@@ -104,7 +104,7 @@ jpeg_set_linear_quality( j_compress_ptr cinfo, int scale_factor,
 		99,  99,  99,  99,  99,  99,  99,  99,
 		99,  99,  99,  99,  99,  99,  99,  99
 	};
-	
+
 	/* Set up two quantization tables using the specified scaling */
 	jpeg_add_quant_table( cinfo, 0, std_luminance_quant_tbl,
 						  scale_factor, force_baseline );
@@ -129,7 +129,7 @@ jpeg_quality_scaling( int quality )
 	{
 		quality = 100;
 	}
-	
+
 	/* The basic table is used as-is (scaling 100) for a quality of 50.
 	 * Qualities 50..100 are converted to scaling percentage 200 - 2*Q;
 	 * note that at Q=100 the scaling is 0, which will cause j_add_quant_table
@@ -144,7 +144,7 @@ jpeg_quality_scaling( int quality )
 	{
 		quality = 200 - quality * 2;
 	}
-	
+
 	return quality;
 }
 
@@ -159,7 +159,7 @@ jpeg_set_quality( j_compress_ptr cinfo, int quality, boolean force_baseline )
 	 */
 	/* Convert user 0-100 rating to percentage scaling */
 	quality = jpeg_quality_scaling( quality );
-	
+
 	/* Set up standard quality tables */
 	jpeg_set_linear_quality( cinfo, quality, force_baseline );
 }
@@ -178,10 +178,10 @@ add_huff_table( j_compress_ptr cinfo,
 	{
 		*htblptr = jpeg_alloc_huff_table( ( j_common_ptr ) cinfo );
 	}
-	
+
 	MEMCOPY( ( *htblptr )->bits, bits, SIZEOF( ( *htblptr )->bits ) );
 	MEMCOPY( ( *htblptr )->huffval, val, SIZEOF( ( *htblptr )->huffval ) );
-	
+
 	/* Initialize sent_table FALSE so table will be written to JPEG file. */
 	( *htblptr )->sent_table = FALSE;
 }
@@ -196,12 +196,12 @@ std_huff_tables( j_compress_ptr cinfo )
 	{ /* 0-base */ 0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 	static const UINT8 val_dc_luminance[] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	
+
 	static const UINT8 bits_dc_chrominance[17] =
 	{ /* 0-base */ 0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 };
 	static const UINT8 val_dc_chrominance[] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	
+
 	static const UINT8 bits_ac_luminance[17] =
 	{ /* 0-base */ 0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d };
 	static const UINT8 val_ac_luminance[] =
@@ -228,7 +228,7 @@ std_huff_tables( j_compress_ptr cinfo )
 		0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
 		0xf9, 0xfa
 	};
-	
+
 	static const UINT8 bits_ac_chrominance[17] =
 	{ /* 0-base */ 0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 };
 	static const UINT8 val_ac_chrominance[] =
@@ -255,7 +255,7 @@ std_huff_tables( j_compress_ptr cinfo )
 		0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
 		0xf9, 0xfa
 	};
-	
+
 	add_huff_table( cinfo, &cinfo->dc_huff_tbl_ptrs[0],
 					bits_dc_luminance, val_dc_luminance );
 	add_huff_table( cinfo, &cinfo->ac_huff_tbl_ptrs[0],
@@ -281,13 +281,13 @@ GLOBAL void
 jpeg_set_defaults( j_compress_ptr cinfo )
 {
 	int i;
-	
+
 	/* Safety check to ensure start_compress not called yet. */
 	if( cinfo->global_state != CSTATE_START )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	/* Allocate comp_info array large enough for maximum component count.
 	 * Array is made permanent in case application wants to compress
 	 * multiple images at same param settings.
@@ -298,15 +298,15 @@ jpeg_set_defaults( j_compress_ptr cinfo )
 						   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_PERMANENT,
 								   MAX_COMPONENTS * SIZEOF( jpeg_component_info ) );
 	}
-	
+
 	/* Initialize everything not dependent on the color space */
-	
+
 	cinfo->data_precision = BITS_IN_JSAMPLE;
 	/* Set up two quantization tables using default quality of 75 */
 	jpeg_set_quality( cinfo, 75, TRUE );
 	/* Set up two Huffman tables */
 	std_huff_tables( cinfo );
-	
+
 	/* Initialize default arithmetic coding conditioning */
 	for( i = 0; i < NUM_ARITH_TBLS; i++ )
 	{
@@ -314,17 +314,17 @@ jpeg_set_defaults( j_compress_ptr cinfo )
 		cinfo->arith_dc_U[i] = 1;
 		cinfo->arith_ac_K[i] = 5;
 	}
-	
+
 	/* Default is no multiple-scan output */
 	cinfo->scan_info = NULL;
 	cinfo->nuscans = 0;
-	
+
 	/* Expect normal source image, not raw downsampled data */
 	cinfo->raw_data_in = FALSE;
-	
+
 	/* Use Huffman coding, not arithmetic coding, by default */
 	cinfo->arith_code = FALSE;
-	
+
 	/* By default, don't do extra passes to optimize entropy coding */
 	cinfo->optimize_coding = FALSE;
 	/* The standard Huffman tables are only valid for 8-bit data precision.
@@ -336,29 +336,29 @@ jpeg_set_defaults( j_compress_ptr cinfo )
 	{
 		cinfo->optimize_coding = TRUE;
 	}
-	
+
 	/* By default, use the simpler non-cosited sampling alignment */
 	cinfo->CCIR601_sampling = FALSE;
-	
+
 	/* No input smoothing */
 	cinfo->smoothing_factor = 0;
-	
+
 	/* DCT algorithm preference */
 	cinfo->dct_method = JDCT_DEFAULT;
-	
+
 	/* No restart markers */
 	cinfo->restart_interval = 0;
 	cinfo->restart_in_rows = 0;
-	
+
 	/* Fill in default JFIF marker parameters.  Note that whether the marker
 	 * will actually be written is determined by jpeg_set_colorspace.
 	 */
 	cinfo->density_unit = 0;/* Pixel size is unknown by default */
 	cinfo->X_density = 1;   /* Pixel aspect ratio is square by default */
 	cinfo->Y_density = 1;
-	
+
 	/* Choose JPEG colorspace based on input space, set defaults accordingly */
-	
+
 	jpeg_default_colorspace( cinfo );
 }
 
@@ -405,7 +405,7 @@ jpeg_set_colorspace( j_compress_ptr cinfo, J_COLOR_SPACE colorspace )
 {
 	jpeg_component_info* compptr;
 	int ci;
-	
+
 #define SET_COMP( index, id, hsamp, vsamp, quant, dctbl, actbl )  \
     ( compptr = &cinfo->comp_info[index], \
      compptr->component_id = ( id ), \
@@ -414,22 +414,22 @@ jpeg_set_colorspace( j_compress_ptr cinfo, J_COLOR_SPACE colorspace )
      compptr->quant_tbl_no = ( quant ), \
      compptr->dc_tbl_no = ( dctbl ), \
      compptr->ac_tbl_no = ( actbl ) )
-	
+
 	/* Safety check to ensure start_compress not called yet. */
 	if( cinfo->global_state != CSTATE_START )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	/* For all colorspaces, we use Q and Huff tables 0 for luminance components,
 	 * tables 1 for chrominance components.
 	 */
-	
+
 	cinfo->jpeg_color_space = colorspace;
-	
+
 	cinfo->write_JFIF_header = FALSE;/* No marker for non-JFIF colorspaces */
 	cinfo->write_Adobe_marker = FALSE;/* write no Adobe marker by default */
-	
+
 	switch( colorspace )
 	{
 		case JCS_GRAYSCALE:
@@ -511,7 +511,7 @@ fill_scans( jpeg_scan_info* scanptr, int ncomps,
 {
 	/* Support routine: generate one scan for each component */
 	int ci;
-	
+
 	for( ci = 0; ci < ncomps; ci++ )
 	{
 		scanptr->comps_in_scan = 1;
@@ -530,7 +530,7 @@ fill_dc_scans( jpeg_scan_info* scanptr, int ncomps, int Ah, int Al )
 {
 	/* Support routine: generate interleaved DC scan if possible, else N scans */
 	int ci;
-	
+
 	if( ncomps <= MAX_COMPS_IN_SCAN )
 	{
 		/* Single interleaved DC scan */
@@ -564,13 +564,13 @@ jpeg_simple_progression( j_compress_ptr cinfo )
 	int ncomps = cinfo->nucomponents;
 	int nscans;
 	jpeg_scan_info* scanptr;
-	
+
 	/* Safety check to ensure start_compress not called yet. */
 	if( cinfo->global_state != CSTATE_START )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	/* Figure space needed for script.  Calculation must match code below! */
 	if( ( ncomps == 3 ) && ( cinfo->jpeg_color_space == JCS_YCbCr ) )
 	{
@@ -589,7 +589,7 @@ jpeg_simple_progression( j_compress_ptr cinfo )
 			nscans = 2 + 4 * ncomps;
 		}                       /* 2 DC scans; 4 AC scans per component */
 	}
-	
+
 	/* Allocate space for script. */
 	/* We use permanent pool just in case application re-uses script. */
 	scanptr = ( jpeg_scan_info* )
@@ -597,7 +597,7 @@ jpeg_simple_progression( j_compress_ptr cinfo )
 											nscans * SIZEOF( jpeg_scan_info ) );
 	cinfo->scan_info = scanptr;
 	cinfo->nuscans = nscans;
-	
+
 	if( ( ncomps == 3 ) && ( cinfo->jpeg_color_space == JCS_YCbCr ) )
 	{
 		/* Custom script for YCbCr color images. */

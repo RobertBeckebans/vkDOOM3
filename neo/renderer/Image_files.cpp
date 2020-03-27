@@ -56,11 +56,11 @@ void jpg_Error( const char* fmt, ... )
 {
 	va_list		argptr;
 	char		msg[2048];
-	
+
 	va_start( argptr, fmt );
 	vsprintf( msg, fmt, argptr );
 	va_end( argptr );
-	
+
 	common->FatalError( "%s", msg );
 }
 
@@ -68,11 +68,11 @@ void jpg_Printf( const char* fmt, ... )
 {
 	va_list		argptr;
 	char		msg[2048];
-	
+
 	va_start( argptr, fmt );
 	vsprintf( msg, fmt, argptr );
 	va_end( argptr );
-	
+
 	idLib::Printf( "%s", msg );
 }
 
@@ -89,7 +89,7 @@ void R_WriteTGA( const char* filename, const byte* data, int width, int height, 
 	int		i;
 	int		bufferSize = width * height * 4 + 18;
 	int     imgStart = 18;
-	
+
 	idTempArray<byte> buf( bufferSize );
 	buffer = ( byte* )buf.Ptr();
 	memset( buffer, 0, 18 );
@@ -103,7 +103,7 @@ void R_WriteTGA( const char* filename, const byte* data, int width, int height, 
 	{
 		buffer[17] = ( 1 << 5 );	// flip bit, for normal top to bottom raster order
 	}
-	
+
 	// swap rgb to bgr
 	for( i = imgStart ; i < bufferSize ; i += 4 )
 	{
@@ -112,7 +112,7 @@ void R_WriteTGA( const char* filename, const byte* data, int width, int height, 
 		buffer[i + 2] = data[i - imgStart + 0];		// red
 		buffer[i + 3] = data[i - imgStart + 3];		// alpha
 	}
-	
+
 	fileSystem->WriteFile( filename, buffer, bufferSize, basePath );
 }
 
@@ -159,15 +159,15 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 	byte*	buffer;
 	TargaHeader	targa_header;
 	byte*		targa_rgba;
-	
+
 	if( !pic )
 	{
 		fileSystem->ReadFile( name, NULL, timestamp );
 		return;	// just getting timestamp
 	}
-	
+
 	*pic = NULL;
-	
+
 	//
 	// load the file
 	//
@@ -176,13 +176,13 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 	{
 		return;
 	}
-	
+
 	buf_p = buffer;
-	
+
 	targa_header.id_length = *buf_p++;
 	targa_header.colormap_type = *buf_p++;
 	targa_header.image_type = *buf_p++;
-	
+
 	targa_header.colormap_index = LittleShort( *( short* )buf_p );
 	buf_p += 2;
 	targa_header.colormap_length = LittleShort( *( short* )buf_p );
@@ -198,22 +198,22 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 	buf_p += 2;
 	targa_header.pixel_size = *buf_p++;
 	targa_header.attributes = *buf_p++;
-	
+
 	if( targa_header.image_type != 2 && targa_header.image_type != 10 && targa_header.image_type != 3 )
 	{
 		idLib::Error( "LoadTGA( %s ): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported\n", name );
 	}
-	
+
 	if( targa_header.colormap_type != 0 )
 	{
 		idLib::Error( "LoadTGA( %s ): colormaps not supported\n", name );
 	}
-	
+
 	if( ( targa_header.pixel_size != 32 && targa_header.pixel_size != 24 ) && targa_header.image_type != 3 )
 	{
 		idLib::Error( "LoadTGA( %s ): Only 32 or 24 bit images supported (no colormaps)\n", name );
 	}
-	
+
 	if( targa_header.image_type == 2 || targa_header.image_type == 3 )
 	{
 		numBytes = targa_header.width * targa_header.height * ( targa_header.pixel_size >> 3 );
@@ -222,11 +222,11 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 			idLib::Error( "LoadTGA( %s ): incomplete file\n", name );
 		}
 	}
-	
+
 	columns = targa_header.width;
 	rows = targa_header.height;
 	numPixels = columns * rows;
-	
+
 	if( width )
 	{
 		*width = columns;
@@ -235,15 +235,15 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 	{
 		*height = rows;
 	}
-	
+
 	targa_rgba = ( byte* )R_StaticAlloc( numPixels * 4, TAG_IMAGE );
 	*pic = targa_rgba;
-	
+
 	if( targa_header.id_length != 0 )
 	{
 		buf_p += targa_header.id_length;  // skip TARGA image comment
 	}
-	
+
 	if( targa_header.image_type == 2 || targa_header.image_type == 3 )
 	{
 		// Uncompressed RGB or gray scale image
@@ -255,7 +255,7 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 				unsigned char red, green, blue, alphabyte;
 				switch( targa_header.pixel_size )
 				{
-				
+
 					case 8:
 						blue = *buf_p++;
 						green = blue;
@@ -265,7 +265,7 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 						*pixbuf++ = blue;
 						*pixbuf++ = 255;
 						break;
-						
+
 					case 24:
 						blue = *buf_p++;
 						green = *buf_p++;
@@ -295,12 +295,12 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 	else if( targa_header.image_type == 10 )      // Runlength encoded RGB images
 	{
 		unsigned char red, green, blue, alphabyte, packetHeader, packetSize, j;
-		
+
 		red = 0;
 		green = 0;
 		blue = 0;
 		alphabyte = 0xff;
-		
+
 		for( row = rows - 1; row >= 0; row-- )
 		{
 			pixbuf = targa_rgba + row * columns * 4;
@@ -328,7 +328,7 @@ static void LoadTGA( const char* name, byte** pic, int* width, int* height, ID_T
 							idLib::Error( "LoadTGA( %s ): illegal pixel_size '%d'\n", name, targa_header.pixel_size );
 							break;
 					}
-					
+
 					for( j = 0; j < packetSize; j++ )
 					{
 						*pixbuf++ = red;
@@ -401,7 +401,7 @@ breakOut:
 			;
 		}
 	}
-	
+
 	if( ( targa_header.attributes & ( 1 << 5 ) ) )  			// image flp bit
 	{
 		if( width != NULL && height != NULL )
@@ -409,7 +409,7 @@ breakOut:
 			R_VerticalFlip( *pic, *width, *height );
 		}
 	}
-	
+
 	fileSystem->FreeFile( buffer );
 }
 
@@ -452,13 +452,13 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 	unsigned char* out;
 	byte*	fbuffer;
 	byte*  bbuf;
-	
+
 	/* In this example we want to open the input file before doing anything else,
 	 * so that the setjmp() error recovery below can assume the file is open.
 	 * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
 	 * requires it in order to read binary files.
 	 */
-	
+
 	// JDC: because fill_input_buffer() blindly copies INPUT_BUF_SIZE bytes,
 	// we need to make sure the file buffer is padded or it may crash
 	if( pic )
@@ -468,7 +468,7 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 	{
 		int		len;
 		idFile* f;
-		
+
 		f = fileSystem->OpenFileRead( filename );
 		if( !f )
 		{
@@ -488,46 +488,46 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 		f->Read( fbuffer, len );
 		fileSystem->CloseFile( f );
 	}
-	
-	
+
+
 	/* Step 1: allocate and initialize JPEG decompression object */
-	
+
 	/* We have to set up the error handler first, in case the initialization
 	 * step fails.  (Unlikely, but it could happen if you are out of memory.)
 	 * This routine fills in the contents of struct jerr, and returns jerr's
 	 * address which we place into the link field in cinfo.
 	 */
 	cinfo.err = jpeg_std_error( &jerr );
-	
+
 	/* Now we can initialize the JPEG decompression object. */
 	jpeg_create_decompress( &cinfo );
-	
+
 	/* Step 2: specify data source (eg, a file) */
-	
+
 	jpeg_stdio_src( &cinfo, fbuffer );
-	
+
 	/* Step 3: read file parameters with jpeg_read_header() */
-	
+
 	( void ) jpeg_read_header( &cinfo, true );
 	/* We can ignore the return value from jpeg_read_header since
 	 *   (a) suspension is not possible with the stdio data source, and
 	 *   (b) we passed TRUE to reject a tables-only JPEG file as an error.
 	 * See libjpeg.doc for more info.
 	 */
-	
+
 	/* Step 4: set parameters for decompression */
-	
+
 	/* In this example, we don't need to change any of the defaults set by
 	 * jpeg_read_header(), so we do nothing here.
 	 */
-	
+
 	/* Step 5: Start decompressor */
-	
+
 	( void ) jpeg_start_decompress( &cinfo );
 	/* We can ignore the return value since suspension is not possible
 	 * with the stdio data source.
 	 */
-	
+
 	/* We may need to do some setup of our own at this point before reading
 	 * the data.  After jpeg_start_decompress() we have the correct scaled
 	 * output image dimensions available, as well as the output colormap
@@ -536,21 +536,21 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 	 */
 	/* JSAMPLEs per row in output buffer */
 	row_stride = cinfo.output_width * cinfo.output_components;
-	
+
 	if( cinfo.output_components != 4 )
 	{
 		common->DWarning( "JPG %s is unsupported color depth (%d)",
 						  filename, cinfo.output_components );
 	}
 	out = ( byte* )R_StaticAlloc( cinfo.output_width * cinfo.output_height * 4, TAG_IMAGE );
-	
+
 	*pic = out;
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
-	
+
 	/* Step 6: while (scan lines remain to be read) */
 	/*           jpeg_read_scanlines(...); */
-	
+
 	/* Here we use the library's state variable cinfo.output_scanline as the
 	 * loop counter, so that we don't have to keep track ourselves.
 	 */
@@ -564,44 +564,44 @@ static void LoadJPG( const char* filename, unsigned char** pic, int* width, int*
 		buffer = &bbuf;
 		( void ) jpeg_read_scanlines( &cinfo, buffer, 1 );
 	}
-	
+
 	// clear all the alphas to 255
 	{
 		int	i, j;
 		byte*	buf;
-		
+
 		buf = *pic;
-		
+
 		j = cinfo.output_width * cinfo.output_height * 4;
 		for( i = 3 ; i < j ; i += 4 )
 		{
 			buf[i] = 255;
 		}
 	}
-	
+
 	/* Step 7: Finish decompression */
-	
+
 	( void ) jpeg_finish_decompress( &cinfo );
 	/* We can ignore the return value since suspension is not possible
 	 * with the stdio data source.
 	 */
-	
+
 	/* Step 8: Release JPEG decompression object */
-	
+
 	/* This is an important step since it will release a good deal of memory. */
 	jpeg_destroy_decompress( &cinfo );
-	
+
 	/* After finish_decompress, we can close the input file.
 	 * Here we postpone it until after no more JPEG errors are possible,
 	 * so as to simplify the setjmp error logic above.  (Actually, I don't
 	 * think that jpeg_destroy can do an error exit, but why assume anything...)
 	 */
 	Mem_Free( fbuffer );
-	
+
 	/* At this point you may want to check to see whether any corrupt-data
 	 * warnings occurred (test whether jerr.pub.nuwarnings is nonzero).
 	 */
-	
+
 	/* And we're done! */
 }
 
@@ -634,7 +634,7 @@ timestamp.
 void R_LoadImage( const char* cname, byte** pic, int* width, int* height, ID_TIME_T* timestamp, bool makePowerOf2 )
 {
 	idStr name = cname;
-	
+
 	if( pic )
 	{
 		*pic = NULL;
@@ -651,18 +651,18 @@ void R_LoadImage( const char* cname, byte** pic, int* width, int* height, ID_TIM
 	{
 		*height = 0;
 	}
-	
+
 	name.DefaultFileExtension( ".tga" );
-	
+
 	if( name.Length() < 5 )
 	{
 		return;
 	}
-	
+
 	name.ToLower();
 	idStr ext;
 	name.ExtractFileExtension( ext );
-	
+
 	if( ext == "tga" )
 	{
 		LoadTGA( name.c_str(), pic, width, height, timestamp );            // try tga first
@@ -677,7 +677,7 @@ void R_LoadImage( const char* cname, byte** pic, int* width, int* height, ID_TIM
 	{
 		LoadJPG( name.c_str(), pic, width, height, timestamp );
 	}
-	
+
 	if( ( width && *width < 1 ) || ( height && *height < 1 ) )
 	{
 		if( pic && *pic )
@@ -686,7 +686,7 @@ void R_LoadImage( const char* cname, byte** pic, int* width, int* height, ID_TIM
 			*pic = 0;
 		}
 	}
-	
+
 	//
 	// convert to exact power of 2 sizes
 	//
@@ -695,15 +695,15 @@ void R_LoadImage( const char* cname, byte** pic, int* width, int* height, ID_TIM
 		int		w, h;
 		int		scaled_width, scaled_height;
 		byte	*resampledBuffer;
-	
+
 		w = *width;
 		h = *height;
-	
+
 		for (scaled_width = 1 ; scaled_width < w ; scaled_width<<=1)
 			;
 		for (scaled_height = 1 ; scaled_height < h ; scaled_height<<=1)
 			;
-	
+
 		if ( scaled_width != w || scaled_height != h ) {
 			resampledBuffer = R_ResampleTexture( *pic, w, h, scaled_width, scaled_height );
 			R_StaticFree( *pic );
@@ -735,7 +735,7 @@ bool R_LoadCubeImages( const char* imgName, cubeFiles_t extensions, byte* pics[6
 	char**	sides;
 	char	fullName[MAX_IMAGE_NAME];
 	int		width, height, size = 0;
-	
+
 	if( extensions == CF_CAMERA )
 	{
 		sides = cameraSides;
@@ -744,7 +744,7 @@ bool R_LoadCubeImages( const char* imgName, cubeFiles_t extensions, byte* pics[6
 	{
 		sides = axisSides;
 	}
-	
+
 	// FIXME: precompressed cube map files
 	if( pics )
 	{
@@ -754,11 +754,11 @@ bool R_LoadCubeImages( const char* imgName, cubeFiles_t extensions, byte* pics[6
 	{
 		*timestamp = 0;
 	}
-	
+
 	for( i = 0 ; i < 6 ; i++ )
 	{
 		idStr::snPrintf( fullName, sizeof( fullName ), "%s%s", imgName, sides[i] );
-		
+
 		ID_TIME_T thisTime;
 		if( !pics )
 		{
@@ -817,7 +817,7 @@ bool R_LoadCubeImages( const char* imgName, cubeFiles_t extensions, byte* pics[6
 			}
 		}
 	}
-	
+
 	if( i != 6 )
 	{
 		// we had an error, so free everything
@@ -828,14 +828,14 @@ bool R_LoadCubeImages( const char* imgName, cubeFiles_t extensions, byte* pics[6
 				R_StaticFree( pics[j] );
 			}
 		}
-		
+
 		if( timestamp )
 		{
 			*timestamp = 0;
 		}
 		return false;
 	}
-	
+
 	if( outSize )
 	{
 		*outSize = size;

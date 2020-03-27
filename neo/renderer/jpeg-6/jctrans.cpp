@@ -69,7 +69,7 @@ jpeg_copy_critical_parameters( j_decompress_ptr srcinfo,
 	jpeg_component_info* incomp, * outcomp;
 	JQUANT_TBL* c_quant, * slot_quant;
 	int tblno, ci, coefi;
-	
+
 	/* Safety check to ensure start_compress not called yet. */
 	if( dstinfo->global_state != CSTATE_START )
 	{
@@ -164,7 +164,7 @@ transencode_master_selection( j_compress_ptr cinfo,
 	cinfo->input_components = 1;
 	/* Initialize master control (includes parameter checking/processing) */
 	jinit_c_master_control( cinfo, TRUE /* transcode only */ );
-	
+
 	/* Entropy encoding: either Huffman or arithmetic coding. */
 	if( cinfo->arith_code )
 	{
@@ -185,15 +185,15 @@ transencode_master_selection( j_compress_ptr cinfo,
 			jinit_huff_encoder( cinfo );
 		}
 	}
-	
+
 	/* We need a special coefficient buffer controller. */
 	transencode_coef_controller( cinfo, coef_arrays );
-	
+
 	jinit_marker_writer( cinfo );
-	
+
 	/* We can now tell the memory manager to allocate virtual arrays. */
 	( *cinfo->mem->realize_virt_arrays )( ( j_common_ptr ) cinfo );
-	
+
 	/* Write the datastream header (SOI) immediately.
 	 * Frame and scan headers are postponed till later.
 	 * This lets application insert special markers after the SOI.
@@ -215,15 +215,15 @@ transencode_master_selection( j_compress_ptr cinfo,
 typedef struct
 {
 	struct jpeg_c_coef_controller pub;/* public fields */
-	
+
 	JDIMENSION iMCU_row_num;/* iMCU row # within image */
 	JDIMENSION mcu_ctr;     /* counts MCUs processed in current row */
 	int        MCU_vert_offset; /* counts MCU rows within iMCU row */
 	int        MCU_rows_per_iMCU_row; /* number of such rows needed */
-	
+
 	/* Virtual block array for each component. */
 	jvirt_barray_ptr* whole_image;
-	
+
 	/* Workspace for constructing dummy blocks at right/bottom edges. */
 	JBLOCKROW dummy_buffer[C_MAX_BLOCKS_IN_MCU];
 } my_coef_controller;
@@ -236,7 +236,7 @@ start_iMCU_row( j_compress_ptr cinfo )
 {
 	/* Reset within-iMCU-row counters for a new row */
 	my_coef_ptr coef = ( my_coef_ptr ) cinfo->coef;
-	
+
 	/* In an interleaved scan, an MCU row is the same as an iMCU row.
 	 * In a noninterleaved scan, an iMCU row has v_samp_factor MCU rows.
 	 * But at the bottom of the image, process only what's left.
@@ -256,7 +256,7 @@ start_iMCU_row( j_compress_ptr cinfo )
 			coef->MCU_rows_per_iMCU_row = cinfo->cur_comp_info[0]->last_row_height;
 		}
 	}
-	
+
 	coef->mcu_ctr = 0;
 	coef->MCU_vert_offset = 0;
 }
@@ -270,12 +270,12 @@ METHODDEF void
 start_pass_coef( j_compress_ptr cinfo, J_BUF_MODE pass_mode )
 {
 	my_coef_ptr coef = ( my_coef_ptr ) cinfo->coef;
-	
+
 	if( pass_mode != JBUF_CRANK_DEST )
 	{
 		ERREXIT( cinfo, JERR_BAD_BUFFER_MODE );
 	}
-	
+
 	coef->iMCU_row_num = 0;
 	start_iMCU_row( cinfo );
 }
@@ -304,7 +304,7 @@ compress_output( j_compress_ptr cinfo, JSAMPIMAGE input_buf )
 	JBLOCKROW MCU_buffer[C_MAX_BLOCKS_IN_MCU];
 	JBLOCKROW buffer_ptr;
 	jpeg_component_info* compptr;
-	
+
 	/* Align the virtual buffers for the components used in this scan. */
 	for( ci = 0; ci < cinfo->comps_in_scan; ci++ )
 	{
@@ -314,7 +314,7 @@ compress_output( j_compress_ptr cinfo, JSAMPIMAGE input_buf )
 					   coef->iMCU_row_num * compptr->v_samp_factor,
 					   ( JDIMENSION ) compptr->v_samp_factor, FALSE );
 	}
-	
+
 	/* Loop to process one whole iMCU row */
 	for( yoffset = coef->MCU_vert_offset; yoffset < coef->MCU_rows_per_iMCU_row;
 			yoffset++ )
@@ -395,17 +395,17 @@ transencode_coef_controller( j_compress_ptr cinfo,
 	my_coef_ptr coef;
 	JBLOCKROW buffer;
 	int i;
-	
+
 	coef = ( my_coef_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_coef_controller ) );
 	cinfo->coef = ( struct jpeg_c_coef_controller* ) coef;
 	coef->pub.start_pass = start_pass_coef;
 	coef->pub.compress_data = compress_output;
-	
+
 	/* Save pointer to virtual arrays */
 	coef->whole_image = coef_arrays;
-	
+
 	/* Allocate and pre-zero space for dummy DCT blocks. */
 	buffer = ( JBLOCKROW )
 			 ( *cinfo->mem->alloc_large )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,

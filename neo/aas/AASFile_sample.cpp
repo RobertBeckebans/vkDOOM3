@@ -62,9 +62,9 @@ idVec3 idAASFileLocal::FaceCenter( int faceNum ) const
 	const aasFace_t* face;
 	const aasEdge_t* edge;
 	idVec3 center;
-	
+
 	center = vec3_origin;
-	
+
 	face = &faces[faceNum];
 	if( face->numEdges > 0 )
 	{
@@ -89,9 +89,9 @@ idVec3 idAASFileLocal::AreaCenter( int areaNum ) const
 	int i, faceNum;
 	const aasArea_t* area;
 	idVec3 center;
-	
+
 	center = vec3_origin;
-	
+
 	area = &areas[areaNum];
 	if( area->numFaces > 0 )
 	{
@@ -117,16 +117,16 @@ idVec3 idAASFileLocal::AreaReachableGoal( int areaNum ) const
 	idVec3 center;
 	idVec3 start, end;
 	aasTrace_t trace;
-	
+
 	area = &areas[areaNum];
-	
+
 	if( !( area->flags & ( AREA_REACHABLE_WALK | AREA_REACHABLE_FLY ) ) || ( area->flags & AREA_LIQUID ) )
 	{
 		return AreaCenter( areaNum );
 	}
-	
+
 	center = vec3_origin;
-	
+
 	numFaces = 0;
 	for( i = 0; i < area->numFaces; i++ )
 	{
@@ -146,7 +146,7 @@ idVec3 idAASFileLocal::AreaReachableGoal( int areaNum ) const
 	end = center;
 	end[2] -= 1024;
 	Trace( trace, center, end );
-	
+
 	return trace.endpos;
 }
 
@@ -159,7 +159,7 @@ idBounds idAASFileLocal::EdgeBounds( int edgeNum ) const
 {
 	const aasEdge_t* edge;
 	idBounds bounds;
-	
+
 	edge = &edges[ abs( edgeNum ) ];
 	bounds[0] = bounds[1] = vertices[ edge->vertexNum[0] ];
 	bounds += vertices[ edge->vertexNum[1] ];
@@ -177,10 +177,10 @@ idBounds idAASFileLocal::FaceBounds( int faceNum ) const
 	const aasFace_t* face;
 	const aasEdge_t* edge;
 	idBounds bounds;
-	
+
 	face = &faces[faceNum];
 	bounds.Clear();
-	
+
 	for( i = 0; i < face->numEdges; i++ )
 	{
 		edgeNum = edgeIndex[ face->firstEdge + i ];
@@ -200,10 +200,10 @@ idBounds idAASFileLocal::AreaBounds( int areaNum ) const
 	int i, faceNum;
 	const aasArea_t* area;
 	idBounds bounds;
-	
+
 	area = &areas[areaNum];
 	bounds.Clear();
-	
+
 	for( i = 0; i < area->numFaces; i++ )
 	{
 		faceNum = faceIndex[area->firstFace + i];
@@ -221,7 +221,7 @@ int idAASFileLocal::PointAreaNum( const idVec3& origin ) const
 {
 	int nodeNum;
 	const aasNode_t* node;
-	
+
 	nodeNum = 1;
 	do
 	{
@@ -240,7 +240,7 @@ int idAASFileLocal::PointAreaNum( const idVec3& origin ) const
 		}
 	}
 	while( nodeNum );
-	
+
 	return 0;
 }
 
@@ -256,14 +256,14 @@ int idAASFileLocal::PointReachableAreaNum( const idVec3& origin, const idBounds&
 	aasTrace_t trace;
 	idBounds bounds;
 	float frac;
-	
+
 	start = origin;
-	
+
 	trace.areas = areaList;
 	trace.points = pointList;
 	trace.maxAreas = sizeof( areaList ) / sizeof( int );
 	trace.getOutOfSolid = true;
-	
+
 	areaNum = PointAreaNum( start );
 	if( areaNum )
 	{
@@ -288,7 +288,7 @@ int idAASFileLocal::PointReachableAreaNum( const idVec3& origin, const idBounds&
 			start[2] += 1.0f;
 		}
 	}
-	
+
 	// trace down
 	end = start;
 	end[2] -= 32.0f;
@@ -301,7 +301,7 @@ int idAASFileLocal::PointReachableAreaNum( const idVec3& origin, const idBounds&
 		}
 		start = trace.endpos;
 	}
-	
+
 	// expand bounds until an area is found
 	for( i = 1; i <= 12; i++ )
 	{
@@ -326,7 +326,7 @@ int idAASFileLocal::BoundsReachableAreaNum_r( int nodeNum, const idBounds& bound
 {
 	int res;
 	const aasNode_t* node;
-	
+
 	while( nodeNum )
 	{
 		if( nodeNum < 0 )
@@ -357,7 +357,7 @@ int idAASFileLocal::BoundsReachableAreaNum_r( int nodeNum, const idBounds& bound
 			nodeNum = node->children[0];
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -382,18 +382,18 @@ void idAASFileLocal::PushPointIntoAreaNum( int areaNum, idVec3& point ) const
 	int i, faceNum;
 	const aasArea_t* area;
 	const aasFace_t* face;
-	
+
 	area = &areas[areaNum];
-	
+
 	// push the point to the right side of all area face planes
 	for( i = 0; i < area->numFaces; i++ )
 	{
 		faceNum = faceIndex[area->firstFace + i];
 		face = &faces[abs( faceNum )];
-		
+
 		const idPlane& plane = planeList[face->planeNum ^ INT32_SIGNBITSET( faceNum )];
 		float dist = plane.Distance( point );
-		
+
 		// project the point onto the face plane if it is on the wrong side
 		if( dist < 0.0f )
 		{
@@ -426,21 +426,21 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 	aasTraceStack_t* tstack_p;
 	const aasNode_t* node;
 	const idPlane* plane;
-	
+
 	trace.numAreas = 0;
 	trace.lastAreaNum = 0;
 	trace.blockingAreaNum = 0;
-	
+
 	tstack_p = tracestack;
 	tstack_p->start = start;
 	tstack_p->end = end;
 	tstack_p->planeNum = 0;
 	tstack_p->nodeNum = 1;		//start with the root of the tree
 	tstack_p++;
-	
+
 	while( 1 )
 	{
-	
+
 		tstack_p--;
 		// if the trace stack is empty
 		if( tstack_p < tracestack )
@@ -460,10 +460,10 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 			trace.planeNum = 0;
 			return false;
 		}
-		
+
 		// number of the current node to test the line against
 		nodeNum = tstack_p->nodeNum;
-		
+
 		// if it is an area
 		if( nodeNum < 0 )
 		{
@@ -507,7 +507,7 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 			}
 			continue;
 		}
-		
+
 		// if it is a solid leaf
 		if( !nodeNum )
 		{
@@ -540,7 +540,7 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 				return true;
 			}
 		}
-		
+
 		// the node to test against
 		node = &nodes[nodeNum];
 		// start point of current line to test against node
@@ -549,10 +549,10 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 		cur_end = tstack_p->end;
 		// the current node plane
 		plane = &planeList[node->planeNum];
-		
+
 		front = plane->Distance( cur_start );
 		back = plane->Distance( cur_end );
-		
+
 		// if the whole to be traced line is totally at the front of this node
 		// only go down the tree with the front child
 		if( front >= -ON_EPSILON && back >= -ON_EPSILON )
@@ -593,7 +593,7 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 			{
 				frac = ( front - TRACEPLANE_EPSILON ) / ( front - back );
 			}
-			
+
 			if( frac < 0 )
 			{
 				frac = 0.001f; //0
@@ -602,12 +602,12 @@ bool idAASFileLocal::Trace( aasTrace_t& trace, const idVec3& start, const idVec3
 			{
 				frac = 0.999f; //1
 			}
-			
+
 			cur_mid = cur_start + ( cur_end - cur_start ) * frac;
-			
+
 			// side the front part of the line is on
 			side = front < 0;
-			
+
 			// first put the end part of the line on the stack (back side)
 			tstack_p->start = cur_mid;
 			tstack_p->planeNum = node->planeNum;
@@ -657,22 +657,22 @@ idAASFileLocal::MaxTreeDepth_r
 void idAASFileLocal::MaxTreeDepth_r( int nodeNum, int& depth, int& maxDepth ) const
 {
 	const aasNode_t* node;
-	
+
 	if( nodeNum <= 0 )
 	{
 		return;
 	}
-	
+
 	depth++;
 	if( depth > maxDepth )
 	{
 		maxDepth = depth;
 	}
-	
+
 	node = &nodes[nodeNum];
 	MaxTreeDepth_r( node->children[0], depth, maxDepth );
 	MaxTreeDepth_r( node->children[1], depth, maxDepth );
-	
+
 	depth--;
 }
 
@@ -684,7 +684,7 @@ idAASFileLocal::MaxTreeDepth
 int idAASFileLocal::MaxTreeDepth() const
 {
 	int depth, maxDepth;
-	
+
 	depth = maxDepth = 0;
 	MaxTreeDepth_r( 1, depth, maxDepth );
 	return maxDepth;

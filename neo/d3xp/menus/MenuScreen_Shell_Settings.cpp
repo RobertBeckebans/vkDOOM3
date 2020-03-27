@@ -46,18 +46,18 @@ idMenuScreen_Shell_Settings::Initialize
 void idMenuScreen_Shell_Settings::Initialize( idMenuHandler* data )
 {
 	idMenuScreen::Initialize( data );
-	
+
 	if( data != NULL )
 	{
 		menuGUI = data->GetGUI();
 	}
-	
+
 	SetSpritePath( "menuSettings" );
-	
+
 	options = new( TAG_SWF ) idMenuWidget_DynamicList();
 	idList< idList< idStr, TAG_IDLIB_LIST_MENU >, TAG_IDLIB_LIST_MENU > menuOptions;
 	idList< idStr > option;
-	
+
 	option.Append( "#str_04158" );	// controls
 	menuOptions.Append( option );
 	option.Clear();
@@ -67,35 +67,35 @@ void idMenuScreen_Shell_Settings::Initialize( idMenuHandler* data )
 	option.Append( "#str_04160" );	// system
 	menuOptions.Append( option );
 	option.Clear();
-	
+
 	options->SetListData( menuOptions );
 	options->SetNumVisibleOptions( NUM_SETTING_OPTIONS );
 	options->SetSpritePath( GetSpritePath(), "info", "options" );
 	options->SetWrappingAllowed( true );
 	AddChild( options );
-	
+
 	idMenuWidget_Help* const helpWidget = new( TAG_SWF ) idMenuWidget_Help();
 	helpWidget->SetSpritePath( GetSpritePath(), "info", "helpTooltip" );
 	AddChild( helpWidget );
-	
+
 	const char* tips[] = { "#str_02166", "#str_02168", "#str_02170", "#str_swf_customize_3d" };
-	
+
 	while( options->GetChildren().Num() < NUM_SETTING_OPTIONS )
 	{
 		idMenuWidget_Button* const buttonWidget = new( TAG_SWF ) idMenuWidget_Button();
 		buttonWidget->Initialize( data );
 		buttonWidget->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, options->GetChildren().Num() );
-		
+
 		if( options->GetChildren().Num() < menuOptions.Num() )
 		{
 			buttonWidget->SetDescription( tips[options->GetChildren().Num()] );
 		}
-		
+
 		buttonWidget->RegisterEventObserver( helpWidget );
 		options->AddChild( buttonWidget );
 	}
 	options->Initialize( data );
-	
+
 	btnBack = new( TAG_SWF ) idMenuWidget_Button();
 	btnBack->Initialize( data );
 	idMenuHandler_Shell* handler = dynamic_cast< idMenuHandler_Shell* >( data );
@@ -109,9 +109,9 @@ void idMenuScreen_Shell_Settings::Initialize( idMenuHandler* data )
 	}
 	btnBack->SetSpritePath( GetSpritePath(), "info", "btnBack" );
 	btnBack->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_GO_BACK );
-	
+
 	AddChild( btnBack );
-	
+
 	options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN ).Set( new( TAG_SWF ) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN ) );
 	options->AddEventAction( WIDGET_EVENT_SCROLL_UP ).Set( new( TAG_SWF ) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP ) );
 	options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_RELEASE ).Set( new( TAG_SWF ) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_RELEASE ) );
@@ -143,7 +143,7 @@ void idMenuScreen_Shell_Settings::Update()
 				buttonInfo->label = "#str_00395";
 			}
 			buttonInfo->action.Set( WIDGET_ACTION_GO_BACK );
-			
+
 			buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY1 );
 			if( menuData->GetPlatform() != 2 )
 			{
@@ -152,7 +152,7 @@ void idMenuScreen_Shell_Settings::Update()
 			buttonInfo->action.Set( WIDGET_ACTION_PRESS_FOCUSED );
 		}
 	}
-	
+
 	idSWFScriptObject& root = GetSWFObject()->GetRootObject();
 	if( BindSprite( root ) )
 	{
@@ -162,19 +162,19 @@ void idMenuScreen_Shell_Settings::Update()
 			heading->SetText( "#str_swf_settings" );
 			heading->SetStrokeInfo( true, 0.75f, 1.75f );
 		}
-		
+
 		idSWFSpriteInstance* gradient = GetSprite()->GetScriptObject()->GetNestedSprite( "info", "gradient" );
 		if( gradient != NULL && heading != NULL )
 		{
 			gradient->SetXPos( heading->GetTextLength() );
 		}
 	}
-	
+
 	if( btnBack != NULL )
 	{
 		btnBack->BindSprite( root );
 	}
-	
+
 	idMenuScreen::Update();
 }
 
@@ -210,15 +210,15 @@ bool idMenuScreen_Shell_Settings::HandleAction( idWidgetAction& action, const id
 	{
 		return true;
 	}
-	
+
 	if( menuData->ActiveScreen() != SHELL_AREA_SETTINGS )
 	{
 		return false;
 	}
-	
+
 	widgetAction_t actionType = action.GetType();
 	const idSWFParmList& parms = action.GetParms();
-	
+
 	switch( actionType )
 	{
 		case WIDGET_ACTION_GO_BACK:
@@ -246,7 +246,7 @@ bool idMenuScreen_Shell_Settings::HandleAction( idWidgetAction& action, const id
 					break;
 				}
 			}
-			
+
 			if( options != NULL )
 			{
 				int selectionIndex = options->GetViewIndex();
@@ -254,17 +254,17 @@ bool idMenuScreen_Shell_Settings::HandleAction( idWidgetAction& action, const id
 				{
 					selectionIndex = parms[0].ToInteger();
 				}
-				
+
 				if( options->GetFocusIndex() != selectionIndex )
 				{
 					options->SetFocusIndex( selectionIndex );
 					options->SetViewIndex( options->GetViewOffset() + selectionIndex );
 				}
 			}
-			
+
 			return true;
 		}
 	}
-	
+
 	return idMenuWidget::HandleAction( action, event, widget, forceHandled );
 }

@@ -48,7 +48,7 @@ struct jpeg_comp_master
 	JMETHOD( void, prepare_for_pass, ( j_compress_ptr cinfo ) );
 	JMETHOD( void, pass_startup, ( j_compress_ptr cinfo ) );
 	JMETHOD( void, finish_pass, ( j_compress_ptr cinfo ) );
-	
+
 	/* State variables made visible to other modules */
 	boolean call_pass_startup;	/* True if pass_startup must be called */
 	boolean is_last_pass;		/* True during last pass */
@@ -101,7 +101,7 @@ struct jpeg_downsampler
 								 JSAMPIMAGE input_buf, JDIMENSION in_row_index,
 								 JSAMPIMAGE output_buf,
 								 JDIMENSION out_row_group_index ) );
-								 
+
 	boolean need_context_rows;	/* TRUE if need rows above & below */
 };
 
@@ -147,7 +147,7 @@ struct jpeg_decomp_master
 {
 	JMETHOD( void, prepare_for_output_pass, ( j_decompress_ptr cinfo ) );
 	JMETHOD( void, finish_output_pass, ( j_decompress_ptr cinfo ) );
-	
+
 	/* State variables made visible to other modules */
 	boolean is_dummy_pass;	/* True during 1st pass for 2-pass quant */
 };
@@ -159,7 +159,7 @@ struct jpeg_input_controller
 	JMETHOD( void, reset_input_controller, ( j_decompress_ptr cinfo ) );
 	JMETHOD( void, start_input_pass, ( j_decompress_ptr cinfo ) );
 	JMETHOD( void, finish_input_pass, ( j_decompress_ptr cinfo ) );
-	
+
 	/* State variables made visible to other modules */
 	boolean has_multiple_scans;	/* True if file has multiple scans */
 	boolean eoi_reached;		/* True when EOI has been consumed */
@@ -213,7 +213,7 @@ struct jpeg_marker_reader
 	/* Application-overridable marker processing methods */
 	jpeg_marker_parser_method process_COM;
 	jpeg_marker_parser_method process_APPn[16];
-	
+
 	/* State of marker reader --- nominally internal, but applications
 	 * supplying COM or APPn handlers might like to know the state.
 	 */
@@ -255,7 +255,7 @@ struct jpeg_upsampler
 							   JSAMPARRAY output_buf,
 							   JDIMENSION* out_row_ctr,
 							   JDIMENSION out_rows_avail ) );
-							   
+
 	boolean need_context_rows;	/* TRUE if need rows above & below */
 };
 
@@ -313,39 +313,39 @@ struct jpeg_color_quantizer
 /* Short forms of external names for systems with brain-damaged linkers. */
 
 #ifdef NEED_SHORT_EXTERNAL_NAMES
-#define jinit_compress_master	jICompress
-#define jinit_c_master_control	jICMaster
-#define jinit_c_main_controller	jICMainC
-#define jinit_c_prep_controller	jICPrepC
-#define jinit_c_coef_controller	jICCoefC
-#define jinit_color_converter	jICColor
-#define jinit_downsampler	jIDownsampler
-#define jinit_forward_dct	jIFDCT
-#define jinit_huff_encoder	jIHEncoder
-#define jinit_phuff_encoder	jIPHEncoder
-#define jinit_marker_writer	jIMWriter
-#define jinit_master_decompress	jIDMaster
-#define jinit_d_main_controller	jIDMainC
-#define jinit_d_coef_controller	jIDCoefC
-#define jinit_d_post_controller	jIDPostC
-#define jinit_input_controller	jIInCtlr
-#define jinit_marker_reader	jIMReader
-#define jinit_huff_decoder	jIHDecoder
-#define jinit_phuff_decoder	jIPHDecoder
-#define jinit_inverse_dct	jIIDCT
-#define jinit_upsampler		jIUpsampler
-#define jinit_color_deconverter	jIDColor
-#define jinit_1pass_quantizer	jI1Quant
-#define jinit_2pass_quantizer	jI2Quant
-#define jinit_merged_upsampler	jIMUpsampler
-#define jinit_memory_mgr	jIMemMgr
-#define jdiv_round_up		jDivRound
-#define jround_up		jRound
-#define jcopy_sample_rows	jCopySamples
-#define jcopy_block_row		jCopyBlocks
-#define jzero_far		jZeroFar
-#define jpeg_zigzag_order	jZIGTable
-#define jpeg_natural_order	jZAGTable
+	#define jinit_compress_master	jICompress
+	#define jinit_c_master_control	jICMaster
+	#define jinit_c_main_controller	jICMainC
+	#define jinit_c_prep_controller	jICPrepC
+	#define jinit_c_coef_controller	jICCoefC
+	#define jinit_color_converter	jICColor
+	#define jinit_downsampler	jIDownsampler
+	#define jinit_forward_dct	jIFDCT
+	#define jinit_huff_encoder	jIHEncoder
+	#define jinit_phuff_encoder	jIPHEncoder
+	#define jinit_marker_writer	jIMWriter
+	#define jinit_master_decompress	jIDMaster
+	#define jinit_d_main_controller	jIDMainC
+	#define jinit_d_coef_controller	jIDCoefC
+	#define jinit_d_post_controller	jIDPostC
+	#define jinit_input_controller	jIInCtlr
+	#define jinit_marker_reader	jIMReader
+	#define jinit_huff_decoder	jIHDecoder
+	#define jinit_phuff_decoder	jIPHDecoder
+	#define jinit_inverse_dct	jIIDCT
+	#define jinit_upsampler		jIUpsampler
+	#define jinit_color_deconverter	jIDColor
+	#define jinit_1pass_quantizer	jI1Quant
+	#define jinit_2pass_quantizer	jI2Quant
+	#define jinit_merged_upsampler	jIMUpsampler
+	#define jinit_memory_mgr	jIMemMgr
+	#define jdiv_round_up		jDivRound
+	#define jround_up		jRound
+	#define jcopy_sample_rows	jCopySamples
+	#define jcopy_block_row		jCopyBlocks
+	#define jzero_far		jZeroFar
+	#define jpeg_zigzag_order	jZIGTable
+	#define jpeg_natural_order	jZAGTable
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 

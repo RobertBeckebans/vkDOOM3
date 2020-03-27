@@ -45,9 +45,9 @@ static void R_DefaultImage( idImage* image )
 {
 	int		x, y;
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-	
+
 	memset( data, 0, sizeof( data ) );
-	
+
 	if( com_developer.GetBool() )
 	{
 		// grey center
@@ -61,7 +61,7 @@ static void R_DefaultImage( idImage* image )
 				data[y][x][3] = 255;
 			}
 		}
-		
+
 		// white border
 		for( x = 0 ; x < DEFAULT_SIZE ; x++ )
 		{
@@ -69,17 +69,17 @@ static void R_DefaultImage( idImage* image )
 				data[0][x][1] =
 					data[0][x][2] =
 						data[0][x][3] = 255;
-						
+
 			data[x][0][0] =
 				data[x][0][1] =
 					data[x][0][2] =
 						data[x][0][3] = 255;
-						
+
 			data[DEFAULT_SIZE - 1][x][0] =
 				data[DEFAULT_SIZE - 1][x][1] =
 					data[DEFAULT_SIZE - 1][x][2] =
 						data[DEFAULT_SIZE - 1][x][3] = 255;
-						
+
 			data[x][DEFAULT_SIZE - 1][0] =
 				data[x][DEFAULT_SIZE - 1][1] =
 					data[x][DEFAULT_SIZE - 1][2] =
@@ -99,7 +99,7 @@ static void R_DefaultImage( idImage* image )
 			}
 		}
 	}
-	
+
 	image->GenerateImage(
 		( byte* )data,
 		DEFAULT_SIZE, DEFAULT_SIZE,
@@ -109,9 +109,9 @@ static void R_DefaultImage( idImage* image )
 static void R_WhiteImage( idImage* image )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-	
+
 	memset( data, 255, sizeof( data ) );
-	
+
 	// solid white texture
 	image->GenerateImage(
 		( byte* )data,
@@ -122,9 +122,9 @@ static void R_WhiteImage( idImage* image )
 static void R_BlackImage( idImage* image )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-	
+
 	memset( data, 0, sizeof( data ) );
-	
+
 	// solid black texture
 	image->GenerateImage(
 		( byte* )data,
@@ -137,15 +137,15 @@ static void R_RGBA8Image( idImage* image )
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
-	
+
 	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
-	
+
 	memset( data, 0, sizeof( data ) );
 	image->GenerateImage(
 		( byte* )data,
 		width, height,
 		TF_DEFAULT, TR_REPEAT, TD_LOOKUP_TABLE_RGBA );
-		
+
 	Mem_Free( data );
 }
 
@@ -154,37 +154,37 @@ static void R_DepthImage( idImage* image )
 	const int width = renderSystem->GetWidth();
 	const int height = renderSystem->GetHeight();
 	const int size = width * height * 4;
-	
+
 	byte* data = ( byte* )Mem_ClearedAlloc( size, TAG_IMAGE );
-	
+
 	image->GenerateImage(
 		( byte* )data,
 		width, height,
 		TF_NEAREST, TR_CLAMP, TD_DEPTH );
-		
+
 	Mem_Free( data );
 }
 
 static void R_AlphaNotchImage( idImage* image )
 {
 	byte	data[2][4];
-	
+
 	// this is used for alpha test clip planes
-	
+
 	data[0][0] = data[0][1] = data[0][2] = 255;
 	data[0][3] = 0;
 	data[1][0] = data[1][1] = data[1][2] = 255;
 	data[1][3] = 255;
-	
+
 	image->GenerateImage( ( byte* )data, 2, 1, TF_NEAREST, TR_CLAMP, TD_LOOKUP_TABLE_ALPHA );
 }
 
 static void R_FlatNormalImage( idImage* image )
 {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
-	
+
 	memset( data, 0, sizeof( data ) );
-	
+
 	// flat normal map for default bunp mapping
 	for( int i = 0 ; i < 4 ; i++ )
 	{
@@ -193,7 +193,7 @@ static void R_FlatNormalImage( idImage* image )
 		data[0][i][2] = 255;
 		data[0][i][3] = 255;
 	}
-	
+
 	image->GenerateImage(
 		( byte* )data,
 		2, 1,
@@ -215,9 +215,9 @@ void R_FogImage( idImage* image )
 	int		x, y;
 	byte	data[FOG_SIZE][FOG_SIZE][4];
 	int		b;
-	
+
 	memset( data, 0, sizeof( data ) );
-	
+
 	float	step[256];
 	int		i;
 	float	remaining = 1.0;
@@ -226,17 +226,17 @@ void R_FogImage( idImage* image )
 		step[i] = remaining;
 		remaining *= 0.982f;
 	}
-	
+
 	for( x = 0 ; x < FOG_SIZE ; x++ )
 	{
 		for( y = 0 ; y < FOG_SIZE ; y++ )
 		{
 			float	d;
-			
+
 			d = idMath::Sqrt( ( x - FOG_SIZE / 2 ) * ( x - FOG_SIZE / 2 )
 							  + ( y - FOG_SIZE / 2 ) * ( y - FOG_SIZE / 2 ) );
 			d /= FOG_SIZE / 2 - 1;
-			
+
 			b = ( byte )( d * 255 );
 			if( b <= 0 )
 			{
@@ -257,7 +257,7 @@ void R_FogImage( idImage* image )
 			data[y][x][3] = b;
 		}
 	}
-	
+
 	image->GenerateImage(
 		( byte* )data,
 		FOG_SIZE, FOG_SIZE,
@@ -274,7 +274,7 @@ static void R_CreateNoFalloffImage( idImage* image )
 {
 	int		x, y;
 	byte	data[16][FALLOFF_TEXTURE_SIZE][4];
-	
+
 	memset( data, 0, sizeof( data ) );
 	for( x = 1 ; x < FALLOFF_TEXTURE_SIZE - 1 ; x++ )
 	{
@@ -301,7 +301,7 @@ static const float	DEEP_RANGE =	-30;
 static float	FogFraction( float viewHeight, float targetHeight )
 {
 	float	total = idMath::Fabs( targetHeight - viewHeight );
-	
+
 //	return targetHeight >= 0 ? 0 : 1.0;
 
 	// only ranges that cross the ramp range are special
@@ -313,7 +313,7 @@ static float	FogFraction( float viewHeight, float targetHeight )
 	{
 		return 1.0;
 	}
-	
+
 	float	above;
 	if( targetHeight > 0 )
 	{
@@ -327,9 +327,9 @@ static float	FogFraction( float viewHeight, float targetHeight )
 	{
 		above = 0;
 	}
-	
+
 	float	rampTop, rampBottom;
-	
+
 	if( viewHeight > targetHeight )
 	{
 		rampTop = viewHeight;
@@ -348,29 +348,29 @@ static float	FogFraction( float viewHeight, float targetHeight )
 	{
 		rampBottom = -RAMP_RANGE;
 	}
-	
+
 	float	rampSlope = 1.0 / RAMP_RANGE;
-	
+
 	if( !total )
 	{
 		return -viewHeight * rampSlope;
 	}
-	
+
 	float ramp = ( 1.0 - ( rampTop * rampSlope + rampBottom * rampSlope ) * -0.5 ) * ( rampTop - rampBottom );
-	
+
 	float	frac = ( total - above - ramp ) / total;
-	
+
 	// after it gets moderately deep, always use full value
 	float deepest = viewHeight < targetHeight ? viewHeight : targetHeight;
-	
+
 	float	deepFrac = deepest / DEEP_RANGE;
 	if( deepFrac >= 1.0 )
 	{
 		return 1.0;
 	}
-	
+
 	frac = frac * ( 1.0 - deepFrac ) + deepFrac;
-	
+
 	return frac;
 }
 
@@ -387,17 +387,17 @@ void R_FogEnterImage( idImage* image )
 	int		x, y;
 	byte	data[FOG_ENTER_SIZE][FOG_ENTER_SIZE][4];
 	int		b;
-	
+
 	memset( data, 0, sizeof( data ) );
-	
+
 	for( x = 0 ; x < FOG_ENTER_SIZE ; x++ )
 	{
 		for( y = 0 ; y < FOG_ENTER_SIZE ; y++ )
 		{
 			float	d;
-			
+
 			d = FogFraction( x - ( FOG_ENTER_SIZE / 2 ), y - ( FOG_ENTER_SIZE / 2 ) );
-			
+
 			b = ( byte )( d * 255 );
 			if( b <= 0 )
 			{
@@ -413,7 +413,7 @@ void R_FogEnterImage( idImage* image )
 			data[y][x][3] = b;
 		}
 	}
-	
+
 	// if mipmapped, acutely viewed surfaces fade wrong
 	image->GenerateImage(
 		( byte* )data,
@@ -434,22 +434,22 @@ void R_QuadraticImage( idImage* image )
 	int		x, y;
 	byte	data[QUADRATIC_HEIGHT][QUADRATIC_WIDTH][4];
 	int		b;
-	
-	
+
+
 	for( x = 0 ; x < QUADRATIC_WIDTH ; x++ )
 	{
 		for( y = 0 ; y < QUADRATIC_HEIGHT ; y++ )
 		{
 			float	d;
-			
+
 			d = x - ( QUADRATIC_WIDTH / 2 - 0.5 );
 			d = idMath::Fabs( d );
 			d -= 0.5;
 			d /= QUADRATIC_WIDTH / 2;
-			
+
 			d = 1.0 - d;
 			d = d * d;
-			
+
 			b = ( byte )( d * 255 );
 			if( b <= 0 )
 			{
@@ -465,7 +465,7 @@ void R_QuadraticImage( idImage* image )
 			data[y][x][3] = 255;
 		}
 	}
-	
+
 	image->GenerateImage( ( byte* )data, QUADRATIC_WIDTH, QUADRATIC_HEIGHT, TF_DEFAULT, TR_CLAMP, TD_LOOKUP_TABLE_RGB1 );
 }
 
@@ -486,14 +486,14 @@ void idImageManager::CreateIntrinsicImages()
 	fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage );
 	noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage );
 	quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage );
-	
+
 	// scratchImage is used for screen wipes/doublevision etc..
 	scratchImage = ImageFromFunction( "_scratch", R_RGBA8Image );
 	scratchImage2 = ImageFromFunction( "_scratch2", R_RGBA8Image );
 	currentRenderImage = ImageFromFunction( "_currentRender", R_RGBA8Image );
 	currentDepthImage = ImageFromFunction( "_currentDepth", R_DepthImage );
 	accumImage = ImageFromFunction( "_accum", R_RGBA8Image );
-	
+
 	loadingIconImage = ImageFromFile( "textures/loadingicon2", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
 	hellLoadingIconImage = ImageFromFile( "textures/loadingicon3", TF_DEFAULT, TR_CLAMP, TD_DEFAULT, CF_2D );
 }

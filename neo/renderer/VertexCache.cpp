@@ -107,7 +107,7 @@ static void AllocGeoBufferSet( geoBufferSet_t& gbs, const int vertexBytes, const
 	{
 		gbs.jointBuffer.AllocBufferObject( NULL, jointBytes, usage );
 	}
-	
+
 	ClearGeoBufferSet( gbs );
 }
 
@@ -120,13 +120,13 @@ void idVertexCache::Init( int _uniformBufferOffsetAlignment )
 {
 	currentFrame = 0;
 	listNum = 0;
-	
+
 	uniformBufferOffsetAlignment = _uniformBufferOffsetAlignment;
-	
+
 	mostUsedVertex = 0;
 	mostUsedIndex = 0;
 	mostUsedJoint = 0;
-	
+
 	for( int i = 0; i < NUM_FRAME_DATA; i++ )
 	{
 		AllocGeoBufferSet( frameData[i], VERTCACHE_VERTEX_MEMORY_PER_FRAME, VERTCACHE_INDEX_MEMORY_PER_FRAME, VERTCACHE_JOINT_MEMORY_PER_FRAME, BU_DYNAMIC );
@@ -136,7 +136,7 @@ void idVertexCache::Init( int _uniformBufferOffsetAlignment )
 #else
 	AllocGeoBufferSet( staticData, STATIC_VERTEX_MEMORY, STATIC_INDEX_MEMORY, 0, BU_DYNAMIC );
 #endif
-	
+
 	MapGeoBufferSet( frameData[ listNum ] );
 }
 
@@ -192,13 +192,13 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 	{
 		return ( vertCacheHandle_t )0;
 	}
-	
+
 	assert( ( ( ( UINT_PTR )( data ) ) & 15 ) == 0 );
 	assert( ( bytes & 15 ) == 0 );
-	
+
 	int	endPos = 0;
 	int offset = 0;
-	
+
 	switch( type )
 	{
 		case CACHE_INDEX:
@@ -208,9 +208,9 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 			{
 				idLib::Error( "Out of index cache" );
 			}
-			
+
 			offset = endPos - bytes;
-			
+
 			if( data != NULL )
 			{
 				if( vcs.indexBuffer.GetUsage() == BU_DYNAMIC )
@@ -219,7 +219,7 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 				}
 				vcs.indexBuffer.Update( data, bytes, offset );
 			}
-			
+
 			break;
 		}
 		case CACHE_VERTEX:
@@ -229,9 +229,9 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 			{
 				idLib::Error( "Out of vertex cache" );
 			}
-			
+
 			offset = endPos - bytes;
-			
+
 			if( data != NULL )
 			{
 				if( vcs.vertexBuffer.GetUsage() == BU_DYNAMIC )
@@ -240,7 +240,7 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 				}
 				vcs.vertexBuffer.Update( data, bytes, offset );
 			}
-			
+
 			break;
 		}
 		case CACHE_JOINT:
@@ -250,9 +250,9 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 			{
 				idLib::Error( "Out of joint buffer cache" );
 			}
-			
+
 			offset = endPos - bytes;
-			
+
 			if( data != NULL )
 			{
 				if( vcs.jointBuffer.GetUsage() == BU_DYNAMIC )
@@ -261,15 +261,15 @@ vertCacheHandle_t idVertexCache::ActuallyAlloc( geoBufferSet_t& vcs, const void*
 				}
 				vcs.jointBuffer.Update( data, bytes, offset );
 			}
-			
+
 			break;
 		}
 		default:
 			assert( false );
 	}
-	
+
 	vcs.allocations++;
-	
+
 	vertCacheHandle_t handle =	( ( uint64 )( currentFrame & VERTCACHE_FRAME_MASK ) << VERTCACHE_FRAME_SHIFT ) |
 								( ( uint64 )( offset & VERTCACHE_OFFSET_MASK ) << VERTCACHE_OFFSET_SHIFT ) |
 								( ( uint64 )( bytes & VERTCACHE_SIZE_MASK ) << VERTCACHE_SIZE_SHIFT );
@@ -468,7 +468,7 @@ void idVertexCache::BeginBackEnd()
 	mostUsedVertex = Max( mostUsedVertex, frameData[ listNum ].vertexMemUsed.GetValue() );
 	mostUsedIndex = Max( mostUsedIndex, frameData[ listNum ].indexMemUsed.GetValue() );
 	mostUsedJoint = Max( mostUsedJoint, frameData[ listNum ].jointMemUsed.GetValue() );
-	
+
 	if( r_showVertexCache.GetBool() )
 	{
 		idLib::Printf( "%08d: %d allocations, %dkB vertex, %dkB index, %kB joint : %dkB vertex, %dkB index, %kB joint\n",
@@ -480,7 +480,7 @@ void idVertexCache::BeginBackEnd()
 					   mostUsedIndex / 1024,
 					   mostUsedJoint / 1024 );
 	}
-	
+
 	// unmap the current frame so the GPU can read it
 	const int startUnmap = Sys_Milliseconds();
 	UnmapGeoBufferSet( frameData[ listNum ] );
@@ -491,10 +491,10 @@ void idVertexCache::BeginBackEnd()
 		idLib::PrintfIf( r_showVertexCacheTimings.GetBool(), "idVertexCache::unmap took %i msec\n", endUnmap - startUnmap );
 	}
 	drawListNum = listNum;
-	
+
 	// prepare the next frame for writing to by the CPU
 	currentFrame++;
-	
+
 	listNum = currentFrame % NUM_FRAME_DATA;
 	const int startMap = Sys_Milliseconds();
 	MapGeoBufferSet( frameData[ listNum ] );
@@ -503,7 +503,7 @@ void idVertexCache::BeginBackEnd()
 	{
 		idLib::PrintfIf( r_showVertexCacheTimings.GetBool(), "idVertexCache::map took %i msec\n", endMap - startMap );
 	}
-	
+
 	ClearGeoBufferSet( frameData[ listNum ] );
 }
 

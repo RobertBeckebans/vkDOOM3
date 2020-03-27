@@ -44,18 +44,18 @@
 typedef struct
 {
 	struct jpeg_upsampler pub;  /* public fields */
-	
+
 	/* Pointer to routine to do actual upsampling/conversion of one row group */
 	JMETHOD( void, upmethod, ( j_decompress_ptr cinfo,
 							   JSAMPIMAGE input_buf, JDIMENSION in_row_group_ctr,
 							   JSAMPARRAY output_buf ) );
-							   
+
 	/* Private state for YCC->RGB conversion */
 	int*    Cr_r_tab;   /* => table for Cr to R conversion */
 	int*    Cb_b_tab;   /* => table for Cb to B conversion */
 	INT32* Cr_g_tab;    /* => table for Cr to G conversion */
 	INT32* Cb_g_tab;    /* => table for Cb to G conversion */
-	
+
 	/* For 2:1 vertical sampling, we produce two output rows at a time.
 	 * We need a "spare" row buffer to hold the second output row if the
 	 * application provides just a one-row buffer; we also use the spare
@@ -63,7 +63,7 @@ typedef struct
 	 */
 	JSAMPROW spare_row;
 	boolean  spare_full;    /* T if spare buffer is occupied */
-	
+
 	JDIMENSION out_row_width;/* samples per output row */
 	JDIMENSION rows_to_go;  /* counts rows remaining in image */
 } my_upsampler;
@@ -87,7 +87,7 @@ build_ycc_rgb_table( j_decompress_ptr cinfo )
 	int i;
 	INT32 x;
 	SHIFT_TEMPS
-	
+
 	upsample->Cr_r_tab = ( int* )
 						 ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 								 ( MAXJSAMPLE + 1 ) * SIZEOF( int ) );
@@ -100,7 +100,7 @@ build_ycc_rgb_table( j_decompress_ptr cinfo )
 	upsample->Cb_g_tab = ( INT32* )
 						 ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 								 ( MAXJSAMPLE + 1 ) * SIZEOF( INT32 ) );
-								 
+
 	for( i = 0, x = -CENTERJSAMPLE; i <= MAXJSAMPLE; i++, x++ )
 	{
 		/* i is the actual input pixel value, in the range 0..MAXJSAMPLE */
@@ -128,7 +128,7 @@ METHODDEF void
 start_pass_merged_upsample( j_decompress_ptr cinfo )
 {
 	my_upsample_ptr upsample = ( my_upsample_ptr ) cinfo->upsample;
-	
+
 	/* Mark the spare buffer empty */
 	upsample->spare_full = FALSE;
 	/* Initialize total-height counter for detecting bottom of image */
@@ -153,7 +153,7 @@ merged_2v_upsample( j_decompress_ptr cinfo,
 	my_upsample_ptr upsample = ( my_upsample_ptr ) cinfo->upsample;
 	JSAMPROW work_ptrs[2];
 	JDIMENSION nurows;    /* number of rows returned to caller */
-	
+
 	if( upsample->spare_full )
 	{
 		/* If we have a spare row saved from a previous cycle, just return it. */
@@ -191,7 +191,7 @@ merged_2v_upsample( j_decompress_ptr cinfo,
 		/* Now do the upsampling. */
 		( *upsample->upmethod )( cinfo, input_buf, *in_row_group_ctr, work_ptrs );
 	}
-	
+
 	/* Adjust counts */
 	*out_row_ctr += nurows;
 	upsample->rows_to_go -= nurows;
@@ -212,7 +212,7 @@ merged_1v_upsample( j_decompress_ptr cinfo,
 {
 	/* 1:1 vertical sampling case: much easier, never need a spare row. */
 	my_upsample_ptr upsample = ( my_upsample_ptr ) cinfo->upsample;
-	
+
 	/* Just do the upsampling. */
 	( *upsample->upmethod )( cinfo, input_buf, *in_row_group_ctr,
 							 output_buf + *out_row_ctr );
@@ -254,7 +254,7 @@ h2v1_merged_upsample( j_decompress_ptr cinfo,
 	INT32* Crgtab = upsample->Cr_g_tab;
 	INT32* Cbgtab = upsample->Cb_g_tab;
 	SHIFT_TEMPS
-	
+
 	inptr0 = input_buf[0][in_row_group_ctr];
 	inptr1 = input_buf[1][in_row_group_ctr];
 	inptr2 = input_buf[2][in_row_group_ctr];
@@ -318,7 +318,7 @@ h2v2_merged_upsample( j_decompress_ptr cinfo,
 	INT32* Crgtab = upsample->Cr_g_tab;
 	INT32* Cbgtab = upsample->Cb_g_tab;
 	SHIFT_TEMPS
-	
+
 	inptr00 = input_buf[0][in_row_group_ctr * 2];
 	inptr01 = input_buf[0][in_row_group_ctr * 2 + 1];
 	inptr1 = input_buf[1][in_row_group_ctr];
@@ -388,16 +388,16 @@ GLOBAL void
 jinit_merged_upsampler( j_decompress_ptr cinfo )
 {
 	my_upsample_ptr upsample;
-	
+
 	upsample = ( my_upsample_ptr )
 			   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 					   SIZEOF( my_upsampler ) );
 	cinfo->upsample = ( struct jpeg_upsampler* ) upsample;
 	upsample->pub.start_pass = start_pass_merged_upsample;
 	upsample->pub.need_context_rows = FALSE;
-	
+
 	upsample->out_row_width = cinfo->output_width * cinfo->out_color_components;
-	
+
 	if( cinfo->max_v_samp_factor == 2 )
 	{
 		upsample->pub.upsample = merged_2v_upsample;
@@ -414,7 +414,7 @@ jinit_merged_upsampler( j_decompress_ptr cinfo )
 		/* No spare row needed */
 		upsample->spare_row = NULL;
 	}
-	
+
 	build_ycc_rgb_table( cinfo );
 }
 

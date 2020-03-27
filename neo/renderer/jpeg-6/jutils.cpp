@@ -95,13 +95,13 @@ jround_up( long a, long b )
  */
 
 #ifndef NEED_FAR_POINTERS   /* normal case, same as regular macros */
-#define FMEMCOPY( dest, src, size ) MEMCOPY( dest, src, size )
-#define FMEMZERO( target, size )   MEMZERO( target, size )
+	#define FMEMCOPY( dest, src, size ) MEMCOPY( dest, src, size )
+	#define FMEMZERO( target, size )   MEMZERO( target, size )
 #else               /* 80x86 case, define if we can */
-#ifdef USE_FMEM
-#define FMEMCOPY( dest, src, size ) _fmemcpy( (void FAR *)( dest ), (const void FAR *)( src ), (size_t)( size ) )
-#define FMEMZERO( target, size )   _fmemset( (void FAR *)( target ), 0, (size_t)( size ) )
-#endif
+	#ifdef USE_FMEM
+		#define FMEMCOPY( dest, src, size ) _fmemcpy( (void FAR *)( dest ), (const void FAR *)( src ), (size_t)( size ) )
+		#define FMEMZERO( target, size )   _fmemset( (void FAR *)( target ), 0, (size_t)( size ) )
+	#endif
 #endif
 
 
@@ -122,10 +122,10 @@ jcopy_sample_rows( JSAMPARRAY input_array, int source_row,
 	register JDIMENSION count;
 #endif
 	register int row;
-	
+
 	input_array += source_row;
 	output_array += dest_row;
-	
+
 	for( row = nurows; row > 0; row-- )
 	{
 		inptr = *input_array++;
@@ -152,7 +152,7 @@ jcopy_block_row( JBLOCKROW input_row, JBLOCKROW output_row,
 #else
 	register JCOEFPTR inptr, outptr;
 	register long count;
-	
+
 	inptr = ( JCOEFPTR ) input_row;
 	outptr = ( JCOEFPTR ) output_row;
 	for( count = ( long ) nublocks * DCTSIZE2; count > 0; count-- )
@@ -173,7 +173,7 @@ jzero_far( void FAR* target, size_t bytestozero )
 #else
 	register char FAR* ptr = ( char FAR* ) target;
 	register size_t count;
-	
+
 	for( count = bytestozero; count > 0; count-- )
 	{
 		*ptr++ = 0;

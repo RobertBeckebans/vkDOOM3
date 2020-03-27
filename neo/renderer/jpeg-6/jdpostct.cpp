@@ -26,7 +26,7 @@
 typedef struct
 {
 	struct jpeg_d_post_controller pub;/* public fields */
-	
+
 	/* Color quantization source buffer: this holds output data from
 	 * the upsample/color conversion step to be passed to the quantizer.
 	 * For two-pass color quantization, we need a full-image buffer;
@@ -74,7 +74,7 @@ METHODDEF void
 start_pass_dpost( j_decompress_ptr cinfo, J_BUF_MODE pass_mode )
 {
 	my_post_ptr post = ( my_post_ptr ) cinfo->post;
-	
+
 	switch( pass_mode )
 	{
 		case JBUF_PASS_THRU:
@@ -141,7 +141,7 @@ post_process_1pass( j_decompress_ptr cinfo,
 {
 	my_post_ptr post = ( my_post_ptr ) cinfo->post;
 	JDIMENSION nurows, max_rows;
-	
+
 	/* Fill the buffer, but not more than what we can dump out in one go. */
 	/* Note we rely on the upsampler to detect bottom of image. */
 	max_rows = out_rows_avail - *out_row_ctr;
@@ -175,7 +175,7 @@ post_process_prepass( j_decompress_ptr cinfo,
 {
 	my_post_ptr post = ( my_post_ptr ) cinfo->post;
 	JDIMENSION old_next_row, nurows;
-	
+
 	/* Reposition virtual buffer if at start of strip. */
 	if( post->next_row == 0 )
 	{
@@ -183,13 +183,13 @@ post_process_prepass( j_decompress_ptr cinfo,
 					   ( ( j_common_ptr ) cinfo, post->whole_image,
 						 post->starting_row, post->strip_height, TRUE );
 	}
-	
+
 	/* Upsample some data (up to a strip height's worth). */
 	old_next_row = post->next_row;
 	( *cinfo->upsample->upsample )( cinfo,
 									input_buf, in_row_group_ctr, in_row_groups_avail,
 									post->buffer, &post->next_row, post->strip_height );
-									
+
 	/* Allow quantizer to scan new data.  No data is emitted, */
 	/* but we advance out_row_ctr so outer loop can tell when we're done. */
 	if( post->next_row > old_next_row )
@@ -199,7 +199,7 @@ post_process_prepass( j_decompress_ptr cinfo,
 											   ( JSAMPARRAY ) NULL, ( int ) nurows );
 		*out_row_ctr += nurows;
 	}
-	
+
 	/* Advance if we filled the strip. */
 	if( post->next_row >= post->strip_height )
 	{
@@ -222,7 +222,7 @@ post_process_2pass( j_decompress_ptr cinfo,
 {
 	my_post_ptr post = ( my_post_ptr ) cinfo->post;
 	JDIMENSION nurows, max_rows;
-	
+
 	/* Reposition virtual buffer if at start of strip. */
 	if( post->next_row == 0 )
 	{
@@ -230,7 +230,7 @@ post_process_2pass( j_decompress_ptr cinfo,
 					   ( ( j_common_ptr ) cinfo, post->whole_image,
 						 post->starting_row, post->strip_height, FALSE );
 	}
-	
+
 	/* Determine number of rows to emit. */
 	nurows = post->strip_height - post->next_row;/* available in strip */
 	max_rows = out_rows_avail - *out_row_ctr;/* available in output area */
@@ -244,13 +244,13 @@ post_process_2pass( j_decompress_ptr cinfo,
 	{
 		nurows = max_rows;
 	}
-	
+
 	/* Quantize and emit data. */
 	( *cinfo->cquantize->color_quantize )( cinfo,
 										   post->buffer + post->next_row, output_buf + *out_row_ctr,
 										   ( int ) nurows );
 	*out_row_ctr += nurows;
-	
+
 	/* Advance if we filled the strip. */
 	post->next_row += nurows;
 	if( post->next_row >= post->strip_height )
@@ -271,7 +271,7 @@ GLOBAL void
 jinit_d_post_controller( j_decompress_ptr cinfo, boolean need_full_buffer )
 {
 	my_post_ptr post;
-	
+
 	post = ( my_post_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_post_controller ) );
@@ -279,7 +279,7 @@ jinit_d_post_controller( j_decompress_ptr cinfo, boolean need_full_buffer )
 	post->pub.start_pass = start_pass_dpost;
 	post->whole_image = NULL;/* flag for no virtual arrays */
 	post->buffer = NULL;    /* flag for no strip buffer */
-	
+
 	/* Create the quantization buffer, if needed */
 	if( cinfo->quantize_colors )
 	{

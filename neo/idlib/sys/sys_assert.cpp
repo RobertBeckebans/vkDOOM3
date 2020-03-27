@@ -61,11 +61,11 @@ bool AssertFailed( const char* file, int line, const char* expression )
 	{
 		return false;
 	}
-	
+
 	// Set this to true to skip ONLY this assertion
 	static volatile bool skipThisAssertion = false;
 	skipThisAssertion = false;
-	
+
 	for( int i = 0; i < skippedAssertions.Num(); i++ )
 	{
 		if( skippedAssertions[i].file == file && skippedAssertions[i].line == line )
@@ -79,21 +79,21 @@ bool AssertFailed( const char* file, int line, const char* expression )
 			return false;
 		}
 	}
-	
+
 	idLib::Warning( "ASSERTION FAILED! %s(%d): '%s'", file, line, expression );
-	
+
 	if( IsDebuggerPresent() || com_assertOutOfDebugger.GetBool() )
 	{
 		__debugbreak();
 	}
-	
+
 	if( skipThisAssertion )
 	{
 		skippedAssertion_t* skipped = skippedAssertions.Alloc();
 		skipped->file = file;
 		skipped->line = line;
 	}
-	
+
 	return true;
 }
 

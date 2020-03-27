@@ -99,18 +99,18 @@ If you have questions concerning this license or the applicable additional terms
 
 #ifdef GAME_DLL
 
-#include "../d3xp/Game_local.h"
+	#include "../d3xp/Game_local.h"
 
 #else
 
-// framework
-#include "Compressor.h"
-#include "EventLoop.h"
-#include "KeyInput.h"
-#include "EditField.h"
-#include "DebugGraph.h"
-#include "Console.h"
-#include "Common_dialog.h"
+	// framework
+	#include "Compressor.h"
+	#include "EventLoop.h"
+	#include "KeyInput.h"
+	#include "EditField.h"
+	#include "DebugGraph.h"
+	#include "Console.h"
+	#include "Common_dialog.h"
 
 #endif /* !GAME_DLL */
 

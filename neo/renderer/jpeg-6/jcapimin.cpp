@@ -30,7 +30,7 @@ GLOBAL void
 jpeg_create_compress( j_compress_ptr cinfo )
 {
 	int i;
-	
+
 	/* For debugging purposes, zero the whole master structure.
 	 * But error manager pointer is already there, so save and restore it.
 	 */
@@ -40,29 +40,29 @@ jpeg_create_compress( j_compress_ptr cinfo )
 		cinfo->err = err;
 	}
 	cinfo->is_decompressor = FALSE;
-	
+
 	/* Initialize a memory manager instance for this object */
 	jinit_memory_mgr( ( j_common_ptr ) cinfo );
-	
+
 	/* Zero out pointers to permanent structures. */
 	cinfo->progress = NULL;
 	cinfo->dest = NULL;
-	
+
 	cinfo->comp_info = NULL;
-	
+
 	for( i = 0; i < NUM_QUANT_TBLS; i++ )
 	{
 		cinfo->quant_tbl_ptrs[i] = NULL;
 	}
-	
+
 	for( i = 0; i < NUM_HUFF_TBLS; i++ )
 	{
 		cinfo->dc_huff_tbl_ptrs[i] = NULL;
 		cinfo->ac_huff_tbl_ptrs[i] = NULL;
 	}
-	
+
 	cinfo->input_gamma = 1.0;/* in case application forgets */
-	
+
 	/* OK, I'm ready */
 	cinfo->global_state = CSTATE_START;
 }
@@ -109,7 +109,7 @@ jpeg_suppress_tables( j_compress_ptr cinfo, boolean suppress )
 	int i;
 	JQUANT_TBL* qtbl;
 	JHUFF_TBL* htbl;
-	
+
 	for( i = 0; i < NUM_QUANT_TBLS; i++ )
 	{
 		if( ( qtbl = cinfo->quant_tbl_ptrs[i] ) != NULL )
@@ -117,7 +117,7 @@ jpeg_suppress_tables( j_compress_ptr cinfo, boolean suppress )
 			qtbl->sent_table = suppress;
 		}
 	}
-	
+
 	for( i = 0; i < NUM_HUFF_TBLS; i++ )
 	{
 		if( ( htbl = cinfo->dc_huff_tbl_ptrs[i] ) != NULL )
@@ -143,7 +143,7 @@ GLOBAL void
 jpeg_finish_compress( j_compress_ptr cinfo )
 {
 	JDIMENSION iMCU_row;
-	
+
 	if( ( cinfo->global_state == CSTATE_SCANNING ) ||
 			( cinfo->global_state == CSTATE_RAW_OK ) )
 	{
@@ -206,7 +206,7 @@ jpeg_write_marker( j_compress_ptr cinfo, int marker,
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	( *cinfo->marker->write_any_marker )( cinfo, marker, dataptr, datalen );
 }
 
@@ -239,7 +239,7 @@ jpeg_write_tables( j_compress_ptr cinfo )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	/* (Re)initialize error mgr and destination modules */
 	( *cinfo->err->reset_error_mgr )( ( j_common_ptr ) cinfo );
 	( *cinfo->dest->init_destination )( cinfo );
