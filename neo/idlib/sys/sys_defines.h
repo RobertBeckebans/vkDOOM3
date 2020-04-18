@@ -47,36 +47,36 @@ If you have questions concerning this license or the applicable additional terms
 #undef ID_LITTLE_ENDIAN
 
 #if defined(_WIN32)
-// _WIN32 always defined
-// _WIN64 also defined for x64 target
+	// _WIN32 always defined
+	// _WIN64 also defined for x64 target
 
-#if !defined( _MANAGED )
-#if !defined( _WIN64 )
-#define ID_WIN_X86_ASM
-#define ID_WIN_X86_MMX_ASM
-#define ID_WIN_X86_MMX_INTRIN
-#define ID_WIN_X86_SSE_ASM
-#define ID_WIN_X86_SSE_INTRIN
-#define ID_WIN_X86_SSE2_ASM
-#define ID_WIN_X86_SSE2_INTRIN
-// the 32 bit build is now as close to the console builds as possible
-#define ID_CONSOLE
+	#if !defined( _MANAGED )
+		#if !defined( _WIN64 )
+			#define ID_WIN_X86_ASM
+			#define ID_WIN_X86_MMX_ASM
+			#define ID_WIN_X86_MMX_INTRIN
+			#define ID_WIN_X86_SSE_ASM
+			#define ID_WIN_X86_SSE_INTRIN
+			#define ID_WIN_X86_SSE2_ASM
+			#define ID_WIN_X86_SSE2_INTRIN
+			// the 32 bit build is now as close to the console builds as possible
+			#define ID_CONSOLE
+		#else
+			#define ID_PC_WIN64
+			#define ID_WIN_X86_MMX_INTRIN
+			#define ID_WIN_X86_SSE_INTRIN
+			#define ID_WIN_X86_SSE2_INTRIN
+			#define ID_WIN_X86_SSE3_INTRIN
+		#endif
+	#endif
+
+
+	#define ID_PC
+	#define ID_PC_WIN
+	#define ID_WIN32
+	#define ID_LITTLE_ENDIAN
 #else
-#define ID_PC_WIN64
-#define ID_WIN_X86_MMX_INTRIN
-#define ID_WIN_X86_SSE_INTRIN
-#define ID_WIN_X86_SSE2_INTRIN
-#define ID_WIN_X86_SSE3_INTRIN
-#endif
-#endif
-
-
-#define ID_PC
-#define ID_PC_WIN
-#define ID_WIN32
-#define ID_LITTLE_ENDIAN
-#else
-#error Unknown Platform
+	#error Unknown Platform
 #endif
 
 /*
@@ -89,30 +89,30 @@ If you have questions concerning this license or the applicable additional terms
 
 #ifdef ID_PC_WIN
 
-#define	CPUSTRING						"x86"
+	#define	CPUSTRING						"x86"
 
-#define	BUILD_STRING					"win-" CPUSTRING
-#define BUILD_OS_ID						0
+	#define	BUILD_STRING					"win-" CPUSTRING
+	#define BUILD_OS_ID						0
 
-#define ALIGN16( x )					__declspec(align(16)) x
-#define ALIGNTYPE16						__declspec(align(16))
-#define ALIGNTYPE128					__declspec(align(128))
-#define FORMAT_PRINTF( x )
+	#define ALIGN16( x )					__declspec(align(16)) x
+	#define ALIGNTYPE16						__declspec(align(16))
+	#define ALIGNTYPE128					__declspec(align(128))
+	#define FORMAT_PRINTF( x )
 
-#define PATHSEPARATOR_STR				"\\"
-#define PATHSEPARATOR_CHAR				'\\'
-#define NEWLINE							"\r\n"
+	#define PATHSEPARATOR_STR				"\\"
+	#define PATHSEPARATOR_CHAR				'\\'
+	#define NEWLINE							"\r\n"
 
-#define ID_INLINE						inline
-#define ID_FORCE_INLINE					__forceinline
+	#define ID_INLINE						inline
+	#define ID_FORCE_INLINE					__forceinline
 
-#define ID_INLINE_EXTERN				extern inline
-#define ID_FORCE_INLINE_EXTERN			extern __forceinline
+	#define ID_INLINE_EXTERN				extern inline
+	#define ID_FORCE_INLINE_EXTERN			extern __forceinline
 
-// we should never rely on this define in our code. this is here so dodgy external libraries don't get confused
-#ifndef WIN32
-#define WIN32
-#endif
+	// we should never rely on this define in our code. this is here so dodgy external libraries don't get confused
+	#ifndef WIN32
+		#define WIN32
+	#endif
 
 #endif
 
@@ -157,31 +157,31 @@ bulk of the codebase, so it is the best place for analyze pragmas.
 
 #if defined( ID_WIN32 )
 
-#pragma warning( disable: 4458 )	// warning C4458: hiding class members
-#pragma warning( disable: 4459 )	// warning C4459: hiding global members
-#pragma warning( disable: 4244 )	// warning C4244: conversion from 'double' to 'float', possible loss of data
+	#pragma warning( disable: 4458 )	// warning C4458: hiding class members
+	#pragma warning( disable: 4459 )	// warning C4459: hiding global members
+	#pragma warning( disable: 4244 )	// warning C4244: conversion from 'double' to 'float', possible loss of data
 
-// disable some /analyze warnings here
-#pragma warning( disable: 6255 )	// warning C6255: _alloca indicates failure by raising a stack overflow exception. Consider using _malloca instead. (Note: _malloca requires _freea.)
-#pragma warning( disable: 6262 )	// warning C6262: Function uses '36924' bytes of stack: exceeds /analyze:stacksize'32768'. Consider moving some data to heap
-#pragma warning( disable: 6326 )	// warning C6326: Potential comparison of a constant with another constant
+	// disable some /analyze warnings here
+	#pragma warning( disable: 6255 )	// warning C6255: _alloca indicates failure by raising a stack overflow exception. Consider using _malloca instead. (Note: _malloca requires _freea.)
+	#pragma warning( disable: 6262 )	// warning C6262: Function uses '36924' bytes of stack: exceeds /analyze:stacksize'32768'. Consider moving some data to heap
+	#pragma warning( disable: 6326 )	// warning C6326: Potential comparison of a constant with another constant
 
-#pragma warning( disable: 6031 )	//  warning C6031: Return value ignored
-// this warning fires whenever you have two calls to new in a function, but we assume new never fails, so it is not relevant for us
-#pragma warning( disable: 6211 )	// warning C6211: Leaking memory 'staticModel' due to an exception. Consider using a local catch block to clean up memory
+	#pragma warning( disable: 6031 )	//  warning C6031: Return value ignored
+	// this warning fires whenever you have two calls to new in a function, but we assume new never fails, so it is not relevant for us
+	#pragma warning( disable: 6211 )	// warning C6211: Leaking memory 'staticModel' due to an exception. Consider using a local catch block to clean up memory
 
-// we want to fix all these at some point...
-#pragma warning( disable: 6246 )	// warning C6246: Local declaration of 'es' hides declaration of the same name in outer scope. For additional information, see previous declaration at line '969' of 'w:\tech5\rage\game\ai\fsm\fsm_combat.cpp': Lines: 969
-#pragma warning( disable: 6244 )	// warning C6244: Local declaration of 'viewList' hides previous declaration at line '67' of 'w:\tech5\engine\renderer\rendertools.cpp'
+	// we want to fix all these at some point...
+	#pragma warning( disable: 6246 )	// warning C6246: Local declaration of 'es' hides declaration of the same name in outer scope. For additional information, see previous declaration at line '969' of 'w:\tech5\rage\game\ai\fsm\fsm_combat.cpp': Lines: 969
+	#pragma warning( disable: 6244 )	// warning C6244: Local declaration of 'viewList' hides previous declaration at line '67' of 'w:\tech5\engine\renderer\rendertools.cpp'
 
-// win32 needs this, but 360 doesn't
-#pragma warning( disable: 6540 )	// warning C6540: The use of attribute annotations on this function will invalidate all of its existing __declspec annotations [D:\tech5\engine\engine-10.vcxproj]
+	// win32 needs this, but 360 doesn't
+	#pragma warning( disable: 6540 )	// warning C6540: The use of attribute annotations on this function will invalidate all of its existing __declspec annotations [D:\tech5\engine\engine-10.vcxproj]
 
 
-// We need to inform the compiler that Error() and FatalError() will
-// never return, so any conditions that leeds to them being called are
-// guaranteed to be false in the following code
-#define NO_RETURN __declspec(noreturn)
+	// We need to inform the compiler that Error() and FatalError() will
+	// never return, so any conditions that leeds to them being called are
+	// guaranteed to be false in the following code
+	#define NO_RETURN __declspec(noreturn)
 
 #endif
 

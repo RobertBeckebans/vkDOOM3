@@ -14,12 +14,12 @@
 #include "jversion.h"        /* for version message */
 
 #ifdef USE_CCOMMAND     /* command-line reader for Macintosh */
-#ifdef __MWERKS__
-#include <SIOUX.h>              /* Metrowerks declares it here */
-#endif
-#ifdef THINK_C
-#include <console.h>     /* Think declares it here */
-#endif
+	#ifdef __MWERKS__
+		#include <SIOUX.h>              /* Metrowerks declares it here */
+	#endif
+	#ifdef THINK_C
+		#include <console.h>     /* Think declares it here */
+	#endif
 #endif
 
 
@@ -46,7 +46,7 @@ usage( void )
 #else
 	fprintf( stderr, "[inputfile]\n" );
 #endif
-	
+
 	fprintf( stderr, "Switches (names may be abbreviated):\n" );
 #ifdef ENTROPY_OPT_SUPPORTED
 	fprintf( stderr, "  -optimize      Optimize Huffman table (smaller file, but slow compression)\n" );
@@ -86,14 +86,14 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 	char* arg;
 	boolean simple_progressive;
 	char* scansarg = NULL;  /* saves -scans parm if any */
-	
+
 	/* Set up default JPEG parameters. */
 	simple_progressive = FALSE;
 	outfilename = NULL;
 	cinfo->err->trace_level = 0;
-	
+
 	/* Scan command line options, adjust parameters */
-	
+
 	for( argn = 1; argn < argc; argn++ )
 	{
 		arg = argv[argn];
@@ -108,7 +108,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 			break;      /* else done parsing switches */
 		}
 		arg++;      /* advance past switch marker character */
-		
+
 		if( keymatch( arg, "arithmetic", 1 ) )
 		{
 			/* Use arithmetic coding. */
@@ -119,14 +119,14 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 					 progname );
 			exit( EXIT_FAILURE );
 #endif
-			
+
 		}
 		else if( keymatch( arg, "debug", 1 ) || keymatch( arg, "verbose", 1 ) )
 		{
 			/* Enable debug printouts. */
 			/* On first -d, print version identification */
 			static boolean printed_version = FALSE;
-			
+
 			if( !printed_version )
 			{
 				fprintf( stderr, "Independent JPEG Group's JPEGTRAN, version %s\n%s\n",
@@ -134,14 +134,14 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 				printed_version = TRUE;
 			}
 			cinfo->err->trace_level++;
-			
+
 		}
 		else if( keymatch( arg, "maxmemory", 3 ) )
 		{
 			/* Maximum memory in Kb (or Mb with 'm'). */
 			long lval;
 			char ch = 'x';
-			
+
 			if( ++argn >= argc )   /* advance to next argument */
 			{
 				usage();
@@ -155,7 +155,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 				lval *= 1000L;
 			}
 			cinfo->mem->max_memory_to_use = lval * 1000L;
-			
+
 		}
 		else if( keymatch( arg, "optimize", 1 ) || keymatch( arg, "optimise", 1 ) )
 		{
@@ -167,7 +167,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 					 progname );
 			exit( EXIT_FAILURE );
 #endif
-			
+
 		}
 		else if( keymatch( arg, "outfile", 4 ) )
 		{
@@ -177,7 +177,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 				usage();
 			}
 			outfilename = argv[argn];/* save it away for later use */
-			
+
 		}
 		else if( keymatch( arg, "progressive", 1 ) )
 		{
@@ -190,14 +190,14 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 					 progname );
 			exit( EXIT_FAILURE );
 #endif
-			
+
 		}
 		else if( keymatch( arg, "restart", 1 ) )
 		{
 			/* Restart interval in MCU rows (or in MCUs with 'b'). */
 			long lval;
 			char ch = 'x';
-			
+
 			if( ++argn >= argc )   /* advance to next argument */
 			{
 				usage();
@@ -220,7 +220,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 				cinfo->restart_in_rows = ( int ) lval;
 				/* restart_interval will be computed during startup */
 			}
-			
+
 		}
 		else if( keymatch( arg, "scans", 2 ) )
 		{
@@ -237,26 +237,26 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 					 progname );
 			exit( EXIT_FAILURE );
 #endif
-			
+
 		}
 		else
 		{
 			usage();    /* bogus switch */
 		}
 	}
-	
+
 	/* Post-switch-scanning cleanup */
-	
+
 	if( for_real )
 	{
-	
+
 #ifdef C_PROGRESSIVE_SUPPORTED
 		if( simple_progressive )   /* process -progressive; -scans can override */
 		{
 			jpeg_simple_progression( cinfo );
 		}
 #endif
-		
+
 #ifdef C_MULTISCAN_FILES_SUPPORTED
 		if( scansarg != NULL )   /* process -scans if it was present */
 		{
@@ -267,7 +267,7 @@ parse_switches( j_compress_ptr cinfo, int argc, char** argv,
 		}
 #endif
 	}
-	
+
 	return argn;        /* return index of next arg (file name) */
 }
 
@@ -289,41 +289,41 @@ main( int argc, char** argv )
 	int file_index;
 	FILE* input_file;
 	FILE* output_file;
-	
+
 	/* On Mac, fetch a command line. */
 #ifdef USE_CCOMMAND
 	argc = ccommand( &argv );
 #endif
-	
+
 	progname = argv[0];
 	if( ( progname == NULL ) || ( progname[0] == 0 ) )
 	{
 		progname = "jpegtran";
 	}                       /* in case C library doesn't provide it */
-	
+
 	/* Initialize the JPEG decompression object with default error handling. */
 	srcinfo.err = jpeg_std_error( &jsrcerr );
 	jpeg_create_decompress( &srcinfo );
 	/* Initialize the JPEG compression object with default error handling. */
 	dstinfo.err = jpeg_std_error( &jdsterr );
 	jpeg_create_compress( &dstinfo );
-	
+
 	/* Now safe to enable signal catcher.
 	 * Note: we assume only the decompression object will have virtual arrays.
 	 */
 #ifdef NEED_SIGNAL_CATCHER
 	enable_signal_catcher( ( j_common_ptr ) & srcinfo );
 #endif
-	
+
 	/* Scan command line to find file names.
 	 * It is convenient to use just one switch-parsing routine, but the switch
 	 * values read here are ignored; we will rescan the switches after opening
 	 * the input file.
 	 */
-	
+
 	file_index = parse_switches( &dstinfo, argc, argv, 0, FALSE );
 	jsrcerr.trace_level = jdsterr.trace_level;
-	
+
 #ifdef TWO_FILE_COMMANDLINE
 	/* Must have either -outfile switch or explicit output file name */
 	if( outfilename == NULL )
@@ -353,7 +353,7 @@ main( int argc, char** argv )
 		usage();
 	}
 #endif /* TWO_FILE_COMMANDLINE */
-	
+
 	/* Open the input file. */
 	if( file_index < argc )
 	{
@@ -368,7 +368,7 @@ main( int argc, char** argv )
 		/* default input file is stdin */
 		input_file = read_stdin();
 	}
-	
+
 	/* Open the output file. */
 	if( outfilename != NULL )
 	{
@@ -383,40 +383,40 @@ main( int argc, char** argv )
 		/* default output file is stdout */
 		output_file = write_stdout();
 	}
-	
+
 #ifdef PROGRESS_REPORT
 	start_progress_monitor( ( j_common_ptr ) & dstinfo, &progress );
 #endif
-	
+
 	/* Specify data source for decompression */
 	jpeg_stdio_src( &srcinfo, input_file );
-	
+
 	/* Read file header */
 	( void ) jpeg_read_header( &srcinfo, TRUE );
-	
+
 	/* Read source file as DCT coefficients */
 	coef_arrays = jpeg_read_coefficients( &srcinfo );
-	
+
 	/* Initialize destination compression parameters from source values */
 	jpeg_copy_critical_parameters( &srcinfo, &dstinfo );
-	
+
 	/* Adjust default compression parameters by re-parsing the options */
 	file_index = parse_switches( &dstinfo, argc, argv, 0, TRUE );
-	
+
 	/* Specify data destination for compression */
 	jpeg_stdio_dest( &dstinfo, output_file );
-	
+
 	/* Start compressor */
 	jpeg_write_coefficients( &dstinfo, coef_arrays );
-	
+
 	/* ought to copy source comments here... */
-	
+
 	/* Finish compression and release memory */
 	jpeg_finish_compress( &dstinfo );
 	jpeg_destroy_compress( &dstinfo );
 	( void ) jpeg_finish_decompress( &srcinfo );
 	jpeg_destroy_decompress( &srcinfo );
-	
+
 	/* Close files, if we opened them */
 	if( input_file != stdin )
 	{
@@ -426,11 +426,11 @@ main( int argc, char** argv )
 	{
 		fclose( output_file );
 	}
-	
+
 #ifdef PROGRESS_REPORT
 	end_progress_monitor( ( j_common_ptr ) & dstinfo );
 #endif
-	
+
 	/* All done. */
 	exit( jsrcerr.num_warnings + jdsterr.num_warnings ? EXIT_WARNING : EXIT_SUCCESS );
 	return 0;       /* suppress no-return-value warnings */

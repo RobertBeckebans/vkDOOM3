@@ -51,15 +51,15 @@ public:
 		devList( devList_ ),
 		optionIndex( optionIndex_ )
 	{
-	
+
 	}
-	
+
 	idSWFScriptVar Call( idSWFScriptObject* thisObject, const idSWFParmList& parms )
 	{
 		devList->NavigateForward( optionIndex );
 		return idSWFScriptVar();
 	}
-	
+
 private:
 	idMenuWidget_DevList* 	devList;
 	int						optionIndex;
@@ -77,7 +77,7 @@ void idMenuWidget_DevList::Initialize()
 	AddEventAction( WIDGET_EVENT_SCROLL_UP ).Set( WIDGET_ACTION_START_REPEATER, WIDGET_ACTION_SCROLL_VERTICAL, -1 );
 	AddEventAction( WIDGET_EVENT_SCROLL_DOWN_RELEASE ).Set( WIDGET_ACTION_STOP_REPEATER );
 	AddEventAction( WIDGET_EVENT_SCROLL_UP_RELEASE ).Set( WIDGET_ACTION_STOP_REPEATER );
-	
+
 	int optionIndex = 0;
 	while( GetChildren().Num() < GetNumVisibleOptions() )
 	{
@@ -98,7 +98,7 @@ int idMenuWidget_DevList::GetTotalNumberOfOptions() const
 	{
 		return 0;
 	}
-	
+
 	return devMenuList->devMenuList.Num();
 }
 
@@ -112,9 +112,9 @@ void idMenuWidget_DevList::GoToFirstMenu()
 	devMapListInfos.Clear();
 	indexInfo_t& info = devMapListInfos.Alloc();
 	info.name = "devmenuoption/main";
-	
+
 	devMenuList = NULL;
-	
+
 	RecalculateDevMenu();
 }
 
@@ -129,15 +129,15 @@ void idMenuWidget_DevList::NavigateForward( const int optionIndex )
 	{
 		return;
 	}
-	
+
 	const int focusedIndex = GetViewOffset() + optionIndex;
-	
+
 	const idDeclDevMenuList::idDevMenuOption& devOption = devMenuList->devMenuList[ focusedIndex ];
 	if( ( devOption.devMenuDisplayName.Length() == 0 ) || ( devOption.devMenuDisplayName.Cmp( "..." ) == 0 ) )
 	{
 		return;
 	}
-	
+
 	if( devOption.devMenuSubList != NULL )
 	{
 		indexInfo_t& indexes = devMapListInfos.Alloc();
@@ -145,20 +145,20 @@ void idMenuWidget_DevList::NavigateForward( const int optionIndex )
 		indexes.focusIndex = GetFocusIndex();
 		indexes.viewIndex = GetViewIndex();
 		indexes.viewOffset = GetViewOffset();
-		
+
 		RecalculateDevMenu();
-		
+
 		SetViewIndex( 0 );
 		SetViewOffset( 0 );
-		
+
 		Update();
-		
+
 		// NOTE: This must be done after the Update() because it MAY change the sprites that
 		// children refer to
 		GetChildByIndex( 0 ).SetState( WIDGET_STATE_SELECTED );
 		ForceFocusIndex( 0 );
 		SetFocusIndex( 0 );
-		
+
 		gameLocal->GetMainMenu()->ClearWidgetActionRepeater();
 	}
 	else
@@ -181,32 +181,32 @@ void idMenuWidget_DevList::NavigateBack()
 		// widget will have the parent's focus, so a standard ReceiveEvent() here would turn
 		// into an infinite recursion.
 		idWidgetEvent event( WIDGET_EVENT_BACK, 0, NULL, idSWFParmList() );
-		
+
 		idWidgetAction action;
 		action.Set( WIDGET_ACTION_GO_BACK, MENU_ROOT );
 		HandleAction( action, event );
-		
+
 		return;
 	}
-	
+
 	// NOTE: we need a copy here, since it's about to be removed from the list
 	const indexInfo_t indexes = devMapListInfos[ devMapListInfos.Num() - 1 ];
 	assert( indexes.focusIndex < GetChildren().Num() );
 	assert( ( indexes.viewIndex - indexes.viewOffset ) < GetNumVisibleOptions() );
 	devMapListInfos.RemoveIndex( devMapListInfos.Num() - 1 );
-	
+
 	RecalculateDevMenu();
-	
+
 	SetViewIndex( indexes.viewIndex );
 	SetViewOffset( indexes.viewOffset );
-	
+
 	Update();
-	
+
 	// NOTE: This must be done AFTER Update() because so that it is sure to refer to the proper sprite
 	GetChildByIndex( indexes.focusIndex ).SetState( WIDGET_STATE_SELECTED );
 	ForceFocusIndex( indexes.focusIndex );
 	SetFocusIndex( indexes.focusIndex );
-	
+
 	gameLocal->GetMainMenu()->ClearWidgetActionRepeater();
 }
 
@@ -226,7 +226,7 @@ void idMenuWidget_DevList::RecalculateDevMenu()
 			devMenuList = devMenuListDecl;
 		}
 	}
-	
+
 	idSWFScriptObject& root = gameLocal->GetMainMenu()->GetSWF()->GetRootObject();
 	for( int i = 0; i < GetChildren().Num(); ++i )
 	{

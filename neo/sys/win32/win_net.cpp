@@ -96,7 +96,7 @@ NET_ErrorString
 char* NET_ErrorString()
 {
 	int		code;
-	
+
 	code = WSAGetLastError();
 	switch( code )
 	{
@@ -201,7 +201,7 @@ Net_NetadrToSockadr
 void Net_NetadrToSockadr( const netadr_t* a, sockaddr_in* s )
 {
 	memset( s, 0, sizeof( *s ) );
-	
+
 	if( a->type == NA_BROADCAST )
 	{
 		s->sin_family = AF_INET;
@@ -212,7 +212,7 @@ void Net_NetadrToSockadr( const netadr_t* a, sockaddr_in* s )
 		s->sin_family = AF_INET;
 		s->sin_addr.s_addr = *( int* )a->ip;
 	}
-	
+
 	s->sin_port = htons( ( short )a->port );
 }
 
@@ -278,12 +278,12 @@ static bool Net_StringToSockaddr( const char* s, sockaddr_in* sadr, bool doDNSRe
 	struct hostent*	h;
 	char buf[256];
 	int port;
-	
+
 	memset( sadr, 0, sizeof( *sadr ) );
-	
+
 	sadr->sin_family = AF_INET;
 	sadr->sin_port = 0;
-	
+
 	if( s[0] >= '0' && s[0] <= '9' )
 	{
 		unsigned long ret = inet_addr( s );
@@ -322,7 +322,7 @@ static bool Net_StringToSockaddr( const char* s, sockaddr_in* sadr, bool doDNSRe
 		}
 		*( int* )&sadr->sin_addr = *( int* )h->h_addr_list[0];
 	}
-	
+
 	return true;
 }
 
@@ -338,7 +338,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 	unsigned long		_true = 1;
 	int					i = 1;
 	int					err;
-	
+
 	if( port != PORT_ANY )
 	{
 		if( net_interface )
@@ -350,7 +350,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 			idLib::Printf( "Opening IP socket: localhost:%i\n", port );
 		}
 	}
-	
+
 	if( ( newsocket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) == INVALID_SOCKET )
 	{
 		err = WSAGetLastError();
@@ -360,7 +360,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 		}
 		return 0;
 	}
-	
+
 	// make it non-blocking
 	if( ioctlsocket( newsocket, FIONBIO, &_true ) == SOCKET_ERROR )
 	{
@@ -368,7 +368,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 		closesocket( newsocket );
 		return 0;
 	}
-	
+
 	// make it broadcast capable
 	if( setsockopt( newsocket, SOL_SOCKET, SO_BROADCAST, ( char* )&i, sizeof( i ) ) == SOCKET_ERROR )
 	{
@@ -376,7 +376,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 		closesocket( newsocket );
 		return 0;
 	}
-	
+
 	if( !net_interface || !net_interface[0] || !idStr::Icmp( net_interface, "localhost" ) )
 	{
 		address.sin_addr.s_addr = INADDR_ANY;
@@ -385,7 +385,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 	{
 		Net_StringToSockaddr( net_interface, &address, true );
 	}
-	
+
 	if( port == PORT_ANY )
 	{
 		address.sin_port = 0;
@@ -394,16 +394,16 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 	{
 		address.sin_port = htons( ( short )port );
 	}
-	
+
 	address.sin_family = AF_INET;
-	
+
 	if( bind( newsocket, ( const sockaddr* )&address, sizeof( address ) ) == SOCKET_ERROR )
 	{
 		idLib::Printf( "WARNING: UDP_OpenSocket: bind: %s\n", NET_ErrorString() );
 		closesocket( newsocket );
 		return 0;
 	}
-	
+
 	// if the port was PORT_ANY, we need to query again to know the real port we got bound to
 	// ( this used to be in idUDP::InitForPort )
 	if( bound_to )
@@ -412,7 +412,7 @@ int NET_IPSocket( const char* net_interface, int port, netadr_t* bound_to )
 		getsockname( newsocket, ( sockaddr* )&address, &len );
 		Net_SockadrToNetadr( &address, bound_to );
 	}
-	
+
 	return newsocket;
 }
 
@@ -428,17 +428,17 @@ void NET_OpenSocks( int port )
 	int					len;
 	bool				rfc1929;
 	unsigned char		buf[64];
-	
+
 	usingSocks = false;
-	
+
 	idLib::Printf( "Opening connection to SOCKS server.\n" );
-	
+
 	if( ( socks_socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP ) ) == INVALID_SOCKET )
 	{
 		idLib::Printf( "WARNING: NET_OpenSocks: socket: %s\n", NET_ErrorString() );
 		return;
 	}
-	
+
 	h = gethostbyname( net_socksServer.GetString() );
 	if( h == NULL )
 	{
@@ -453,13 +453,13 @@ void NET_OpenSocks( int port )
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = *( int* )h->h_addr_list[0];
 	address.sin_port = htons( ( short )net_socksPort.GetInteger() );
-	
+
 	if( connect( socks_socket, ( sockaddr* )&address, sizeof( address ) ) == SOCKET_ERROR )
 	{
 		idLib::Printf( "NET_OpenSocks: connect: %s\n", NET_ErrorString() );
 		return;
 	}
-	
+
 	// send socks authentication handshake
 	if( *net_socksUsername.GetString() || *net_socksPassword.GetString() )
 	{
@@ -469,7 +469,7 @@ void NET_OpenSocks( int port )
 	{
 		rfc1929 = false;
 	}
-	
+
 	buf[0] = 5;		// SOCKS version
 	// method count
 	if( rfc1929 )
@@ -492,7 +492,7 @@ void NET_OpenSocks( int port )
 		idLib::Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
-	
+
 	// get the response
 	len = recv( socks_socket, ( char* )buf, 64, 0 );
 	if( len == SOCKET_ERROR )
@@ -515,17 +515,17 @@ void NET_OpenSocks( int port )
 			idLib::Printf( "NET_OpenSocks: request denied\n" );
 			return;
 	}
-	
+
 	// do username/password authentication if needed
 	if( buf[1] == 2 )
 	{
 		int		ulen;
 		int		plen;
-		
+
 		// build the request
 		ulen = idStr::Length( net_socksUsername.GetString() );
 		plen = idStr::Length( net_socksPassword.GetString() );
-		
+
 		buf[0] = 1;		// username/password authentication version
 		buf[1] = ulen;
 		if( ulen )
@@ -537,14 +537,14 @@ void NET_OpenSocks( int port )
 		{
 			memcpy( &buf[3 + ulen], net_socksPassword.GetString(), plen );
 		}
-		
+
 		// send it
 		if( send( socks_socket, ( const char* )buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR )
 		{
 			idLib::Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 			return;
 		}
-		
+
 		// get the response
 		len = recv( socks_socket, ( char* )buf, 64, 0 );
 		if( len == SOCKET_ERROR )
@@ -563,7 +563,7 @@ void NET_OpenSocks( int port )
 			return;
 		}
 	}
-	
+
 	// send the UDP associate request
 	buf[0] = 5;		// SOCKS version
 	buf[1] = 3;		// command: UDP associate
@@ -576,7 +576,7 @@ void NET_OpenSocks( int port )
 		idLib::Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
-	
+
 	// get the response
 	len = recv( socks_socket, ( char* )buf, 64, 0 );
 	if( len == SOCKET_ERROR )
@@ -604,7 +604,7 @@ void NET_OpenSocks( int port )
 	socksRelayAddr.sin_addr.s_addr = *( int* )&buf[4];
 	socksRelayAddr.sin_port = *( short* )&buf[8];
 	memset( socksRelayAddr.sin_zero, 0, sizeof( socksRelayAddr.sin_zero ) );
-	
+
 	usingSocks = true;
 }
 
@@ -618,37 +618,37 @@ bool Net_WaitForData( int netSocket, int timeout )
 	int					ret;
 	fd_set				set;
 	struct timeval		tv;
-	
+
 	if( !netSocket )
 	{
 		return false;
 	}
-	
+
 	if( timeout < 0 )
 	{
 		return true;
 	}
-	
+
 	FD_ZERO( &set );
 	FD_SET( static_cast<unsigned int>( netSocket ), &set );
-	
+
 	tv.tv_sec = 0;
 	tv.tv_usec = timeout * 1000;
-	
+
 	ret = select( netSocket + 1, &set, NULL, NULL, &tv );
-	
+
 	if( ret == -1 )
 	{
 		idLib::Printf( "Net_WaitForData select(): %s\n", strerror( errno ) );
 		return false;
 	}
-	
+
 	// timeout with no data
 	if( ret == 0 )
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -663,18 +663,18 @@ bool Net_GetUDPPacket( int netSocket, netadr_t& net_from, char* data, int& size,
 	sockaddr_in		from;
 	int				fromlen;
 	int				err;
-	
+
 	if( !netSocket )
 	{
 		return false;
 	}
-	
+
 	fromlen = sizeof( from );
 	ret = recvfrom( netSocket, data, maxSize, 0, ( sockaddr* )&from, &fromlen );
 	if( ret == SOCKET_ERROR )
 	{
 		err = WSAGetLastError();
-		
+
 		if( err == WSAEWOULDBLOCK || err == WSAECONNRESET )
 		{
 			return false;
@@ -684,12 +684,12 @@ bool Net_GetUDPPacket( int netSocket, netadr_t& net_from, char* data, int& size,
 		idLib::Printf( buf );
 		return false;
 	}
-	
+
 	if( static_cast<unsigned int>( netSocket ) == ip_socket )
 	{
 		memset( from.sin_zero, 0, sizeof( from.sin_zero ) );
 	}
-	
+
 	if( usingSocks && static_cast<unsigned int>( netSocket ) == ip_socket && memcmp( &from, &socksRelayAddr, fromlen ) == 0 )
 	{
 		if( ret < 10 || data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 1 )
@@ -708,7 +708,7 @@ bool Net_GetUDPPacket( int netSocket, netadr_t& net_from, char* data, int& size,
 	{
 		Net_SockadrToNetadr( &from, &net_from );
 	}
-	
+
 	if( ret > maxSize )
 	{
 		char	buf[1024];
@@ -716,9 +716,9 @@ bool Net_GetUDPPacket( int netSocket, netadr_t& net_from, char* data, int& size,
 		idLib::Printf( buf );
 		return false;
 	}
-	
+
 	size = ret;
-	
+
 	return true;
 }
 
@@ -731,14 +731,14 @@ void Net_SendUDPPacket( int netSocket, int length, const void* data, const netad
 {
 	int				ret;
 	sockaddr_in		addr;
-	
+
 	if( !netSocket )
 	{
 		return;
 	}
-	
+
 	Net_NetadrToSockadr( &to, &addr );
-	
+
 	if( usingSocks && to.type == NA_IP )
 	{
 		socksBuf[0] = 0;	// reserved
@@ -757,13 +757,13 @@ void Net_SendUDPPacket( int netSocket, int length, const void* data, const netad
 	if( ret == SOCKET_ERROR )
 	{
 		int err = WSAGetLastError();
-		
+
 		// some PPP links do not allow broadcasts and return an error
 		if( ( err == WSAEADDRNOTAVAIL ) && ( to.type == NA_BROADCAST ) )
 		{
 			return;
 		}
-		
+
 		// NOTE: WSAEWOULDBLOCK used to be silently ignored,
 		// but that means the packet will be dropped so I don't feel it's a good thing to ignore
 		idLib::Printf( "UDP sendto error - packet dropped: %s\n", NET_ErrorString() );
@@ -778,7 +778,7 @@ Sys_InitNetworking
 void Sys_InitNetworking()
 {
 	int		r;
-	
+
 	if( winsockInitialized )
 	{
 		return;
@@ -789,27 +789,27 @@ void Sys_InitNetworking()
 		idLib::Printf( "WARNING: Winsock initialization failed, returned %d\n", r );
 		return;
 	}
-	
+
 	winsockInitialized = true;
 	idLib::Printf( "Winsock Initialized\n" );
-	
+
 	PIP_ADAPTER_INFO pAdapterInfo;
 	PIP_ADAPTER_INFO pAdapter = NULL;
 	DWORD dwRetVal = 0;
 	PIP_ADDR_STRING pIPAddrString;
 	ULONG ulOutBufLen;
 	bool foundloopback;
-	
+
 	num_interfaces = 0;
 	foundloopback = false;
-	
+
 	pAdapterInfo = ( IP_ADAPTER_INFO* )malloc( sizeof( IP_ADAPTER_INFO ) );
 	if( !pAdapterInfo )
 	{
 		idLib::FatalError( "Sys_InitNetworking: Couldn't malloc( %d )", sizeof( IP_ADAPTER_INFO ) );
 	}
 	ulOutBufLen = sizeof( IP_ADAPTER_INFO );
-	
+
 	// Make an initial call to GetAdaptersInfo to get
 	// the necessary size into the ulOutBufLen variable
 	if( GetAdaptersInfo( pAdapterInfo, &ulOutBufLen ) == ERROR_BUFFER_OVERFLOW )
@@ -821,7 +821,7 @@ void Sys_InitNetworking()
 			idLib::FatalError( "Sys_InitNetworking: Couldn't malloc( %ld )", ulOutBufLen );
 		}
 	}
-	
+
 	if( ( dwRetVal = GetAdaptersInfo( pAdapterInfo, &ulOutBufLen ) ) != NO_ERROR )
 	{
 		// happens if you have no network connection
@@ -900,12 +900,12 @@ Sys_StringToNetAdr
 bool Sys_StringToNetAdr( const char* s, netadr_t* a, bool doDNSResolve )
 {
 	sockaddr_in sadr;
-	
+
 	if( !Net_StringToSockaddr( s, &sadr, doDNSResolve ) )
 	{
 		return false;
 	}
-	
+
 	Net_SockadrToNetadr( &sadr, a );
 	return true;
 }
@@ -920,10 +920,10 @@ const char* Sys_NetAdrToString( const netadr_t a )
 	static int index = 0;
 	static char buf[ 4 ][ 64 ];	// flip/flop
 	char* s;
-	
+
 	s = buf[index];
 	index = ( index + 1 ) & 3;
-	
+
 	if( a.type == NA_LOOPBACK )
 	{
 		if( a.port )
@@ -953,12 +953,12 @@ bool Sys_IsLANAddress( const netadr_t adr )
 	{
 		return true;
 	}
-	
+
 	if( adr.type != NA_IP )
 	{
 		return false;
 	}
-	
+
 	if( num_interfaces )
 	{
 		int i;
@@ -966,7 +966,7 @@ bool Sys_IsLANAddress( const netadr_t adr )
 		unsigned long ip;
 		p_ip = ( unsigned long* )&adr.ip[0];
 		ip = ntohl( *p_ip );
-		
+
 		for( i = 0; i < num_interfaces; i++ )
 		{
 			if( ( netint[i].ip & netint[i].mask ) == ( ip & netint[i].mask ) )
@@ -991,17 +991,17 @@ bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b )
 	{
 		return false;
 	}
-	
+
 	if( a.type == NA_LOOPBACK )
 	{
 		if( a.port == b.port )
 		{
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	if( a.type == NA_IP )
 	{
 		if( a.ip[0] == b.ip[0] && a.ip[1] == b.ip[1] && a.ip[2] == b.ip[2] && a.ip[3] == b.ip[3] )
@@ -1010,7 +1010,7 @@ bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b )
 		}
 		return false;
 	}
-	
+
 	idLib::Printf( "Sys_CompareNetAdrBase: bad address type\n" );
 	return false;
 }
@@ -1087,7 +1087,7 @@ bool idUDP::InitForPort( int portNumber )
 		memset( &bound_to, 0, sizeof( bound_to ) );
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -1114,22 +1114,22 @@ idUDP::GetPacket
 bool idUDP::GetPacket( netadr_t& from, void* data, int& size, int maxSize )
 {
 	bool ret;
-	
+
 	while( 1 )
 	{
-	
+
 		ret = Net_GetUDPPacket( netSocket, from, ( char* )data, size, maxSize );
 		if( !ret )
 		{
 			break;
 		}
-		
+
 		packetsRead++;
 		bytesRead += size;
-		
+
 		break;
 	}
-	
+
 	return ret;
 }
 
@@ -1145,12 +1145,12 @@ bool idUDP::GetPacketBlocking( netadr_t& from, void* data, int& size, int maxSiz
 	{
 		return false;
 	}
-	
+
 	if( GetPacket( from, data, size, maxSize ) )
 	{
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -1166,14 +1166,14 @@ void idUDP::SendPacket( const netadr_t to, const void* data, int size )
 		idLib::Warning( "idUDP::SendPacket: bad address type NA_BAD - ignored" );
 		return;
 	}
-	
+
 	packetsWritten++;
 	bytesWritten += size;
-	
+
 	if( silent )
 	{
 		return;
 	}
-	
+
 	Net_SendUDPPacket( netSocket, size, data, to );
 }

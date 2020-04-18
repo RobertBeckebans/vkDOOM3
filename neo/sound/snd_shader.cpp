@@ -102,10 +102,10 @@ idSoundShader::SetDefaultText
 bool idSoundShader::SetDefaultText()
 {
 	idStr wavname;
-	
+
 	wavname = GetName();
 	wavname.DefaultFileExtension( ".wav" );		// if the name has .ogg in it, that will stay
-	
+
 	// if there exists a wav file with the same name
 	if( 1 )    //fileSystem->ReadFile( wavname, NULL ) != -1 ) {
 	{
@@ -147,11 +147,11 @@ idSoundShader::Parse
 bool idSoundShader::Parse( const char* text, const int textLength, bool allowBinaryVersion )
 {
 	idLexer	src;
-	
+
 	src.LoadMemory( text, textLength, GetFileName(), GetLineNum() );
 	src.SetFlags( DECL_LEXER_FLAGS );
 	src.SkipUntilString( "{" );
-	
+
 	if( !ParseShader( src ) )
 	{
 		MakeDefault();
@@ -168,19 +168,19 @@ idSoundShader::ParseShader
 bool idSoundShader::ParseShader( idLexer& src )
 {
 	idToken		token;
-	
+
 	parms.minDistance = 1;
 	parms.maxDistance = 10;
 	parms.volume = 1;
 	parms.shakes = 0;
 	parms.soundShaderFlags = 0;
 	parms.soundClass = 0;
-	
+
 	speakerMask = 0;
 	altSound = NULL;
-	
+
 	entries.Clear();
-	
+
 	while( 1 )
 	{
 		if( !src.ExpectAnyToken( &token ) )
@@ -389,7 +389,7 @@ bool idSoundShader::ParseShader( idLexer& src )
 			return false;
 		}
 	}
-	
+
 	return true;
 }
 
@@ -401,7 +401,7 @@ idSoundShader::List
 void idSoundShader::List() const
 {
 	idStrList	shaders;
-	
+
 	idLib::Printf( "%4i: %s\n", Index(), GetName() );
 	for( int k = 0; k < entries.Num(); k++ )
 	{

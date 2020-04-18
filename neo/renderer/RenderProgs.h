@@ -69,74 +69,74 @@ enum renderParm_t
 	RENDERPARM_WINDOWCOORD,
 	RENDERPARM_DIFFUSEMODIFIER,
 	RENDERPARM_SPECULARMODIFIER,
-	
+
 	RENDERPARM_LOCALLIGHTORIGIN,
 	RENDERPARM_LOCALVIEWORIGIN,
-	
+
 	RENDERPARM_LIGHTPROJECTION_S,
 	RENDERPARM_LIGHTPROJECTION_T,
 	RENDERPARM_LIGHTPROJECTION_Q,
 	RENDERPARM_LIGHTFALLOFF_S,
-	
+
 	RENDERPARM_BUMPMATRIX_S,
 	RENDERPARM_BUMPMATRIX_T,
-	
+
 	RENDERPARM_DIFFUSEMATRIX_S,
 	RENDERPARM_DIFFUSEMATRIX_T,
-	
+
 	RENDERPARM_SPECULARMATRIX_S,
 	RENDERPARM_SPECULARMATRIX_T,
-	
+
 	RENDERPARM_VERTEXCOLOR_MODULATE,
 	RENDERPARM_VERTEXCOLOR_ADD,
-	
+
 	// The following are new and can be in any order
-	
+
 	RENDERPARM_COLOR,
 	RENDERPARM_VIEWORIGIN,
 	RENDERPARM_GLOBALEYEPOS,
-	
+
 	RENDERPARM_MVPMATRIX_X,
 	RENDERPARM_MVPMATRIX_Y,
 	RENDERPARM_MVPMATRIX_Z,
 	RENDERPARM_MVPMATRIX_W,
-	
+
 	RENDERPARM_MODELMATRIX_X,
 	RENDERPARM_MODELMATRIX_Y,
 	RENDERPARM_MODELMATRIX_Z,
 	RENDERPARM_MODELMATRIX_W,
-	
+
 	RENDERPARM_PROJMATRIX_X,
 	RENDERPARM_PROJMATRIX_Y,
 	RENDERPARM_PROJMATRIX_Z,
 	RENDERPARM_PROJMATRIX_W,
-	
+
 	RENDERPARM_MODELVIEWMATRIX_X,
 	RENDERPARM_MODELVIEWMATRIX_Y,
 	RENDERPARM_MODELVIEWMATRIX_Z,
 	RENDERPARM_MODELVIEWMATRIX_W,
-	
+
 	RENDERPARM_TEXTUREMATRIX_S,
 	RENDERPARM_TEXTUREMATRIX_T,
-	
+
 	RENDERPARM_TEXGEN_0_S,
 	RENDERPARM_TEXGEN_0_T,
 	RENDERPARM_TEXGEN_0_Q,
 	RENDERPARM_TEXGEN_0_ENABLED,
-	
+
 	RENDERPARM_TEXGEN_1_S,
 	RENDERPARM_TEXGEN_1_T,
 	RENDERPARM_TEXGEN_1_Q,
 	RENDERPARM_TEXGEN_1_ENABLED,
-	
+
 	RENDERPARM_WOBBLESKY_X,
 	RENDERPARM_WOBBLESKY_Y,
 	RENDERPARM_WOBBLESKY_Z,
-	
+
 	RENDERPARM_OVERBRIGHT,
 	RENDERPARM_ENABLE_SKINNING,
 	RENDERPARM_ALPHA_TEST,
-	
+
 	RENDERPARM_USER0,
 	RENDERPARM_USER1,
 	RENDERPARM_USER2,
@@ -145,7 +145,7 @@ enum renderParm_t
 	RENDERPARM_USER5,
 	RENDERPARM_USER6,
 	RENDERPARM_USER7,
-	
+
 	RENDERPARM_TOTAL
 };
 
@@ -168,14 +168,14 @@ enum rpBuiltIn_t
 	BUILTIN_ENVIRONMENT_SKINNED,
 	BUILTIN_BUMPY_ENVIRONMENT,
 	BUILTIN_BUMPY_ENVIRONMENT_SKINNED,
-	
+
 	BUILTIN_DEPTH,
 	BUILTIN_DEPTH_SKINNED,
 	BUILTIN_SHADOW,
 	BUILTIN_SHADOW_SKINNED,
 	BUILTIN_SHADOW_DEBUG,
 	BUILTIN_SHADOW_DEBUG_SKINNED,
-	
+
 	BUILTIN_BLENDLIGHT,
 	BUILTIN_FOG,
 	BUILTIN_FOG_SKINNED,
@@ -183,7 +183,7 @@ enum rpBuiltIn_t
 	BUILTIN_WOBBLESKY,
 	BUILTIN_BINK,
 	BUILTIN_BINK_GUI,
-	
+
 	MAX_BUILTINS
 };
 
@@ -206,7 +206,7 @@ enum rpBinding_t
 struct shader_t
 {
 	shader_t() : module( VK_NULL_HANDLE ) {}
-	
+
 	idStr					name;
 	rpStage_t				stage;
 	VkShaderModule			module;
@@ -224,7 +224,7 @@ struct renderProg_t
 		vertexLayoutType( LAYOUT_DRAW_VERT ),
 		pipelineLayout( VK_NULL_HANDLE ),
 		descriptorSetLayout( VK_NULL_HANDLE ) {}
-		
+
 	struct pipelineState_t
 	{
 		pipelineState_t() :
@@ -232,13 +232,13 @@ struct renderProg_t
 			pipeline( VK_NULL_HANDLE )
 		{
 		}
-		
+
 		uint64		stateBits;
 		VkPipeline	pipeline;
 	};
-	
+
 	VkPipeline GetPipeline( uint64 stateBits, VkShaderModule vertexShader, VkShaderModule fragmentShader );
-	
+
 	idStr						name;
 	bool						usesJoints;
 	bool						optionalSkinning;
@@ -259,7 +259,7 @@ struct shader_t
 	shader_t() :
 		progId( INVALID_PROGID ),
 		uniformArray( -1 ) {}
-		
+
 	idStr					name;
 	rpStage_t				stage;
 	GLuint					progId;
@@ -276,7 +276,7 @@ struct renderProg_t
 		vertexShaderIndex( -1 ),
 		fragmentShaderIndex( -1 ),
 		vertexLayoutType( LAYOUT_DRAW_VERT ) {}
-		
+
 	idStr					name;
 	GLuint					progId;
 	bool					usesJoints;
@@ -299,16 +299,16 @@ class idRenderProgManager
 {
 public:
 	idRenderProgManager();
-	
+
 	void	Init();
 	void	Shutdown();
-	
+
 	void	StartFrame();
-	
+
 	const idVec4& GetRenderParm( renderParm_t rp );
 	void	SetRenderParm( renderParm_t rp, const float* value );
 	void	SetRenderParms( renderParm_t rp, const float* values, int numValues );
-	
+
 	const renderProg_t& GetCurrentRenderProg() const
 	{
 		return renderProgs[ current ];
@@ -316,30 +316,30 @@ public:
 	int		FindShader( const char* name, rpStage_t stage );
 	void	BindProgram( int index );
 	void	Unbind();
-	
+
 	void	CommitCurrent( uint64 stateBits );
 	int		FindProgram( const char* name, int vIndex, int fIndex );
-	
+
 private:
 	void	LoadShader( int index );
 	void	LoadShader( shader_t& shader );
-	
+
 #if defined( ID_OPENGL )
 	void	LoadGLSLProgram( const int programIndex, const int vertexShaderIndex, const int fragmentShaderIndex );
 #elif defined( ID_VULKAN )
 	void	AllocParmBlockBuffer( const idList< int >& parmIndices, idUniformBuffer& ubo );
 #endif
-	
+
 public:
 	idList< renderProg_t, TAG_RENDER > renderProgs;
-	
+
 private:
 	int	current;
 	idStaticList< idVec4, RENDERPARM_TOTAL > uniforms;
-	
+
 	int	builtinShaders[ MAX_BUILTINS ];
 	idList< shader_t, TAG_RENDER >	shaders;
-	
+
 #if defined( ID_VULKAN )
 	int					counter;
 	int					currentData;
@@ -347,7 +347,7 @@ private:
 	int					currentParmBufferOffset;
 	VkDescriptorPool	descriptorPools[ NUM_FRAME_DATA ];
 	VkDescriptorSet		descriptorSets[ NUM_FRAME_DATA ][ MAX_DESC_SETS ];
-	
+
 	idUniformBuffer* 	parmBuffers[ NUM_FRAME_DATA ];
 #endif
 };

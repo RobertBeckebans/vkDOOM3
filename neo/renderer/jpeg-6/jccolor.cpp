@@ -18,7 +18,7 @@
 typedef struct
 {
 	struct jpeg_color_converter pub;/* public fields */
-	
+
 	/* Private state for RGB->YCC conversion */
 	INT32* rgb_ycc_tab;     /* => table for RGB to YCbCr conversion */
 } my_color_converter;
@@ -89,12 +89,12 @@ rgb_ycc_start( j_compress_ptr cinfo )
 	my_cconvert_ptr cconvert = ( my_cconvert_ptr ) cinfo->cconvert;
 	INT32* rgb_ycc_tab;
 	INT32 i;
-	
+
 	/* Allocate and fill in the conversion tables. */
 	cconvert->rgb_ycc_tab = rgb_ycc_tab = ( INT32* )
 										  ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 												  ( TABLE_SIZE * SIZEOF( INT32 ) ) );
-												  
+
 	for( i = 0; i <= MAXJSAMPLE; i++ )
 	{
 		rgb_ycc_tab[i + R_Y_OFF] = FIX( 0.29900 ) * i;
@@ -140,7 +140,7 @@ rgb_ycc_convert( j_compress_ptr cinfo,
 	register JSAMPROW outptr0, outptr1, outptr2;
 	register JDIMENSION col;
 	JDIMENSION num_cols = cinfo->image_width;
-	
+
 	while( --num_rows >= 0 )
 	{
 		inptr = *input_buf++;
@@ -198,7 +198,7 @@ rgb_gray_convert( j_compress_ptr cinfo,
 	register JSAMPROW outptr;
 	register JDIMENSION col;
 	JDIMENSION num_cols = cinfo->image_width;
-	
+
 	while( --num_rows >= 0 )
 	{
 		inptr = *input_buf++;
@@ -239,7 +239,7 @@ cmyk_ycck_convert( j_compress_ptr cinfo,
 	register JSAMPROW outptr0, outptr1, outptr2, outptr3;
 	register JDIMENSION col;
 	JDIMENSION num_cols = cinfo->image_width;
-	
+
 	while( --num_rows >= 0 )
 	{
 		inptr = *input_buf++;
@@ -294,7 +294,7 @@ grayscale_convert( j_compress_ptr cinfo,
 	register JDIMENSION col;
 	JDIMENSION num_cols = cinfo->image_width;
 	int instride = cinfo->input_components;
-	
+
 	while( --num_rows >= 0 )
 	{
 		inptr = *input_buf++;
@@ -326,7 +326,7 @@ null_convert( j_compress_ptr cinfo,
 	register int ci;
 	int nc = cinfo->num_components;
 	JDIMENSION num_cols = cinfo->image_width;
-	
+
 	while( --num_rows >= 0 )
 	{
 		/* It seems fastest to make a separate pass for each component. */
@@ -365,14 +365,14 @@ GLOBAL void
 jinit_color_converter( j_compress_ptr cinfo )
 {
 	my_cconvert_ptr cconvert;
-	
+
 	cconvert = ( my_cconvert_ptr )
 			   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 					   SIZEOF( my_color_converter ) );
 	cinfo->cconvert = ( struct jpeg_color_converter* ) cconvert;
 	/* set start_pass to null method until we find out differently */
 	cconvert->pub.start_pass = null_method;
-	
+
 	/* Make sure input_components agrees with in_color_space */
 	switch( cinfo->in_color_space )
 	{
@@ -382,7 +382,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_BAD_IN_COLORSPACE );
 			}
 			break;
-			
+
 		case JCS_RGB:
 #if RGB_PIXELSIZE != 3
 			if( cinfo->input_components != RGB_PIXELSIZE )
@@ -391,14 +391,14 @@ jinit_color_converter( j_compress_ptr cinfo )
 			}
 			break;
 #endif /* else share code with YCbCr */
-			
+
 		case JCS_YCbCr:
 			if( cinfo->input_components != 3 )
 			{
 				ERREXIT( cinfo, JERR_BAD_IN_COLORSPACE );
 			}
 			break;
-			
+
 		case JCS_CMYK:
 		case JCS_YCCK:
 			if( cinfo->input_components != 4 )
@@ -406,7 +406,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_BAD_IN_COLORSPACE );
 			}
 			break;
-			
+
 		default:    /* JCS_UNKNOWN can be anything */
 			if( cinfo->input_components < 1 )
 			{
@@ -414,7 +414,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 			}
 			break;
 	}
-	
+
 	/* Check num_components, set conversion method based on requested space */
 	switch( cinfo->jpeg_color_space )
 	{
@@ -441,7 +441,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_CONVERSION_NOTIMPL );
 			}
 			break;
-			
+
 		case JCS_RGB:
 			if( cinfo->num_components != 3 )
 			{
@@ -456,7 +456,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_CONVERSION_NOTIMPL );
 			}
 			break;
-			
+
 		case JCS_YCbCr:
 			if( cinfo->num_components != 3 )
 			{
@@ -476,7 +476,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_CONVERSION_NOTIMPL );
 			}
 			break;
-			
+
 		case JCS_CMYK:
 			if( cinfo->num_components != 4 )
 			{
@@ -491,7 +491,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_CONVERSION_NOTIMPL );
 			}
 			break;
-			
+
 		case JCS_YCCK:
 			if( cinfo->num_components != 4 )
 			{
@@ -511,7 +511,7 @@ jinit_color_converter( j_compress_ptr cinfo )
 				ERREXIT( cinfo, JERR_CONVERSION_NOTIMPL );
 			}
 			break;
-			
+
 		default:    /* allow null conversion of JCS_UNKNOWN */
 			if( ( cinfo->jpeg_color_space != cinfo->in_color_space ) ||
 					( cinfo->num_components != cinfo->input_components ) )

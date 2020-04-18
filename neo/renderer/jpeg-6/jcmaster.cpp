@@ -28,12 +28,12 @@ typedef enum
 typedef struct
 {
 	struct jpeg_comp_master pub;/* public fields */
-	
+
 	c_pass_type pass_type;  /* the type of the current pass */
-	
+
 	int pass_number;    /* # of passes completed */
 	int total_passes;   /* total # of passes needed */
-	
+
 	int scan_number;    /* current index in scan_info[] */
 } my_comp_master;
 
@@ -52,21 +52,21 @@ initial_setup( j_compress_ptr cinfo )
 	jpeg_component_info* compptr;
 	long samplesperrow;
 	JDIMENSION jd_samplesperrow;
-	
+
 	/* Sanity check on image dimensions */
 	if( ( cinfo->image_height <= 0 ) || ( cinfo->image_width <= 0 )
 			|| ( cinfo->num_components <= 0 ) || ( cinfo->input_components <= 0 ) )
 	{
 		ERREXIT( cinfo, JERR_EMPTY_IMAGE );
 	}
-	
+
 	/* Make sure image isn't bigger than I can handle */
 	if( ( ( long ) cinfo->image_height > ( long ) JPEG_MAX_DIMENSION ) ||
 			( ( long ) cinfo->image_width > ( long ) JPEG_MAX_DIMENSION ) )
 	{
 		ERREXIT1( cinfo, JERR_IMAGE_TOO_BIG, ( unsigned int ) JPEG_MAX_DIMENSION );
 	}
-	
+
 	/* Width of an input scanline must be representable as JDIMENSION. */
 	samplesperrow = ( long ) cinfo->image_width * ( long ) cinfo->input_components;
 	jd_samplesperrow = ( JDIMENSION ) samplesperrow;
@@ -74,20 +74,20 @@ initial_setup( j_compress_ptr cinfo )
 	{
 		ERREXIT( cinfo, JERR_WIDTH_OVERFLOW );
 	}
-	
+
 	/* For now, precision must match compiled-in value... */
 	if( cinfo->data_precision != BITS_IN_JSAMPLE )
 	{
 		ERREXIT1( cinfo, JERR_BAD_PRECISION, cinfo->data_precision );
 	}
-	
+
 	/* Check that number of components won't exceed internal array sizes */
 	if( cinfo->num_components > MAX_COMPONENTS )
 	{
 		ERREXIT2( cinfo, JERR_COMPONENT_COUNT, cinfo->num_components,
 				  MAX_COMPONENTS );
 	}
-	
+
 	/* Compute maximum sampling factors; check factor validity */
 	cinfo->max_h_samp_factor = 1;
 	cinfo->max_v_samp_factor = 1;
@@ -104,7 +104,7 @@ initial_setup( j_compress_ptr cinfo )
 		cinfo->max_v_samp_factor = MAX( cinfo->max_v_samp_factor,
 										compptr->v_samp_factor );
 	}
-	
+
 	/* Compute dimensions of components */
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
 			ci++, compptr++ )
@@ -130,7 +130,7 @@ initial_setup( j_compress_ptr cinfo )
 		/* Mark component needed (this flag isn't actually used for compression) */
 		compptr->component_needed = TRUE;
 	}
-	
+
 	/* Compute number of fully interleaved MCU rows (number of times that
 	 * main controller will call coefficient controller).
 	 */
@@ -157,12 +157,12 @@ validate_script( j_compress_ptr cinfo )
 	int last_bitpos[MAX_COMPONENTS][DCTSIZE2];
 	/* -1 until that coefficient has been seen; then last Al for it */
 #endif
-	
+
 	if( cinfo->num_scans <= 0 )
 	{
 		ERREXIT1( cinfo, JERR_BAD_SCAN_SCRIPT, 0 );
 	}
-	
+
 	/* For sequential JPEG, all scans must have Ss=0, Se=DCTSIZE2-1;
 	 * for progressive JPEG, no scan can have this.
 	 */
@@ -191,7 +191,7 @@ validate_script( j_compress_ptr cinfo )
 			component_sent[ci] = FALSE;
 		}
 	}
-	
+
 	for( scanno = 1; scanno <= cinfo->num_scans; scanptr++, scanno++ )
 	{
 		/* Validate component indexes */
@@ -289,7 +289,7 @@ validate_script( j_compress_ptr cinfo )
 			}
 		}
 	}
-	
+
 	/* Now verify that everything got sent. */
 	if( cinfo->progressive_mode )
 	{
@@ -328,14 +328,14 @@ select_scan_parameters( j_compress_ptr cinfo )
 {
 	/* Set up the scan parameters for the current scan */
 	int ci;
-	
+
 #ifdef C_MULTISCAN_FILES_SUPPORTED
 	if( cinfo->scan_info != NULL )
 	{
 		/* Prepare for current scan --- the script is already validated */
 		my_master_ptr master = ( my_master_ptr ) cinfo->master;
 		const jpeg_scan_info* scanptr = cinfo->scan_info + master->scan_number;
-		
+
 		cinfo->comps_in_scan = scanptr->comps_in_scan;
 		for( ci = 0; ci < scanptr->comps_in_scan; ci++ )
 		{
@@ -376,17 +376,17 @@ per_scan_setup( j_compress_ptr cinfo )
 	/* cinfo->comps_in_scan and cinfo->cur_comp_info[] are already set */
 	int ci, mcublks, tmp;
 	jpeg_component_info* compptr;
-	
+
 	if( cinfo->comps_in_scan == 1 )
 	{
-	
+
 		/* Noninterleaved (single-component) scan */
 		compptr = cinfo->cur_comp_info[0];
-		
+
 		/* Overall image size in MCUs */
 		cinfo->MCUs_per_row = compptr->width_in_blocks;
 		cinfo->MCU_rows_in_scan = compptr->height_in_blocks;
-		
+
 		/* For noninterleaved scan, always one block per MCU */
 		compptr->MCU_width = 1;
 		compptr->MCU_height = 1;
@@ -402,22 +402,22 @@ per_scan_setup( j_compress_ptr cinfo )
 			tmp = compptr->v_samp_factor;
 		}
 		compptr->last_row_height = tmp;
-		
+
 		/* Prepare array describing MCU composition */
 		cinfo->blocks_in_MCU = 1;
 		cinfo->MCU_membership[0] = 0;
-		
+
 	}
 	else
 	{
-	
+
 		/* Interleaved (multi-component) scan */
 		if( ( cinfo->comps_in_scan <= 0 ) || ( cinfo->comps_in_scan > MAX_COMPS_IN_SCAN ) )
 		{
 			ERREXIT2( cinfo, JERR_COMPONENT_COUNT, cinfo->comps_in_scan,
 					  MAX_COMPS_IN_SCAN );
 		}
-		
+
 		/* Overall image size in MCUs */
 		cinfo->MCUs_per_row = ( JDIMENSION )
 							  jdiv_round_up( ( long ) cinfo->image_width,
@@ -425,9 +425,9 @@ per_scan_setup( j_compress_ptr cinfo )
 		cinfo->MCU_rows_in_scan = ( JDIMENSION )
 								  jdiv_round_up( ( long ) cinfo->image_height,
 										  ( long )( cinfo->max_v_samp_factor * DCTSIZE ) );
-										  
+
 		cinfo->blocks_in_MCU = 0;
-		
+
 		for( ci = 0; ci < cinfo->comps_in_scan; ci++ )
 		{
 			compptr = cinfo->cur_comp_info[ci];
@@ -460,9 +460,9 @@ per_scan_setup( j_compress_ptr cinfo )
 				cinfo->MCU_membership[cinfo->blocks_in_MCU++] = ci;
 			}
 		}
-		
+
 	}
-	
+
 	/* Convert restart specified in rows to actual MCU count. */
 	/* Note that count must fit in 16 bits, so we provide limiting. */
 	if( cinfo->restart_in_rows > 0 )
@@ -485,7 +485,7 @@ METHODDEF void
 prepare_for_pass( j_compress_ptr cinfo )
 {
 	my_master_ptr master = ( my_master_ptr ) cinfo->master;
-	
+
 	switch( master->pass_type )
 	{
 		case main_pass:
@@ -557,9 +557,9 @@ prepare_for_pass( j_compress_ptr cinfo )
 		default:
 			ERREXIT( cinfo, JERR_NOT_COMPILED );
 	}
-	
+
 	master->pub.is_last_pass = ( master->pass_number == master->total_passes - 1 );
-	
+
 	/* Set up progress monitor's pass info if present */
 	if( cinfo->progress != NULL )
 	{
@@ -583,7 +583,7 @@ METHODDEF void
 pass_startup( j_compress_ptr cinfo )
 {
 	cinfo->master->call_pass_startup = FALSE;/* reset flag so call only once */
-	
+
 	( *cinfo->marker->write_frame_header )( cinfo );
 	( *cinfo->marker->write_scan_header )( cinfo );
 }
@@ -597,12 +597,12 @@ METHODDEF void
 finish_pass_master( j_compress_ptr cinfo )
 {
 	my_master_ptr master = ( my_master_ptr ) cinfo->master;
-	
+
 	/* The entropy coder always needs an end-of-pass call,
 	 * either to analyze statistics or to flush its output buffer.
 	 */
 	( *cinfo->entropy->finish_pass )( cinfo );
-	
+
 	/* Update state for next pass */
 	switch( master->pass_type )
 	{
@@ -629,7 +629,7 @@ finish_pass_master( j_compress_ptr cinfo )
 			master->scan_number++;
 			break;
 	}
-	
+
 	master->pass_number++;
 }
 
@@ -642,7 +642,7 @@ GLOBAL void
 jinit_c_master_control( j_compress_ptr cinfo, boolean transcode_only )
 {
 	my_master_ptr master;
-	
+
 	master = ( my_master_ptr )
 			 ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										   SIZEOF( my_comp_master ) );
@@ -651,10 +651,10 @@ jinit_c_master_control( j_compress_ptr cinfo, boolean transcode_only )
 	master->pub.pass_startup = pass_startup;
 	master->pub.finish_pass = finish_pass_master;
 	master->pub.is_last_pass = FALSE;
-	
+
 	/* Validate parameters, determine derived values */
 	initial_setup( cinfo );
-	
+
 	if( cinfo->scan_info != NULL )
 	{
 #ifdef C_MULTISCAN_FILES_SUPPORTED
@@ -668,12 +668,12 @@ jinit_c_master_control( j_compress_ptr cinfo, boolean transcode_only )
 		cinfo->progressive_mode = FALSE;
 		cinfo->num_scans = 1;
 	}
-	
+
 	if( cinfo->progressive_mode )   /*  TEMPORARY HACK ??? */
 	{
 		cinfo->optimize_coding = TRUE;
 	}                              /* assume default tables no good for progressive mode */
-	
+
 	/* Initialize my private state */
 	if( transcode_only )
 	{

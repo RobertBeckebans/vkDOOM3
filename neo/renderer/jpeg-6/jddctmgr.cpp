@@ -43,7 +43,7 @@
 typedef struct
 {
 	struct jpeg_inverse_dct pub;/* public fields */
-	
+
 	/* This array contains the IDCT method code that each multiplier table
 	 * is currently set up for, or -1 if it's not yet set up.
 	 * The actual multiplier tables are pointed to by dct_table in the
@@ -73,11 +73,11 @@ typedef union
  * so be sure to compile that code if either ISLOW or SCALING is requested.
  */
 #ifdef DCT_ISLOW_SUPPORTED
-#define PROVIDE_ISLOW_TABLES
+	#define PROVIDE_ISLOW_TABLES
 #else
-#ifdef IDCT_SCALING_SUPPORTED
-#define PROVIDE_ISLOW_TABLES
-#endif
+	#ifdef IDCT_SCALING_SUPPORTED
+		#define PROVIDE_ISLOW_TABLES
+	#endif
 #endif
 
 
@@ -96,7 +96,7 @@ start_pass( j_decompress_ptr cinfo )
 	int method = 0;
 	inverse_DCT_method_ptr method_ptr = NULL;
 	JQUANT_TBL* qtbl;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
 			ci++, compptr++ )
 	{
@@ -206,7 +206,7 @@ start_pass( j_decompress_ptr cinfo )
 					4520,  6270,  5906,  5315,  4520,  3552,  2446,  1247
 				};
 				SHIFT_TEMPS
-				
+
 				for( i = 0; i < DCTSIZE2; i++ )
 				{
 					ifmtbl[i] = ( IFAST_MULT_TYPE )
@@ -233,7 +233,7 @@ start_pass( j_decompress_ptr cinfo )
 					1.0, 1.387039845, 1.306562965, 1.175875602,
 					1.0, 0.785694958, 0.541196100, 0.275899379
 				};
-				
+
 				i = 0;
 				for( row = 0; row < DCTSIZE; row++ )
 				{
@@ -266,13 +266,13 @@ jinit_inverse_dct( j_decompress_ptr cinfo )
 	my_idct_ptr idct;
 	int ci;
 	jpeg_component_info* compptr;
-	
+
 	idct = ( my_idct_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_idct_controller ) );
 	cinfo->idct = ( struct jpeg_inverse_dct* ) idct;
 	idct->pub.start_pass = start_pass;
-	
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
 			ci++, compptr++ )
 	{

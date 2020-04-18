@@ -21,11 +21,11 @@
 typedef struct
 {
 	struct jpeg_decomp_master pub;/* public fields */
-	
+
 	int pass_number;    /* # of passes completed */
-	
+
 	boolean using_merged_upsample;/* TRUE if using merged upsample/cconvert */
-	
+
 	/* Saved references to initialized quantizer modules,
 	 * in case we need to switch modes.
 	 */
@@ -76,10 +76,10 @@ use_merged_upsample( j_decompress_ptr cinfo )
 	}
 	/* ??? also need to test for upsample-time rescaling, when & if supported */
 	return TRUE;        /* by golly, it'll work... */
-	
+
 #else
 	return FALSE;
-	
+
 #endif
 }
 
@@ -99,15 +99,15 @@ jpeg_calc_output_dimensions( j_decompress_ptr cinfo )
 	int ci;
 	jpeg_component_info* compptr;
 #endif
-	
+
 	/* Prevent application from calling me at wrong times */
 	if( cinfo->global_state != DSTATE_READY )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 #ifdef IDCT_SCALING_SUPPORTED
-	
+
 	/* Compute actual output image dimensions and DCT scaling choices. */
 	if( cinfo->scale_num * 8 <= cinfo->scale_denom )
 	{
@@ -162,7 +162,7 @@ jpeg_calc_output_dimensions( j_decompress_ptr cinfo )
 		}
 		compptr->DCT_scaled_size = ssize;
 	}
-	
+
 	/* Recompute downsampled dimensions of components;
 	 * application needs to know these if using raw downsampled data.
 	 */
@@ -179,18 +179,18 @@ jpeg_calc_output_dimensions( j_decompress_ptr cinfo )
 											  ( long )( compptr->v_samp_factor * compptr->DCT_scaled_size ),
 											  ( long )( cinfo->max_v_samp_factor * DCTSIZE ) );
 	}
-	
+
 #else /* !IDCT_SCALING_SUPPORTED */
-	
+
 	/* Hardwire it to "no scaling" */
 	cinfo->output_width = cinfo->image_width;
 	cinfo->output_height = cinfo->image_height;
 	/* jdinput.c has already initialized DCT_scaled_size to DCTSIZE,
 	 * and has computed unscaled downsampled_width and downsampled_height.
 	 */
-	
+
 #endif /* IDCT_SCALING_SUPPORTED */
-	
+
 	/* Report number of components in selected colorspace. */
 	/* Probably this should be in the color conversion module... */
 	switch( cinfo->out_color_space )
@@ -216,7 +216,7 @@ jpeg_calc_output_dimensions( j_decompress_ptr cinfo )
 	}
 	cinfo->output_components = ( cinfo->quantize_colors ? 1 :
 								 cinfo->out_color_components );
-								 
+
 	/* See if upsampler will want to emit more than one row at a time */
 	if( use_merged_upsample( cinfo ) )
 	{
@@ -278,7 +278,7 @@ prepare_range_limit_table( j_decompress_ptr cinfo )
 	/* Allocate and fill in the sample_range_limit table */
 	JSAMPLE* table;
 	int i;
-	
+
 	table = ( JSAMPLE* )
 			( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										  ( 5 * ( MAXJSAMPLE + 1 ) + CENTERJSAMPLE ) * SIZEOF( JSAMPLE ) );
@@ -323,11 +323,11 @@ master_selection( j_decompress_ptr cinfo )
 	boolean use_c_buffer;
 	long samplesperrow;
 	JDIMENSION jd_samplesperrow;
-	
+
 	/* Initialize dimensions and other stuff */
 	jpeg_calc_output_dimensions( cinfo );
 	prepare_range_limit_table( cinfo );
-	
+
 	/* Width of an output scanline must be representable as JDIMENSION. */
 	samplesperrow = ( long ) cinfo->output_width * ( long ) cinfo->out_color_components;
 	jd_samplesperrow = ( JDIMENSION ) samplesperrow;
@@ -335,11 +335,11 @@ master_selection( j_decompress_ptr cinfo )
 	{
 		ERREXIT( cinfo, JERR_WIDTH_OVERFLOW );
 	}
-	
+
 	/* Initialize my private state */
 	master->pass_number = 0;
 	master->using_merged_upsample = use_merged_upsample( cinfo );
-	
+
 	/* Color quantizer selection */
 	master->quantizer_1pass = NULL;
 	master->quantizer_2pass = NULL;
@@ -376,7 +376,7 @@ master_selection( j_decompress_ptr cinfo )
 		{
 			cinfo->enable_1pass_quant = TRUE;
 		}
-		
+
 		if( cinfo->enable_1pass_quant )
 		{
 #ifdef QUANT_1PASS_SUPPORTED
@@ -386,7 +386,7 @@ master_selection( j_decompress_ptr cinfo )
 			ERREXIT( cinfo, JERR_NOT_COMPILED );
 #endif
 		}
-		
+
 		/* We use the 2-pass code to map to external colormaps. */
 		if( ( cinfo->enable_2pass_quant ) || ( cinfo->enable_external_quant ) )
 		{
@@ -401,7 +401,7 @@ master_selection( j_decompress_ptr cinfo )
 		 * this is necessary for starting with quantization to an external map.
 		 */
 	}
-	
+
 	/* Post-processing: in particular, color conversion first */
 	if( !cinfo->raw_data_out )
 	{
@@ -442,22 +442,22 @@ master_selection( j_decompress_ptr cinfo )
 			jinit_huff_decoder( cinfo );
 		}
 	}
-	
+
 	/* Initialize principal buffer controllers. */
 	use_c_buffer = cinfo->inputctl->has_multiple_scans || cinfo->buffered_image;
 	jinit_d_coef_controller( cinfo, use_c_buffer );
-	
+
 	if( !cinfo->raw_data_out )
 	{
 		jinit_d_main_controller( cinfo, FALSE /* never need full buffer here */ );
 	}
-	
+
 	/* We can now tell the memory manager to allocate virtual arrays. */
 	( *cinfo->mem->realize_virt_arrays )( ( j_common_ptr ) cinfo );
-	
+
 	/* Initialize input side of decompressor to consume first scan. */
 	( *cinfo->inputctl->start_input_pass )( cinfo );
-	
+
 #ifdef D_MULTISCAN_FILES_SUPPORTED
 	/* If jpeg_start_decompress will read the whole file, initialize
 	 * progress monitoring appropriately.  The input step is counted
@@ -502,7 +502,7 @@ METHODDEF void
 prepare_for_output_pass( j_decompress_ptr cinfo )
 {
 	my_master_ptr master = ( my_master_ptr ) cinfo->master;
-	
+
 	if( master->pub.is_dummy_pass )
 	{
 #ifdef QUANT_2PASS_SUPPORTED
@@ -552,7 +552,7 @@ prepare_for_output_pass( j_decompress_ptr cinfo )
 			( *cinfo->main->start_pass )( cinfo, JBUF_PASS_THRU );
 		}
 	}
-	
+
 	/* Set up progress monitor's pass info if present */
 	if( cinfo->progress != NULL )
 	{
@@ -578,7 +578,7 @@ METHODDEF void
 finish_output_pass( j_decompress_ptr cinfo )
 {
 	my_master_ptr master = ( my_master_ptr ) cinfo->master;
-	
+
 	if( cinfo->quantize_colors )
 	{
 		( *cinfo->cquantize->finish_pass )( cinfo );
@@ -597,13 +597,13 @@ GLOBAL void
 jpeg_new_colormap( j_decompress_ptr cinfo )
 {
 	my_master_ptr master = ( my_master_ptr ) cinfo->master;
-	
+
 	/* Prevent application from calling me at wrong times */
 	if( cinfo->global_state != DSTATE_BUFIMAGE )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	if( ( cinfo->quantize_colors ) && ( cinfo->enable_external_quant ) &&
 			( cinfo->colormap != NULL ) )
 	{
@@ -631,15 +631,15 @@ GLOBAL void
 jinit_master_decompress( j_decompress_ptr cinfo )
 {
 	my_master_ptr master;
-	
+
 	master = ( my_master_ptr )
 			 ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										   SIZEOF( my_decomp_master ) );
 	cinfo->master = ( struct jpeg_decomp_master* ) master;
 	master->pub.prepare_for_output_pass = prepare_for_output_pass;
 	master->pub.finish_output_pass = finish_output_pass;
-	
+
 	master->pub.is_dummy_pass = FALSE;
-	
+
 	master_selection( cinfo );
 }

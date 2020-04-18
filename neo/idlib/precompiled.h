@@ -134,22 +134,22 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 
 #ifndef _D3SDK
 
-#ifdef GAME_DLL
+	#ifdef GAME_DLL
 
-#include "../d3xp/Game_local.h"
+		#include "../d3xp/Game_local.h"
 
-#else
+	#else
 
-// framework
-#include "../framework/Compressor.h"
-#include "../framework/EventLoop.h"
-#include "../framework/KeyInput.h"
-#include "../framework/EditField.h"
-#include "../framework/DebugGraph.h"
-#include "../framework/Console.h"
-#include "../framework/Common_dialog.h"
+		// framework
+		#include "../framework/Compressor.h"
+		#include "../framework/EventLoop.h"
+		#include "../framework/KeyInput.h"
+		#include "../framework/EditField.h"
+		#include "../framework/DebugGraph.h"
+		#include "../framework/Console.h"
+		#include "../framework/Common_dialog.h"
 
-#endif /* !GAME_DLL */
+	#endif /* !GAME_DLL */
 
 #endif /* !_D3SDK */
 

@@ -55,9 +55,9 @@ R_StaticAlloc
 void* R_StaticAlloc( int bytes, const memTag_t tag )
 {
 	tr.pc.c_alloc++;
-	
+
 	void* buf = Mem_Alloc( bytes, tag );
-	
+
 	// don't exit on failure on zero length allocations since the old code didn't
 	if( buf == NULL && bytes != 0 )
 	{
@@ -105,7 +105,7 @@ R_SortDrawSurfs
 static void R_SortDrawSurfs( drawSurf_t** drawSurfs, const int numDrawSurfs )
 {
 	uint64* indices = ( uint64* ) _alloca16( numDrawSurfs * sizeof( indices[0] ) );
-	
+
 	// sort the draw surfs based on:
 	// 1. sort value (largest first)
 	// 2. depth (smallest first)
@@ -115,7 +115,7 @@ static void R_SortDrawSurfs( drawSurf_t** drawSurfs, const int numDrawSurfs )
 	{
 		float sort = SS_POST_PROCESS - drawSurfs[i]->sort;
 		assert( sort >= 0.0f );
-		
+
 		uint64 dist = 0;
 		if( drawSurfs[i]->frontEndGeo != NULL )
 		{
@@ -124,19 +124,19 @@ static void R_SortDrawSurfs( drawSurf_t** drawSurfs, const int numDrawSurfs )
 			idRenderMatrix::DepthBoundsForBounds( min, max, drawSurfs[i]->space->mvp, drawSurfs[i]->frontEndGeo->bounds );
 			dist = idMath::Ftoui16( min * 0xFFFF );
 		}
-		
+
 		indices[i] = ( ( numDrawSurfs - i ) & 0xFFFF ) | ( dist << 16 ) | ( ( uint64 )( *( uint32* )&sort ) << 32 );
 	}
-	
+
 	const int64 MAX_LEVELS = 128;
 	int64 lo[MAX_LEVELS];
 	int64 hi[MAX_LEVELS];
-	
+
 	// Keep the top of the stack in registers to avoid load-hit-stores.
 	register int64 st_lo = 0;
 	register int64 st_hi = numDrawSurfs - 1;
 	register int64 level = 0;
-	
+
 	for( ; ; )
 	{
 		register int64 i = st_lo;
@@ -146,19 +146,28 @@ static void R_SortDrawSurfs( drawSurf_t** drawSurfs, const int numDrawSurfs )
 			register uint64 pivot = indices[( i + j ) / 2];
 			do
 			{
-				while( indices[i] > pivot ) i++;
-				while( indices[j] < pivot ) j--;
-				if( i > j ) break;
+				while( indices[i] > pivot )
+				{
+					i++;
+				}
+				while( indices[j] < pivot )
+				{
+					j--;
+				}
+				if( i > j )
+				{
+					break;
+				}
 				uint64 h = indices[i];
 				indices[i] = indices[j];
 				indices[j] = h;
 			}
 			while( ++i <= --j );
-			
+
 			// No need for these iterations because we are always sorting unique values.
 			//while ( indices[j] == pivot && st_lo < j ) j--;
 			//while ( indices[i] == pivot && i < st_hi ) i++;
-			
+
 			assert( level < MAX_LEVELS - 1 );
 			lo[level] = i;
 			hi[level] = st_hi;
@@ -189,7 +198,7 @@ static void R_SortDrawSurfs( drawSurf_t** drawSurfs, const int numDrawSurfs )
 			st_hi = hi[level];
 		}
 	}
-	
+
 	drawSurf_t** newDrawSurfs = ( drawSurf_t** ) indices;
 	for( int i = 0; i < numDrawSurfs; i++ )
 	{
@@ -218,7 +227,7 @@ void R_OptimizeViewLightsList( viewLight_t** viewLights )
 			vLight->globalShadows = NULL;
 		}
 	}
-	
+
 	if( r_useShadowSurfaceScissor.GetBool() )
 	{
 		// shrink the light scissor rect to only intersect the surfaces that will actually be drawn.
@@ -228,14 +237,14 @@ void R_OptimizeViewLightsList( viewLight_t** viewLights )
 		{
 			drawSurf_t* surf;
 			idScreenRect surfRect;
-			
+
 			if( !vLight->lightShader->LightCastsShadows() )
 			{
 				continue;
 			}
-			
+
 			surfRect.Clear();
-			
+
 			for( surf = vLight->globalInteractions; surf != NULL; surf = surf->nextOnLight )
 			{
 				surfRect.Union( surf->scissorRect );
@@ -244,7 +253,7 @@ void R_OptimizeViewLightsList( viewLight_t** viewLights )
 			{
 				surf->scissorRect.Intersect( surfRect );
 			}
-			
+
 			for( surf = vLight->localInteractions; surf != NULL; surf = surf->nextOnLight )
 			{
 				surfRect.Union( surf->scissorRect );
@@ -253,16 +262,16 @@ void R_OptimizeViewLightsList( viewLight_t** viewLights )
 			{
 				surf->scissorRect.Intersect( surfRect );
 			}
-			
+
 			for( surf = vLight->translucentInteractions; surf != NULL; surf = surf->nextOnLight )
 			{
 				surfRect.Union( surf->scissorRect );
 			}
-			
+
 			vLight->scissorRect.Intersect( surfRect );
 		}
 	}
-	
+
 	// sort the viewLights list so the largest lights come first, which will reduce
 	// the chance of GPU pipeline bubbles
 	struct sortLight_t
@@ -282,9 +291,9 @@ void R_OptimizeViewLightsList( viewLight_t** viewLights )
 		sortLights[ numSortLightsFilled ].screenArea = vLight->scissorRect.GetArea();
 		numSortLightsFilled++;
 	}
-	
+
 	qsort( sortLights, numSortLightsFilled, sizeof( sortLights[0] ), sortLight_t::sort );
-	
+
 	// rebuild the linked list in order
 	*viewLights = NULL;
 	for( int i = 0; i < numSortLightsFilled; i++ )
@@ -311,49 +320,49 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	{
 		return;
 	}
-	
+
 	// skip front end rendering work, which will result
 	// in only gui drawing
 	if( r_skipFrontEnd.GetBool() )
 	{
 		return;
 	}
-	
+
 	SCOPED_PROFILE_EVENT( "idRenderSystemLocal::RenderScene" );
-	
+
 	if( renderView->fov_x <= 0 || renderView->fov_y <= 0 )
 	{
 		idLib::Error( "idRenderSystemLocal::RenderScene: bad FOVs: %f, %f", renderView->fov_x, renderView->fov_y );
 	}
-	
+
 	EmitFullscreenGui();
-	
+
 	int startTime = Sys_Microseconds();
-	
+
 	// setup viewDef for the intial view
 	viewDef_t* parms = ( viewDef_t* )ClearedFrameAlloc( sizeof( *parms ), FRAME_ALLOC_VIEW_DEF );
 	parms->renderView = *renderView;
-	
+
 	if( takingScreenshot )
 	{
 		parms->renderView.forceUpdate = true;
 	}
-	
+
 	int windowWidth = GetWidth();
 	int windowHeight = GetHeight();
-	
+
 	PerformResolutionScaling( windowWidth, windowHeight );
-	
+
 	// screenFraction is just for quickly testing fill rate limitations
 	if( r_screenFraction.GetInteger() != 100 )
 	{
 		windowWidth = ( windowWidth * r_screenFraction.GetInteger() ) / 100;
 		windowHeight = ( windowHeight * r_screenFraction.GetInteger() ) / 100;
 	}
-	
+
 	CropRenderSize( windowWidth, windowHeight );
 	GetCroppedViewport( &parms->viewport );
-	
+
 	// the scissor bounds may be shrunk in subviews even if
 	// the viewport stays the same
 	// this scissor range is local inside the viewport
@@ -361,11 +370,11 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	parms->scissor.y1 = 0;
 	parms->scissor.x2 = parms->viewport.x2 - parms->viewport.x1;
 	parms->scissor.y2 = parms->viewport.y2 - parms->viewport.y1;
-	
+
 	parms->isSubview = false;
 	parms->initialViewAreaOrigin = renderView->vieworg;
 	parms->renderWorld = world;
-	
+
 	// see if the view needs to reverse the culling sense in mirrors
 	// or environment cube sides
 	idVec3 cross;
@@ -378,24 +387,24 @@ void idRenderSystemLocal::RenderScene( idRenderWorld* world, const renderView_t*
 	{
 		parms->isMirror = true;
 	}
-	
+
 	// save this world for use by some console commands
 	primaryWorld = world;
 	primaryRenderView = *renderView;
 	primaryView = parms;
-	
+
 	// rendering this view may cause other views to be rendered
 	// for mirrors / portals / shadows / environment maps
 	// this will also cause any necessary entities and lights to be
 	// updated to the demo file
 	RenderView( parms );
-	
+
 	UnCrop();
-	
+
 	int endTime = Sys_Microseconds();
-	
+
 	pc.frontEndMicroSec += endTime - startTime;
-	
+
 	// prepare for any 2D drawing after this
 	guiModel->Clear();
 }
@@ -414,25 +423,25 @@ void idRenderSystemLocal::RenderView( viewDef_t* parms )
 {
 	// save view in case we are a subview
 	viewDef_t* oldView = viewDef;
-	
+
 	viewDef = parms;
-	
+
 	// setup the matrix for world space to eye space
 	R_SetupViewMatrix( viewDef );
-	
+
 	// we need to set the projection matrix before doing
 	// portal-to-screen scissor calculations
 	R_SetupProjectionMatrix( viewDef );
-	
+
 	// setup render matrices for faster culling
 	idRenderMatrix::Transpose( *( idRenderMatrix* )viewDef->projectionMatrix, viewDef->projectionRenderMatrix );
 	idRenderMatrix viewRenderMatrix;
 	idRenderMatrix::Transpose( *( idRenderMatrix* )viewDef->worldSpace.modelViewMatrix, viewRenderMatrix );
 	idRenderMatrix::Multiply( viewDef->projectionRenderMatrix, viewRenderMatrix, viewDef->worldSpace.mvp );
-	
+
 	// the planes of the view frustum are needed for portal visibility culling
 	idRenderMatrix::GetFrustumPlanes( viewDef->frustum, viewDef->worldSpace.mvp, false, true );
-	
+
 	// the DOOM 3 frustum planes point outside the frustum
 	for( int i = 0; i < 6; i++ )
 	{
@@ -440,30 +449,30 @@ void idRenderSystemLocal::RenderView( viewDef_t* parms )
 	}
 	// remove the Z-near to avoid portals from being near clipped
 	viewDef->frustum[4][3] -= r_znear.GetFloat();
-	
+
 	// identify all the visible portal areas, and create view lights and view entities
 	// for all the the entityDefs and lightDefs that are in the visible portal areas
 	parms->renderWorld->FindViewLightsAndEntities();
-	
+
 	// wait for any shadow volume jobs from the previous frame to finish
 	frontEndJobList->Wait();
-	
+
 	// make sure that interactions exist for all light / entity combinations that are visible
 	// add any pre-generated light shadows, and calculate the light shader values
 	AddLights();
-	
+
 	// adds ambient surfaces and create any necessary interaction surfaces to add to the light lists
 	AddModels();
-	
+
 	// build up the GUIs on world surfaces
 	AddInGameGuis( viewDef->drawSurfs, viewDef->numDrawSurfs );
-	
+
 	// any viewLight that didn't have visible surfaces can have it's shadows removed
 	R_OptimizeViewLightsList( &viewDef->viewLights );
-	
+
 	// sort all the ambient surfaces for translucency ordering
 	R_SortDrawSurfs( viewDef->drawSurfs, viewDef->numDrawSurfs );
-	
+
 	// generate any subviews (mirrors, cameras, etc) before adding this view
 	if( GenerateSubViews( viewDef->drawSurfs, viewDef->numDrawSurfs ) )
 	{
@@ -473,10 +482,10 @@ void idRenderSystemLocal::RenderView( viewDef_t* parms )
 			return;
 		}
 	}
-	
+
 	// add the rendering commands for this viewDef
 	AddDrawViewCmd( parms, false );
-	
+
 	// restore view in case we are a subview
 	viewDef = oldView;
 }

@@ -62,15 +62,15 @@ void idCommonLocal::LaunchExternalTitle( int titleIndex, int device, const lobby
 {
 
 	idStr deviceString( device );
-	
+
 	// We want to pass in the current executable, so that the launching title knows which title to return to.
 	// as of right now, this feature is TBD.
 	const char* currentExecutablePath = "ImNotSureYet";
 	idStr launchingExecutablePath;
-	
+
 	idCmdArgs cmdArgs;
 	cmdArgs.AppendArg( currentExecutablePath );
-	
+
 	if( titleIndex == LAUNCH_TITLE_DOOM )
 	{
 		launchingExecutablePath.Format( "%s%s", Sys_DefaultBasePath(), LAUNCH_TITLE_DOOM_EXECUTABLE );
@@ -80,27 +80,27 @@ void idCommonLocal::LaunchExternalTitle( int titleIndex, int device, const lobby
 	{
 		launchingExecutablePath.Format( "%s%s", Sys_DefaultBasePath(), LAUNCH_TITLE_DOOM2_EXECUTABLE );
 		cmdArgs.AppendArg( "d2bfg" );
-		
+
 	}
 	else
 	{
-	
+
 		idLib::Warning( "Unhandled Launch Title %d \n", titleIndex );
 	}
-	
+
 	cmdArgs.AppendArg( deviceString.c_str() );
-	
+
 	// Add an argument so that the new process knows whether or not to read exitspawn data.
 	if( connectInfo != NULL )
 	{
 		cmdArgs.AppendArg( "exitspawnInvite" );
 	}
-	
+
 	// Add arguments so that the new process will know which command line to invoke to relaunch this process
 	// if necessary.
-	
+
 	const int launchDataSize = ( connectInfo == NULL ) ? 0 : sizeof( *connectInfo );
-	
+
 	Sys_Launch( launchingExecutablePath.c_str() , cmdArgs, const_cast< lobbyConnectInfo_t* const >( connectInfo ), launchDataSize );
 }
 
@@ -114,13 +114,13 @@ Draws and captures the current state, then starts a wipe with that image
 void idCommonLocal::StartWipe( const char* _wipeMaterial, bool hold )
 {
 	console->Close();
-	
+
 	Draw();
-	
+
 	renderSystem->CaptureRenderToImage( "_currentRender" );
-	
+
 	wipeMaterial = declManager->FindMaterial( _wipeMaterial, false );
-	
+
 	wipeStartTime = Sys_Milliseconds();
 	wipeStopTime = wipeStartTime + SEC2MS( com_wipeSeconds.GetFloat() );
 	wipeHold = hold;
@@ -138,7 +138,7 @@ void idCommonLocal::CompleteWipe()
 		BusyWait();
 		Sys_Sleep( 10 );
 	}
-	
+
 	// ensure it is completely faded out
 	wipeStopTime = Sys_Milliseconds();
 	BusyWait();
@@ -171,11 +171,11 @@ void idCommonLocal::StartNewGame( const char* mapName, bool devmap, int gameMode
 		session->GetSignInManager().SetDesiredLocalUsers( 1, 1 );
 		session->GetSignInManager().Pump();
 	}
-	
+
 	idStr mapNameClean = mapName;
 	mapNameClean.StripFileExtension();
 	mapNameClean.BackSlashesToSlashes();
-	
+
 	idMatchParameters matchParameters;
 	matchParameters.mapName = mapNameClean;
 	if( gameMode == GAME_MODE_SINGLEPLAYER )
@@ -199,7 +199,7 @@ void idCommonLocal::StartNewGame( const char* mapName, bool devmap, int gameMode
 		}
 		matchParameters.numSlots = session->GetTitleStorageInt( "MAX_PLAYERS_ALLOWED", 4 );
 	}
-	
+
 	cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO, matchParameters.serverInfo );
 	if( devmap )
 	{
@@ -209,7 +209,7 @@ void idCommonLocal::StartNewGame( const char* mapName, bool devmap, int gameMode
 	{
 		matchParameters.serverInfo.Delete( "devmap" );
 	}
-	
+
 	session->QuitMatchToTitle();
 	if( WaitForSessionState( idSession::IDLE ) )
 	{
@@ -281,7 +281,7 @@ void idCommonLocal::UnloadMap()
 	{
 		game->MapShutdown();
 	}
-	
+
 	mapSpawned = false;
 }
 
@@ -295,7 +295,7 @@ void idCommonLocal::LoadLoadingGui( const char* mapName, bool& hellMap )
 
 	defaultLoadscreen = false;
 	loadGUI = new idSWF( "loading/default", NULL );
-	
+
 	if( g_demoMode.GetBool() )
 	{
 		hellMap = false;
@@ -303,7 +303,7 @@ void idCommonLocal::LoadLoadingGui( const char* mapName, bool& hellMap )
 		{
 			const idMaterial* defaultMat = declManager->FindMaterial( "guis/assets/loadscreens/default" );
 			renderSystem->LoadLevelImages();
-			
+
 			loadGUI->Activate( true );
 			idSWFSpriteInstance* bgImg = loadGUI->GetRootObject().GetSprite( "bgImage" );
 			if( bgImg != NULL )
@@ -314,68 +314,68 @@ void idCommonLocal::LoadLoadingGui( const char* mapName, bool& hellMap )
 		defaultLoadscreen = true;
 		return;
 	}
-	
+
 	// load / program a gui to stay up on the screen while loading
 	idStrStatic< MAX_OSPATH > stripped = mapName;
 	stripped.StripFileExtension();
 	stripped.StripPath();
-	
+
 	// use default load screen for demo
 	idStrStatic< MAX_OSPATH > matName = "guis/assets/loadscreens/";
 	matName.Append( stripped );
 	const idMaterial* mat = declManager->FindMaterial( matName );
-	
+
 	renderSystem->LoadLevelImages();
-	
+
 	if( mat->GetImageWidth() < 32 )
 	{
 		mat = declManager->FindMaterial( "guis/assets/loadscreens/default" );
 		renderSystem->LoadLevelImages();
 	}
-	
+
 	loadTipList.SetNum( loadTipList.Max() );
 	for( int i = 0; i < loadTipList.Max(); ++i )
 	{
 		loadTipList[i] = i;
 	}
-	
+
 	if( loadGUI != NULL )
 	{
 		loadGUI->Activate( true );
 		nextLoadTip = Sys_Milliseconds() + LOAD_TIP_CHANGE_INTERVAL;
-		
+
 		idSWFSpriteInstance* bgImg = loadGUI->GetRootObject().GetSprite( "bgImage" );
 		if( bgImg != NULL )
 		{
 			bgImg->SetMaterial( mat );
 		}
-		
+
 		idSWFSpriteInstance* overlay = loadGUI->GetRootObject().GetSprite( "overlay" );
-		
+
 		const idDeclEntityDef* mapDef = static_cast<const idDeclEntityDef*>( declManager->FindType( DECL_MAPDEF, mapName, false ) );
 		if( mapDef != NULL )
 		{
 			isHellMap = mapDef->dict.GetBool( "hellMap", false );
-			
+
 			if( isHellMap && overlay != NULL )
 			{
 				overlay->SetVisible( false );
 			}
-			
+
 			idStr desc;
 			idStr subTitle;
 			idStr displayName;
 			idSWFTextInstance* txtVal = NULL;
-			
+
 			txtVal = loadGUI->GetRootObject().GetNestedText( "txtRegLoad" );
 			displayName = idLocalization::GetString( mapDef->dict.GetString( "name", mapName ) );
-			
+
 			if( txtVal != NULL )
 			{
 				txtVal->SetText( "#str_00408" );
 				txtVal->SetStrokeInfo( true, 2.0f, 1.0f );
 			}
-			
+
 			const idMatchParameters& matchParameters = session->GetActingGameStateLobbyBase().GetMatchParms();
 			if( matchParameters.gameMode == GAME_MODE_SINGLEPLAYER )
 			{
@@ -386,11 +386,11 @@ void idCommonLocal::LoadLoadingGui( const char* mapName, bool& hellMap )
 			{
 				const idStrList& modes = GetModeDisplayList();
 				subTitle = modes[ idMath::ClampInt( 0, modes.Num() - 1, matchParameters.gameMode ) ];
-				
+
 				const char* modeDescs[] = { "#str_swf_deathmatch_desc", "#str_swf_tourney_desc", "#str_swf_team_deathmatch_desc", "#str_swf_lastman_desc", "#str_swf_ctf_desc" };
 				desc = idLocalization::GetString( modeDescs[matchParameters.gameMode] );
 			}
-			
+
 			if( !isHellMap )
 			{
 				txtVal = loadGUI->GetRootObject().GetNestedText( "txtName" );
@@ -404,14 +404,14 @@ void idCommonLocal::LoadLoadingGui( const char* mapName, bool& hellMap )
 				txtVal->SetText( displayName );
 				txtVal->SetStrokeInfo( true, 2.0f, 1.0f );
 			}
-			
+
 			txtVal = loadGUI->GetRootObject().GetNestedText( "txtSub" );
 			if( txtVal != NULL && !isHellMap )
 			{
 				txtVal->SetText( subTitle );
 				txtVal->SetStrokeInfo( true, 1.75f, 0.75f );
 			}
-			
+
 			txtVal = loadGUI->GetRootObject().GetNestedText( "txtDesc" );
 			if( txtVal != NULL )
 			{
@@ -445,62 +445,62 @@ void idCommonLocal::ExecuteMapChange()
 		idLib::Warning( "Session state is not LOADING in ExecuteMapChange" );
 		return;
 	}
-	
+
 	// Clear all dialogs before beginning the load
 	Dialog().ClearDialogs( true );
-	
+
 	// Remember the current load ID.
 	// This is so we can tell if we had a new loadmap request from within an existing loadmap call
 	const int cachedLoadingID = session->GetLoadingID();
-	
+
 	const idMatchParameters& matchParameters = session->GetActingGameStateLobbyBase().GetMatchParms();
-	
+
 	if( matchParameters.numSlots <= 0 )
 	{
 		idLib::Warning( "numSlots <= 0 in ExecuteMapChange" );
 		return;
 	}
-	
+
 	insideExecuteMapChange = true;
-	
+
 	idLib::Printf( "--------- Execute Map Change ---------\n" );
 	idLib::Printf( "Map: %s\n", matchParameters.mapName.c_str() );
-	
+
 	// ensure that r_znear is reset to the default value
 	// this fixes issues with the projection matrix getting messed up when switching maps or loading a saved game
 	// while an in-game cinematic is playing.
 	cvarSystem->SetCVarFloat( "r_znear", 3.0f );
-	
+
 	// reset all cheat cvars for a multiplayer game
 	if( IsMultiplayer() )
 	{
 		cvarSystem->ResetFlaggedVariables( CVAR_CHEAT );
 	}
-	
+
 	int start = Sys_Milliseconds();
-	
+
 	for( int i = 0; i < MAX_INPUT_DEVICES; i++ )
 	{
 		Sys_SetRumble( i, 0, 0 );
 	}
-	
+
 	// close console and remove any prints from the notify lines
 	console->Close();
-	
+
 	// clear all menu sounds
 	soundWorld->Pause();
 	menuSoundWorld->ClearAllSoundEmitters();
 	soundSystem->SetPlayingSoundWorld( menuSoundWorld );
 	soundSystem->Render();
-	
+
 	// extract the map name from serverinfo
 	currentMapName = matchParameters.mapName;
 	currentMapName.StripFileExtension();
-	
+
 	idStrStatic< MAX_OSPATH > fullMapName = "maps/";
 	fullMapName += currentMapName;
 	fullMapName.SetFileExtension( "map" );
-	
+
 	if( mapSpawnData.savegameFile )
 	{
 		fileSystem->BeginLevelLoad( currentMapName, NULL, 0 );
@@ -509,19 +509,19 @@ void idCommonLocal::ExecuteMapChange()
 	{
 		fileSystem->BeginLevelLoad( currentMapName, saveFile.GetDataPtr(), saveFile.GetAllocated() );
 	}
-	
+
 	// capture the current screen and start a wipe
 	// immediately complete the wipe to fade out the level transition
 	// run the wipe to completion
 	StartWipe( "wipeMaterial", true );
 	CompleteWipe();
-	
+
 	int sm = Sys_Milliseconds();
 	// shut down the existing game if it is running
 	UnloadMap();
 	int ms = Sys_Milliseconds() - sm;
 	idLib::Printf( "%6d msec to unload map\n", ms );
-	
+
 	// Free media from previous level and
 	// note which media we are going to need to load
 	sm = Sys_Milliseconds();
@@ -531,18 +531,18 @@ void idCommonLocal::ExecuteMapChange()
 	uiManager->BeginLevelLoad();
 	ms = Sys_Milliseconds() - sm;
 	idLib::Printf( "%6d msec to free assets\n", ms );
-	
+
 	//Sys_DumpMemory( true );
-	
+
 	// load / program a gui to stay up on the screen while loading
 	// set the loading gui that we will wipe to
 	bool hellMap = false;
 	LoadLoadingGui( currentMapName, hellMap );
-	
+
 	// Stop rendering the wipe
 	ClearWipe();
-	
-	
+
+
 	if( fileSystem->UsingResourceFiles() )
 	{
 		idStrStatic< MAX_OSPATH > manifestName = currentMapName;
@@ -555,7 +555,7 @@ void idCommonLocal::ExecuteMapChange()
 		soundSystem->Preload( manifest );
 		game->Preload( manifest );
 	}
-	
+
 	if( IsMultiplayer() )
 	{
 		// In multiplayer, make sure the player is either 60Hz or 120Hz
@@ -570,24 +570,24 @@ void idCommonLocal::ExecuteMapChange()
 		com_engineHz_denominator = 100LL * com_engineHz.GetFloat();
 		com_engineHz_latched = com_engineHz.GetFloat();
 	}
-	
+
 	// note any warning prints that happen during the load process
 	ClearWarnings( currentMapName );
-	
+
 	// release the mouse cursor
 	// before we do this potentially long operation
 	Sys_GrabMouseCursor( false );
-	
+
 	// let the renderSystem load all the geometry
 	if( !renderWorld->InitFromMap( fullMapName ) )
 	{
 		Error( "couldn't load %s", fullMapName.c_str() );
 	}
-	
+
 	// for the synchronous networking we needed to roll the angles over from
 	// level to level, but now we can just clear everything
 	usercmdGen->InitForNewMap();
-	
+
 	// load and spawn all other entities ( from a savegame possibly )
 	if( mapSpawnData.savegameFile )
 	{
@@ -609,18 +609,18 @@ void idCommonLocal::ExecuteMapChange()
 		game->SetServerInfo( matchParameters.serverInfo );
 		game->InitFromNewMap( fullMapName, renderWorld, soundWorld, matchParameters.gameMode, Sys_Milliseconds() );
 	}
-	
+
 	game->Shell_CreateMenu( true );
-	
+
 	// Reset some values important to multiplayer
 	ResetNetworkingState();
-	
+
 	// If the session state is not loading here, something went wrong.
 	if( session->GetState() == idSession::LOADING && session->GetLoadingID() == cachedLoadingID )
 	{
 		// Notify session we are done loading
 		session->LoadingFinished();
-		
+
 		while( session->GetState() == idSession::LOADING )
 		{
 			Sys_GenerateEvents();
@@ -629,7 +629,7 @@ void idCommonLocal::ExecuteMapChange()
 			Sys_Sleep( 10 );
 		}
 	}
-	
+
 	if( !mapSpawnData.savegameFile )
 	{
 		// run a single frame to catch any resources that are referenced by events posted in spawn
@@ -648,17 +648,17 @@ void idCommonLocal::ExecuteMapChange()
 			game->RunFrame( emptyCommandManager, emptyGameReturn );
 		}
 	}
-	
+
 	renderSystem->EndLevelLoad();
 	soundSystem->EndLevelLoad();
 	declManager->EndLevelLoad();
 	uiManager->EndLevelLoad( currentMapName );
 	fileSystem->EndLevelLoad();
-	
+
 	if( !mapSpawnData.savegameFile && !IsMultiplayer() )
 	{
 		idLib::Printf( "----- Running initial game frames -----\n" );
-		
+
 		// In single player, run a bunch of frames to make sure ragdolls are settled
 		idUserCmdMgr emptyCommandManager;
 		gameReturn_t emptyGameReturn;
@@ -670,24 +670,24 @@ void idCommonLocal::ExecuteMapChange()
 			}
 			game->RunFrame( emptyCommandManager, emptyGameReturn );
 		}
-		
+
 		// kick off an auto-save of the game (so we can always continue in this map if we die before hitting an autosave)
 		idLib::Printf( "----- Saving Game -----\n" );
 		SaveGame( "autosave" );
 	}
-	
+
 	idLib::Printf( "----- Generating Interactions -----\n" );
-	
+
 	// let the renderSystem generate interactions now that everything is spawned
 	renderWorld->GenerateAllInteractions();
-	
+
 	{
 		int vertexMemUsedKB = vertexCache.staticData.vertexMemUsed.GetValue() / 1024;
 		int indexMemUsedKB = vertexCache.staticData.indexMemUsed.GetValue() / 1024;
 		idLib::Printf( "Used %dkb of static vertex memory (%d%%)\n", vertexMemUsedKB, vertexMemUsedKB * 100 / ( STATIC_VERTEX_MEMORY / 1024 ) );
 		idLib::Printf( "Used %dkb of static index memory (%d%%)\n", indexMemUsedKB, indexMemUsedKB * 100 / ( STATIC_INDEX_MEMORY / 1024 ) );
 	}
-	
+
 	if( JapaneseCensorship() )
 	{
 		if( currentMapName.Icmp( "game/mp/d3xpdm3" ) == 0 )
@@ -699,42 +699,42 @@ void idCommonLocal::ExecuteMapChange()
 			chiglass1bluex->Parse( text.Ptr(), text.Num(), false );
 		}
 	}
-	
+
 	PrintWarnings();
-	
+
 	session->Pump();
-	
+
 	if( session->GetState() != idSession::INGAME )
 	{
 		// Something went wrong, don't process stale reliables that have been queued up.
 		reliableQueue.Clear();
 	}
-	
+
 	usercmdGen->Clear();
-	
+
 	// remove any prints from the notify lines
 	console->ClearNotifyLines();
-	
+
 	Sys_SetPhysicalWorkMemory( -1, -1 );
-	
+
 	// at this point we should be done with the loading gui so we kill it
 	delete loadGUI;
 	loadGUI = NULL;
-	
-	
+
+
 	// capture the current screen and start a wipe
 	StartWipe( "wipe2Material" );
-	
+
 	// we are valid for game draws now
 	insideExecuteMapChange = false;
 	mapSpawned = true;
 	Sys_ClearEvents();
-	
-	
+
+
 	int	msec = Sys_Milliseconds() - start;
 	idLib::Printf( "%6d msec to load %s\n", msec, currentMapName.c_str() );
 	//Sys_DumpMemory( false );
-	
+
 	// Issue a render at the very end of the load process to update soundTime before the first frame
 	soundSystem->Render();
 }
@@ -752,30 +752,30 @@ void idCommonLocal::UpdateLevelLoadPacifier()
 	{
 		return;
 	}
-	
+
 	const int sessionUpdateTime = IsMultiplayer() ? 16 : 100;
-	
+
 	const int time = Sys_Milliseconds();
-	
+
 	// Throttle session pumps.
 	if( time - lastPacifierSessionTime >= sessionUpdateTime )
 	{
 		lastPacifierSessionTime = time;
-		
+
 		Sys_GenerateEvents();
-		
+
 		session->UpdateSignInManager();
 		session->Pump();
 		session->ProcessSnapAckQueue();
 	}
-	
+
 	// On the PC just update at a constant rate for the Steam overlay
 	if( time - lastPacifierGuiTime >= 50 )
 	{
 		lastPacifierGuiTime = time;
 		UpdateScreen();
 	}
-	
+
 	if( time >= nextLoadTip && loadGUI != NULL && loadTipList.Num() > 0 && !defaultLoadscreen )
 	{
 		nextLoadTip = time + LOAD_TIP_CHANGE_INTERVAL;
@@ -783,7 +783,7 @@ void idCommonLocal::UpdateLevelLoadPacifier()
 		idStrStatic<20> tipId;
 		tipId.Format( "#str_loadtip_%d", loadTipList[ rnd ] );
 		loadTipList.RemoveIndex( rnd );
-		
+
 		idSWFTextInstance* txtVal = loadGUI->GetRootObject().GetNestedText( "txtDesc" );
 		if( txtVal != NULL )
 		{
@@ -812,13 +812,13 @@ void idCommonLocal::ScrubSaveGameFileName( idStr& saveFileName ) const
 {
 	int i;
 	idStr inFileName;
-	
+
 	inFileName = saveFileName;
 	inFileName.RemoveColors();
 	inFileName.StripFileExtension();
-	
+
 	saveFileName.Clear();
-	
+
 	int len = inFileName.Length();
 	for( i = 0; i < len; i++ )
 	{
@@ -855,34 +855,34 @@ bool idCommonLocal::SaveGame( const char* saveName )
 		// We're already in the middle of a save. Leave us alone.
 		return false;
 	}
-	
+
 	if( com_disableAllSaves.GetBool() || ( com_disableAutoSaves.GetBool() && ( idStr::Icmp( saveName, "autosave" ) == 0 ) ) )
 	{
 		return false;
 	}
-	
+
 	if( IsMultiplayer() )
 	{
 		idLib::Printf( "Can't save during net play.\n" );
 		return false;
 	}
-	
+
 	if( mapSpawnData.savegameFile != NULL )
 	{
 		return false;
 	}
-	
+
 	const idDict& persistentPlayerInfo = game->GetPersistentPlayerInfo( 0 );
 	if( persistentPlayerInfo.GetInt( "health" ) <= 0 )
 	{
 		idLib::Printf( "You must be alive to save the game\n" );
 		return false;
 	}
-	
+
 	soundWorld->Pause();
 	soundSystem->SetPlayingSoundWorld( menuSoundWorld );
 	soundSystem->Render();
-	
+
 	Dialog().ShowSaveIndicator( true );
 	if( insideExecuteMapChange )
 	{
@@ -896,53 +896,53 @@ bool idCommonLocal::SaveGame( const char* saveName )
 			UpdateScreen();
 		}
 	}
-	
+
 	// Make sure the file is writable and the contents are cleared out (Set to write from the start of file)
 	saveFile.MakeWritable();
 	saveFile.Clear( false );
 	stringsFile.MakeWritable();
 	stringsFile.Clear( false );
-	
+
 	// Setup the save pipeline
 	pipelineFile = new( TAG_SAVEGAMES ) idFile_SaveGamePipelined();
 	pipelineFile->OpenForWriting( &saveFile );
-	
+
 	// Write SaveGame Header:
 	// Game Name / Version / Map Name / Persistant Player Info
-	
+
 	// game
 	const char* gamename = GAME_NAME;
 	saveFile.WriteString( gamename );
-	
+
 	// map
 	saveFile.WriteString( currentMapName );
-	
+
 	saveFile.WriteBool( consoleUsed );
-	
+
 	game->GetServerInfo().WriteToFileHandle( &saveFile );
-	
+
 	// let the game save its state
 	game->SaveGame( pipelineFile, &stringsFile );
-	
+
 	pipelineFile->Finish();
-	
+
 	idSaveGameDetails gameDetails;
 	game->GetSaveGameDetails( gameDetails );
-	
+
 	gameDetails.descriptors.Set( SAVEGAME_DETAIL_FIELD_LANGUAGE, sys_lang.GetString() );
 	gameDetails.descriptors.SetInt( SAVEGAME_DETAIL_FIELD_CHECKSUM, ( int )gameDetails.descriptors.Checksum() );
-	
+
 	gameDetails.slotName = saveName;
 	ScrubSaveGameFileName( gameDetails.slotName );
-	
+
 	saveFileEntryList_t files;
 	files.Append( &stringsFile );
 	files.Append( &saveFile );
-	
+
 	session->SaveGameSync( gameDetails.slotName, files, gameDetails );
-	
+
 	syncNextGameFrame = true;
-	
+
 	return true;
 }
 
@@ -962,12 +962,12 @@ bool idCommonLocal::LoadGame( const char* saveName )
 		}
 		return false;
 	}
-	
+
 	if( GetCurrentGame() != DOOM3_BFG )
 	{
 		return false;
 	}
-	
+
 	if( session->GetSignInManager().GetMasterLocalUser() == NULL )
 	{
 		return false;
@@ -976,7 +976,7 @@ bool idCommonLocal::LoadGame( const char* saveName )
 	{
 		return false;
 	}
-	
+
 	bool found = false;
 	const saveGameDetailsList_t& sgdl = session->GetSaveGameManager().GetEnumeratedSavegames();
 	for( int i = 0; i < sgdl.Num(); i++ )
@@ -1011,19 +1011,19 @@ bool idCommonLocal::LoadGame( const char* saveName )
 		}
 		return false;
 	}
-	
+
 	mapSpawnData.savegameFile = &saveFile;
 	mapSpawnData.stringTableFile = &stringsFile;
-	
+
 	saveFileEntryList_t files;
 	files.Append( mapSpawnData.stringTableFile );
 	files.Append( mapSpawnData.savegameFile );
-	
+
 	idStr slotName = saveName;
 	ScrubSaveGameFileName( slotName );
 	saveFile.Clear( false );
 	stringsFile.Clear( false );
-	
+
 	saveGameHandle_t loadGameHandle = session->LoadGameSync( slotName, files );
 	if( loadGameHandle != 0 )
 	{
@@ -1058,14 +1058,14 @@ bool HandleCommonErrors( const idSaveLoadParms& parms )
 	{
 		return true;
 	}
-	
+
 	common->Dialog().ShowSaveIndicator( false );
-	
+
 	if( parms.GetError() & SAVEGAME_E_CORRUPTED )
 	{
 		// This one might need to be handled by the game
 		common->Dialog().AddDialog( GDM_CORRUPT_CONTINUE, DIALOG_CONTINUE, NULL, NULL, false );
-		
+
 		// Find the game in the enumerated details, mark as corrupt so the menus can show as corrupt
 		saveGameDetailsList_t& list = session->GetSaveGameManager().GetEnumeratedSavegamesNonConst();
 		for( int i = 0; i < list.Num(); i++ )
@@ -1107,7 +1107,7 @@ bool HandleCommonErrors( const idSaveLoadParms& parms )
 		common->Dialog().AddDialog( GDM_INCOMPATIBLE_NEWER_SAVE, DIALOG_CONTINUE, NULL, NULL, false );
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -1121,12 +1121,12 @@ void idCommonLocal::OnSaveCompleted( idSaveLoadParms& parms )
 	assert( pipelineFile != NULL );
 	delete pipelineFile;
 	pipelineFile = NULL;
-	
+
 	if( parms.GetError() == SAVEGAME_E_NONE )
 	{
 		game->Shell_UpdateSavedGames();
 	}
-	
+
 	if( !HandleCommonErrors( parms ) )
 	{
 		Dialog().AddDialog( GDM_ERROR_SAVING_SAVEGAME, DIALOG_CONTINUE, NULL, NULL, false );
@@ -1158,14 +1158,14 @@ void idCommonLocal::OnLoadFilesCompleted( idSaveLoadParms& parms )
 		// just need to make the file readable
 		( ( idFile_Memory* )mapSpawnData.savegameFile )->MakeReadOnly();
 		( ( idFile_Memory* )mapSpawnData.stringTableFile )->MakeReadOnly();
-		
+
 		idStr gamename;
 		idStr mapname;
-		
+
 		mapSpawnData.savegameVersion = parms.description.GetSaveVersion();
 		mapSpawnData.savegameFile->ReadString( gamename );
 		mapSpawnData.savegameFile->ReadString( mapname );
-		
+
 		if( ( gamename != GAME_NAME ) || ( mapname.IsEmpty() ) || ( parms.description.GetSaveVersion() > BUILD_NUMBER ) )
 		{
 			// if this isn't a savegame for the correct game, abort loadgame
@@ -1174,17 +1174,17 @@ void idCommonLocal::OnLoadFilesCompleted( idSaveLoadParms& parms )
 		else
 		{
 			idLib::Printf( "loading savegame\n" );
-			
+
 			mapSpawnData.savegameFile->ReadBool( consoleUsed );
 			consoleUsed = consoleUsed || com_allowConsole.GetBool();
-			
+
 			idMatchParameters matchParameters;
 			matchParameters.numSlots = 1;
 			matchParameters.gameMode = GAME_MODE_SINGLEPLAYER;
 			matchParameters.gameMap = GAME_MAP_SINGLEPLAYER;
 			matchParameters.mapName = mapname;
 			matchParameters.serverInfo.ReadFromFileHandle( mapSpawnData.savegameFile );
-			
+
 			session->QuitMatchToTitle();
 			if( WaitForSessionState( idSession::IDLE ) )
 			{
@@ -1330,19 +1330,19 @@ Common_TestMap_f
 CONSOLE_COMMAND( testmap, "tests a map", idCmdSystem::ArgCompletion_MapName )
 {
 	idStr map, string;
-	
+
 	map = args.Argv( 1 );
 	if( !map.Length() )
 	{
 		return;
 	}
 	map.StripFileExtension();
-	
+
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect" );
-	
+
 	sprintf( string, "dmap maps/%s.map", map.c_str() );
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, string );
-	
+
 	sprintf( string, "devmap %s", map.c_str() );
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, string );
 }

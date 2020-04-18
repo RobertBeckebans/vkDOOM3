@@ -44,7 +44,7 @@ extern "C" void __cdecl SteamAPIDebugTextHook( int nSeverity, const char* pchDeb
 	// if you're running in the debugger, only warnings (nSeverity >= 1) will be sent
 	// if you add -debug_steamapi to the command-line, a lot of extra informational messages will also be sent
 	idLib::Printf( "%s", pchDebugText );
-	
+
 	if( nSeverity >= 1 )
 	{
 		// place to set a breakpoint for catching API errors
@@ -70,7 +70,7 @@ idSessionLocal::idSessionLocal()
 {
 
 	localState = STATE_PRESS_START;
-	
+
 	InitBaseState();
 }
 
@@ -101,19 +101,19 @@ void idSessionLocal::InitBaseState()
 	localState						= STATE_PRESS_START;
 	sessionOptions					= 0;
 	currentID						= 0;
-	
+
 	sessionCallbacks				= new idSessionLocalCallbacks( this );
-	
+
 	connectType						= CONNECT_NONE;
-	
+
 	isSysUIShowing					= false;
-	
+
 	pendingInviteDevice				= 0;
 	pendingInviteMode				= PENDING_INVITE_NONE;
-	
-	
+
+
 	flushedStats					= false;
-	
+
 	enumerationHandle				= 0;
 }
 
@@ -126,13 +126,13 @@ void idSessionLocal::Shutdown()
 {
 
 	delete signInManager;
-	
+
 	if( achievementSystem != NULL )
 	{
 		achievementSystem->Shutdown();
 		delete achievementSystem;
 	}
-	
+
 	DestroySteamObjects();
 }
 
@@ -148,15 +148,15 @@ void idSessionLocal::Init()
 {
 
 	common->Printf( "-------- Initializing Session --------\n" );
-	
+
 	InitSteam();
 	ConstructSteamObjects();
-	
+
 	signInManager = new idSignInManagerWin();
 	achievementSystem = new idAchievementSystemWin();
 	achievementSystem->Init();
 	Initialize();
-	
+
 	common->Printf( "session initialized\n" );
 	common->Printf( "--------------------------------------\n" );
 }
@@ -176,10 +176,10 @@ void idSessionLocal::InitSteam()
 		}
 		return;
 	}
-	
+
 	steamInitialized = SteamAPI_Init();
 	steamFailed = !steamInitialized;
-	
+
 	if( steamFailed )
 	{
 		if( net_usePlatformBackend.GetBool() )
@@ -191,12 +191,12 @@ void idSessionLocal::InitSteam()
 		}
 		return;
 	}
-	
+
 	// from now on, all Steam API functions should return non-null interface pointers
-	
+
 	assert( SteamUtils() );
 	SteamUtils()->SetWarningMessageHook( &SteamAPIDebugTextHook );
-	
+
 	ConstructSteamObjects();
 }
 
@@ -228,7 +228,7 @@ void idSessionLocal::MoveToPressStart( gameDialogMessages_t msg )
 	if( localState != STATE_PRESS_START )
 	{
 		MoveToPressStart();
-		
+
 		common->Dialog().ClearDialogs();
 		common->Dialog().AddDialog( msg, DIALOG_ACCEPT, NULL, NULL, false, "", 0, true );
 	}
@@ -257,12 +257,12 @@ void idSessionLocal::SetState( idSessionLocal::state_t newState )
 {
 	assert( newState < NUM_STATES );
 	assert( localState < NUM_STATES );
-	
+
 	if( newState == localState )
 	{
 		return;
 	}
-	
+
 	localState = newState;
 }
 
@@ -325,17 +325,17 @@ void idSessionLocal::Pump()
 {
 
 	GetSignInManager().Pump();
-	
+
 	idLocalUser* masterUser = GetSignInManager().GetMasterLocalUser();
-	
+
 	if( masterUser != NULL && localState == STATE_PRESS_START )
 	{
 		// If we have a master user, and we are at press start, move to the menu area
 		SetState( STATE_IDLE );
-		
-		
+
+
 	}
-	
+
 	GetAchievementSystem().Pump();
 }
 
@@ -374,14 +374,14 @@ idSessionLocal::SaveGame
 saveGameHandle_t idSessionLocal::SaveGame( const char* name, const idList< idSaveFileEntry >& files, const idSaveGameDetails& description, uint64 skipErrorMask )
 {
 	saveGameHandle_t ret = 0;
-	
+
 	// serialize the description file behind their back...
 	idList< idSaveFileEntry > filesWithDetails( files );
 	idFile_Memory* gameDetailsFile = new idFile_Memory( SAVEGAME_DETAILS_FILENAME );
 	//gameDetailsFile->MakeWritable();
 	description.descriptors.WriteToIniFile( gameDetailsFile );
 	filesWithDetails.Append( idSaveFileEntry( gameDetailsFile, SAVEGAMEFILE_TEXT | SAVEGAMEFILE_AUTO_DELETE, SAVEGAME_DETAILS_FILENAME ) );
-	
+
 	if( processorSave.InitSave( name, filesWithDetails, description ) )
 	{
 		processorSave.SetSkipSystemErrorDialogMask( skipErrorMask );
@@ -398,10 +398,10 @@ idSessionLocal::EnumerateSaveGames
 saveGameHandle_t idSessionLocal::EnumerateSaveGames( uint64 skipErrorMask )
 {
 	saveGameHandle_t ret = 0;
-	
+
 	// flush the old enumerated list
 	GetSaveGameManager().GetEnumeratedSavegamesNonConst().Clear();
-	
+
 	if( processorEnumerate.Init() )
 	{
 		processorEnumerate.SetSkipSystemErrorDialogMask( skipErrorMask );
@@ -476,7 +476,7 @@ const leaderboardDefinition_t* Sys_FindLeaderboardDef( int id )
 			return registeredLeaderboards[i];
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -488,7 +488,7 @@ idSessionLocal::GetActiveLobby
 idLobby* 	idSessionLocal::GetActiveLobby()
 {
 	sessionState_t state = GetState();
-	
+
 	if( ( state == GAME_LOBBY ) || ( state == BUSY ) || ( state == INGAME ) || ( state == LOADING ) )
 	{
 		return &GetGameLobby();
@@ -497,7 +497,7 @@ idLobby* 	idSessionLocal::GetActiveLobby()
 	{
 		return &GetPartyLobby();
 	}
-	
+
 	return NULL;
 }
 
@@ -509,7 +509,7 @@ idSessionLocal::GetActiveLobby
 const idLobby* idSessionLocal::GetActiveLobby() const
 {
 	sessionState_t state = GetState();
-	
+
 	if( ( state == GAME_LOBBY ) || ( state == BUSY ) || ( state == INGAME ) || ( state == LOADING ) )
 	{
 		return &GetGameLobby();
@@ -518,7 +518,7 @@ const idLobby* idSessionLocal::GetActiveLobby() const
 	{
 		return &GetPartyLobby();
 	}
-	
+
 	return NULL;
 }
 
@@ -531,12 +531,12 @@ This returns the base version for the idSession version
 idLobbyBase& idSessionLocal::GetActiveLobbyBase()
 {
 	idLobby* activeLobby = GetActiveLobby();
-	
+
 	if( activeLobby != NULL )
 	{
 		return *activeLobby;
 	}
-	
+
 	return stubLobby;		// So we can return at least something
 }
 
@@ -550,23 +550,23 @@ Call PickNewHostInternal to continue on with the host picking process.
 void idSessionLocal::PrePickNewHost( idLobby& lobby, bool forceMe, bool inviteOldHost )
 {
 	NET_VERBOSE_PRINT( "idSessionLocal::PrePickNewHost: (%s)\n", lobby.GetLobbyName() );
-	
+
 	if( GetActiveLobby() == NULL )
 	{
 		NET_VERBOSE_PRINT( "idSessionLocal::PrePickNewHost: GetActiveLobby() == NULL (%s)\n", lobby.GetLobbyName() );
 		return;
 	}
-	
+
 	// Check to see if we can migrate AT ALL
 	// This is checking for coop, we should make this a specific option (MATCH_ALLOW_MIGRATION)
 	if( GetPartyLobby().parms.GetSessionMatchFlags() & MATCH_PARTY_INVITE_PLACEHOLDER )
 	{
 		NET_VERBOSE_PRINT( "idSessionLocal::PrePickNewHost: MATCH_PARTY_INVITE_PLACEHOLDER (%s)\n", lobby.GetLobbyName() );
-		
+
 		// Can't migrate, shut both lobbies down, and create a new match using the original parms
 		GetGameLobby().Shutdown();
 		GetPartyLobby().Shutdown();
-		
+
 		// Throw up the appropriate dialog message so the player knows what happeend
 		if( localState >= STATE_LOADING )
 		{
@@ -578,12 +578,12 @@ void idSessionLocal::PrePickNewHost( idLobby& lobby, bool forceMe, bool inviteOl
 			NET_VERBOSE_PRINT( "idSessionLocal::PrePickNewHost: localState < idSessionLocal::STATE_LOADING (%s)\n", lobby.GetLobbyName() );
 			common->Dialog().AddDialog( GDM_LOBBY_BECAME_HOST_GAME, DIALOG_ACCEPT, NULL, NULL, false, __FUNCTION__, __LINE__, true );
 		}
-		
+
 		CreateMatch( GetActiveLobby()->parms );
-		
+
 		return;
 	}
-	
+
 	// Check to see if the match is searchable
 	if( GetState() >= idSession::GAME_LOBBY && MatchTypeIsSearchable( GetGameLobby().parms.GetSessionMatchFlags() ) )
 	{
@@ -592,19 +592,19 @@ void idSessionLocal::PrePickNewHost( idLobby& lobby, bool forceMe, bool inviteOl
 		lobby.PickNewHostInternal( forceMe, inviteOldHost );
 		return;
 	}
-	
+
 	//
 	// Beyond this point, game lobbies must be sync'd with party lobbies as far as host status
 	// So to enforce that, we pull you out of the game lobby if you are in one when migration occurs
 	//
-	
+
 	// Check to see if we should go back to a party lobby
 	if( GetBackState() >= idSessionLocal::PARTY_LOBBY || GetState() == idSession::PARTY_LOBBY )
 	{
 		NET_VERBOSE_PRINT( "idSessionLocal::PrePickNewHost: GetBackState() >= idSessionLocal::PARTY_LOBBY || GetState() == idSession::PARTY_LOBBY (%s)\n", lobby.GetLobbyName() );
 		// Force the party lobby to start picking a new host if we lost the game lobby host
 		GetPartyLobby().PickNewHostInternal( forceMe, inviteOldHost );
-		
+
 		// End the game lobby, and go back to party lobby
 		GetGameLobby().Shutdown();
 		SetState( GetPartyLobby().IsHost() ? STATE_PARTY_LOBBY_HOST : STATE_PARTY_LOBBY_PEER );
@@ -616,7 +616,7 @@ void idSessionLocal::PrePickNewHost( idLobby& lobby, bool forceMe, bool inviteOl
 		{
 			common->Dialog().AddDialog( GDM_HOST_QUIT, DIALOG_ACCEPT, NULL, NULL, false, __FUNCTION__, __LINE__, true );		// The host has quit the session. Returning to the main menu.
 		}
-		
+
 		// Go back to main menu
 		GetGameLobby().Shutdown();
 		GetPartyLobby().Shutdown();
@@ -636,31 +636,31 @@ bool idSessionLocal::PreMigrateInvite( idLobby& lobby )
 	{
 		return false;
 	}
-	
+
 	// Check to see if we can migrate AT ALL
 	// This is checking for coop, we should make this a specific option (MATCH_ALLOW_MIGRATION)
 	if( !verify( ( GetPartyLobby().parms.GetSessionMatchFlags() & MATCH_PARTY_INVITE_PLACEHOLDER ) == 0 ) )
 	{
 		return false;	// Shouldn't get invites for coop (we should make this a specific option (MATCH_ALLOW_MIGRATION))
 	}
-	
+
 	// Check to see if the match is searchable
 	if( MatchTypeIsSearchable( GetGameLobby().parms.GetSessionMatchFlags() ) )
 	{
 		// Searchable games migrate lobbies independently, and don't need to stay in sync
 		return true;
 	}
-	
+
 	//
 	// Beyond this point, game lobbies must be sync'd with party lobbies as far as host status
 	// So to enforce that, we pull you out of the game lobby if you are in one when migration occurs
 	//
-	
+
 	if( lobby.lobbyType != idLobby::TYPE_PARTY )
 	{
 		return false;		// We shouldn't be getting invites from non party lobbies when in a non searchable game
 	}
-	
+
 	// Non placeholder Party lobbies can always migrate
 	if( GetBackState() >= idSessionLocal::PARTY_LOBBY )
 	{
@@ -668,7 +668,7 @@ bool idSessionLocal::PreMigrateInvite( idLobby& lobby )
 		GetGameLobby().Shutdown();
 		SetState( GetPartyLobby().IsHost() ? STATE_PARTY_LOBBY_HOST : STATE_PARTY_LOBBY_PEER );
 	}
-	
+
 	return true;	// Non placeholder Party lobby invites joinable
 }
 
@@ -680,65 +680,65 @@ idSessionLocal::HandleDedicatedServerQueryRequest
 void idSessionLocal::HandleDedicatedServerQueryRequest( lobbyAddress_t& remoteAddr, idBitMsg& msg, int msgType )
 {
 	NET_VERBOSE_PRINT( "HandleDedicatedServerQueryRequest from %s\n", remoteAddr.ToString() );
-	
+
 	bool canJoin = true;
-	
+
 	const unsigned long localChecksum = 0;
 	const unsigned long remoteChecksum = msg.ReadLong();
-	
+
 	if( remoteChecksum != localChecksum )
 	{
 		NET_VERBOSE_PRINT( "HandleServerQueryRequest: Invalid version from %s\n", remoteAddr.ToString() );
 		canJoin = false;
 	}
-	
+
 	// Make sure we are the host of this party session
 	if( !GetPartyLobby().IsHost() )
 	{
 		NET_VERBOSE_PRINT( "HandleServerQueryRequest: Not host of party\n" );
 		canJoin = false;
 	}
-	
+
 	// Make sure there is a session active
 	if( GetActiveLobby() == NULL )
 	{
 		canJoin = false;
 	}
-	
+
 	// Make sure we have enough free slots
 	if( GetPartyLobby().NumFreeSlots() == 0 || GetGameLobby().NumFreeSlots() == 0 )
 	{
 		NET_VERBOSE_PRINT( "No free slots\n" );
 		canJoin = false;
 	}
-	
+
 	if( MatchTypeInviteOnly( GetPartyLobby().parms.GetSessionMatchFlags() ) )
 	{
 		canJoin = false;
 	}
-	
+
 	// Buffer to hold reply msg
 	byte buffer[ idPacketProcessor::MAX_PACKET_SIZE - 2 ];
 	idBitMsg retmsg;
 	retmsg.InitWrite( buffer, sizeof( buffer ) );
-	
+
 	idLocalUser* masterUser = GetSignInManager().GetMasterLocalUser();
-	
+
 	if( masterUser == NULL )
 	{
 		canJoin = false;
 	}
-	
+
 	// Send the info about this game session to the caller
 	retmsg.WriteBool( canJoin );
-	
+
 	if( canJoin )
 	{
 		retmsg.WriteBool( session->GetState() >= idSession::LOADING );
-		
+
 		retmsg.WriteString( masterUser->GetGamerTag() );
 		retmsg.WriteLong( GetActiveLobby()->parms.GetGameType() );			// We need to write out the game type whether we are in a game or not
-		
+
 		if( GetGameLobby().IsSessionActive() )
 		{
 			retmsg.WriteLong( GetGameLobby().parms.GetGameMap() );
@@ -749,7 +749,7 @@ void idSessionLocal::HandleDedicatedServerQueryRequest( lobbyAddress_t& remoteAd
 			retmsg.WriteLong( -1 );
 			retmsg.WriteLong( -1 );
 		}
-		
+
 		retmsg.WriteLong( GetActiveLobby()->GetNumLobbyUsers() );
 		retmsg.WriteLong( GetActiveLobby()->parms.GetNumSlots() );
 		for( int i = 0; i < GetActiveLobby()->GetNumLobbyUsers(); i++ )
@@ -757,7 +757,7 @@ void idSessionLocal::HandleDedicatedServerQueryRequest( lobbyAddress_t& remoteAd
 			retmsg.WriteString( GetActiveLobby()->GetLobbyUserName( i ) );
 		}
 	}
-	
+
 	// Send it
 	GetPartyLobby().SendConnectionLess( remoteAddr, idLobby::OOB_MATCH_QUERY_ACK, retmsg.GetWriteData(), retmsg.GetSize() );
 }
@@ -783,12 +783,12 @@ void idSessionLocal::StartSessions()
 	{
 		GetPartyLobby().lobbyBackend->StartSession();
 	}
-	
+
 	if( GetGameLobby().lobbyBackend != NULL )
 	{
 		GetGameLobby().lobbyBackend->StartSession();
 	}
-	
+
 	SetLobbiesAreJoinable( false );
 }
 
@@ -803,12 +803,12 @@ void idSessionLocal::EndSessions()
 	{
 		GetPartyLobby().lobbyBackend->EndSession();
 	}
-	
+
 	if( GetGameLobby().lobbyBackend != NULL )
 	{
 		GetGameLobby().lobbyBackend->EndSession();
 	}
-	
+
 	SetLobbiesAreJoinable( true );
 }
 
@@ -826,12 +826,12 @@ void idSessionLocal::SetLobbiesAreJoinable( bool joinable )
 		NET_VERBOSE_PRINT( "Party lobbyBackend SetIsJoinable: %d\n", joinable );
 		GetPartyLobby().lobbyBackend->SetIsJoinable( joinable );
 	}
-	
+
 	if( GetGameLobby().lobbyBackend != NULL && !MatchTypeIsJoinInProgress( GetGameLobby().parms.GetSessionMatchFlags() ) )
 	{
 		GetGameLobby().lobbyBackend->SetIsJoinable( joinable );
 		NET_VERBOSE_PRINT( "Game lobbyBackend SetIsJoinable: %d\n", joinable );
-		
+
 	}
 }
 
@@ -873,7 +873,7 @@ void idSessionLocal::GoodbyeFromHost( idLobby& lobby, int peerNum, const lobbyAd
 		MoveToMainMenu();
 		return;		// Ignore if we are not past the main menu
 	}
-	
+
 	// Goodbye from host.  See if we were connecting vs connected
 	if( ( localState == STATE_CONNECT_AND_MOVE_TO_PARTY || localState == STATE_CONNECT_AND_MOVE_TO_GAME ) && lobby.peers[peerNum].GetConnectionState() == idLobby::CONNECTION_CONNECTING )
 	{
@@ -886,9 +886,9 @@ void idSessionLocal::GoodbyeFromHost( idLobby& lobby, int peerNum, const lobbyAd
 	{
 		// We were disconnected from a server we were previously connected to
 		idLib::Printf( "NET: Disconnected from host %s on session %s. MsgType %i.\n", remoteAddress.ToString(), lobby.GetLobbyName(), msgType );
-		
+
 		const bool leaveGameWithParty = ( msgType == idLobby::OOB_GOODBYE_W_PARTY );
-		
+
 		if( leaveGameWithParty && lobby.lobbyType == idLobby::TYPE_GAME && lobby.IsPeer() && GetState() == idSession::GAME_LOBBY && GetPartyLobby().host >= 0 &&
 				lobby.peers[peerNum].address.Compare( GetPartyLobby().peers[GetPartyLobby().host].address, true ) )
 		{
@@ -915,25 +915,25 @@ bool idSessionLocal::HandlePackets()
 	byte				packetBuffer[ idPacketProcessor::MAX_FINAL_PACKET_SIZE ];
 	lobbyAddress_t	remoteAddress;
 	int					recvSize = 0;
-	
+
 	while( ReadRawPacket( remoteAddress, packetBuffer, recvSize, sizeof( packetBuffer ) ) && recvSize > 0 )
 	{
 		// fragMsg will hold the raw packet
 		idBitMsg fragMsg;
 		fragMsg.InitRead( packetBuffer, recvSize );
-		
+
 		// Peek at the session ID
 		idPacketProcessor::sessionId_t sessionID = idPacketProcessor::GetSessionID( fragMsg );
-		
+
 		// idLib::Printf( "NET: HandlePackets - session %d, size %d \n", sessionID, recvSize );
-		
+
 		// Make sure it's valid
 		if( sessionID == idPacketProcessor::SESSION_ID_INVALID )
 		{
 			idLib::Printf( "NET: Invalid sessionID %s.\n", remoteAddress.ToString() );
 			continue;
 		}
-		
+
 		// Distribute the packet to the proper lobby
 		if( sessionID & 1 )
 		{
@@ -944,7 +944,7 @@ bool idSessionLocal::HandlePackets()
 			GetPartyLobby().HandlePacket( remoteAddress, fragMsg, sessionID );
 		}
 	}
-	
+
 	return false;
 }
 
@@ -961,25 +961,25 @@ bool idSessionLocal::HandleConnectAndMoveToLobby( idLobby& lobby )
 {
 	assert( localState == STATE_CONNECT_AND_MOVE_TO_PARTY || localState == STATE_CONNECT_AND_MOVE_TO_GAME );
 	assert( connectType == CONNECT_FIND_OR_CREATE || connectType == CONNECT_DIRECT );
-	
+
 	if( lobby.GetState() == idLobby::STATE_FAILED )
 	{
 		// If we get here, we were trying to connect to a lobby (from state State_Connect_And_Move_To_Party/State_Connect_And_Move_To_Game)
 		HandleConnectionFailed( lobby, false );
 		return true;
 	}
-	
+
 	if( lobby.GetState() != idLobby::STATE_IDLE )
 	{
 		return HandlePackets();	// Valid but busy
 	}
-	
+
 	assert( !GetPartyLobby().waitForPartyOk );
-	
+
 	//
 	// Past this point, we've connected to the lobby
 	//
-	
+
 	// If we are connecting to a game lobby, see if we need to keep waiting as either a host or peer while we're confirming all party members made it
 	if( lobby.lobbyType == idLobby::TYPE_GAME )
 	{
@@ -987,34 +987,34 @@ bool idSessionLocal::HandleConnectAndMoveToLobby( idLobby& lobby )
 		{
 			// As a host, wait until all party members make it
 			assert( !GetGameLobby().waitForPartyOk );
-			
+
 			const int timeoutMs = net_connectTimeoutInSeconds.GetInteger() * 1000;
-			
+
 			if( timeoutMs != 0 && Sys_Milliseconds() - lobby.helloStartTime > timeoutMs )
 			{
 				// Took too long, move to next result, or create a game instead
 				HandleConnectionFailed( lobby, false );
 				return true;
 			}
-			
+
 			int numUsersIn = 0;
-			
+
 			for( int i = 0; i < GetPartyLobby().GetNumLobbyUsers(); i++ )
 			{
-			
+
 				if( net_testPartyMemberConnectFail.GetInteger() == i )
 				{
 					continue;
 				}
-				
+
 				bool foundUser = false;
-				
+
 				lobbyUser_t* partyUser = GetPartyLobby().GetLobbyUser( i );
-				
+
 				for( int j = 0; j < GetGameLobby().GetNumLobbyUsers(); j++ )
 				{
 					lobbyUser_t* gameUser = GetGameLobby().GetLobbyUser( j );
-					
+
 					if( GetGameLobby().IsSessionUserLocal( gameUser ) || gameUser->address.Compare( partyUser->address, true ) )
 					{
 						numUsersIn++;
@@ -1022,17 +1022,17 @@ bool idSessionLocal::HandleConnectAndMoveToLobby( idLobby& lobby )
 						break;
 					}
 				}
-				
+
 				assert( !GetPartyLobby().IsSessionUserIndexLocal( i ) || foundUser );
 			}
-			
+
 			if( numUsersIn != GetPartyLobby().GetNumLobbyUsers() )
 			{
 				return HandlePackets();		// All users not in, keep waiting until all user make it, or we time out
 			}
-			
+
 			NET_VERBOSE_PRINT( "NET: All party members made it into the game lobby.\n" );
-			
+
 			// Let all the party members know everyone made it, and it's ok to stay at this server
 			for( int i = 0; i < GetPartyLobby().peers.Num(); i++ )
 			{
@@ -1050,29 +1050,29 @@ bool idSessionLocal::HandleConnectAndMoveToLobby( idLobby& lobby )
 				connectType = CONNECT_NONE;
 				return false;
 			}
-			
+
 			// As a peer, wait for server to tell us everyone made it
 			if( GetGameLobby().waitForPartyOk )
 			{
 				const int timeoutMs =  net_connectTimeoutInSeconds.GetInteger()  * 1000;
-				
+
 				if( timeoutMs != 0 && Sys_Milliseconds() - lobby.helloStartTime > timeoutMs )
 				{
 					GetGameLobby().waitForPartyOk = false;		// Just connect to this game lobby if we haven't heard from the party host for the entire timeout duration
 				}
 			}
-			
+
 			if( GetGameLobby().waitForPartyOk )
 			{
 				return HandlePackets();			// Waiting on party host to tell us everyone made it
 			}
 		}
 	}
-	
+
 	// Success
 	SetState( lobby.lobbyType == idLobby::TYPE_PARTY ? STATE_PARTY_LOBBY_PEER : STATE_GAME_LOBBY_PEER );
 	connectType = CONNECT_NONE;
-	
+
 	return false;
 }
 
@@ -1100,19 +1100,19 @@ void idSessionLocal::HandleConnectionFailed( idLobby& lobby, bool wasFull )
 	assert( localState == STATE_CONNECT_AND_MOVE_TO_PARTY || localState == STATE_CONNECT_AND_MOVE_TO_GAME );
 	assert( connectType == CONNECT_FIND_OR_CREATE || connectType == CONNECT_DIRECT );
 	bool canPlayOnline = true;
-	
+
 	// Check for online status (this is only a problem on the PS3 at the moment. The 360 LIVE system handles this for us
 	if( GetSignInManager().GetMasterLocalUser() != NULL )
 	{
 		canPlayOnline = GetSignInManager().GetMasterLocalUser()->CanPlayOnline();
 	}
-	
+
 	if( connectType == CONNECT_FIND_OR_CREATE )
 	{
 		// Clear the "Lobby was Full" dialog in case it's up
 		// We only want to see this msg when doing a direct connect (CONNECT_DIRECT)
 		common->Dialog().ClearDialog( GDM_LOBBY_FULL );
-		
+
 		assert( localState == STATE_CONNECT_AND_MOVE_TO_GAME );
 		assert( lobby.lobbyType == idLobby::TYPE_GAME );
 		if( !lobby.ConnectToNextSearchResult() )
@@ -1124,9 +1124,9 @@ void idSessionLocal::HandleConnectionFailed( idLobby& lobby, bool wasFull )
 	{
 		if( localState == STATE_CONNECT_AND_MOVE_TO_GAME && GetPartyLobby().IsPeer() )
 		{
-		
+
 			int flags = GetPartyLobby().parms.GetSessionMatchFlags();
-			
+
 			if( MatchTypeIsOnline( flags ) && ( flags & MATCH_REQUIRE_PARTY_LOBBY ) && ( ( flags & MATCH_PARTY_INVITE_PLACEHOLDER ) == 0 ) )
 			{
 				// We get here when our party host told us to connect to a game, but the game didn't exist.
@@ -1135,7 +1135,7 @@ void idSessionLocal::HandleConnectionFailed( idLobby& lobby, bool wasFull )
 				return;
 			}
 		}
-		
+
 		if( wasFull )
 		{
 			common->Dialog().AddDialog( GDM_LOBBY_FULL, DIALOG_ACCEPT, NULL, NULL, false );
@@ -1194,12 +1194,12 @@ void idSessionLocal::ConnectAndMoveToLobby( idLobby& lobby, const lobbyConnectIn
 	// Since we are connecting directly to a lobby, make sure no search results are left over from previous FindOrCreateMatch results
 	// If we don't do this, we might think we should attempt to connect to an old search result, and we don't want to in this case
 	lobby.searchResults.Clear();
-	
+
 	// Attempt to connect to the lobby
 	lobby.ConnectTo( connectInfo, fromInvite );
-	
+
 	connectType = CONNECT_DIRECT;
-	
+
 	// Wait for connection
 	SetState( lobby.lobbyType == idLobby::TYPE_PARTY ? STATE_CONNECT_AND_MOVE_TO_PARTY : STATE_CONNECT_AND_MOVE_TO_GAME );
 }
@@ -1212,15 +1212,15 @@ idSessionLocal::WriteLeaderboardToMsg
 void idSessionLocal::WriteLeaderboardToMsg( idBitMsg& msg, const leaderboardDefinition_t* leaderboard, const column_t* stats )
 {
 	assert( Sys_FindLeaderboardDef( leaderboard->id ) == leaderboard );
-	
+
 	msg.WriteLong( leaderboard->id );
-	
+
 	for( int i = 0; i < leaderboard->numColumns; ++i )
 	{
 		uint64 value = stats[i].value;
-		
+
 		//idLib::Printf( "value = %i\n", (int32)value );
-		
+
 		for( int j = 0; j < leaderboard->columnDefs[i].bits; j++ )
 		{
 			msg.WriteBits( value & 1, 1 );
@@ -1238,30 +1238,30 @@ idSessionLocal::ReadLeaderboardFromMsg
 const leaderboardDefinition_t* idSessionLocal::ReadLeaderboardFromMsg( idBitMsg& msg, column_t* stats )
 {
 	int id = msg.ReadLong();
-	
+
 	const leaderboardDefinition_t* leaderboard = Sys_FindLeaderboardDef( id );
-	
+
 	if( leaderboard == NULL )
 	{
 		idLib::Printf( "NET: Invalid leaderboard id: %i\n", id );
 		return NULL;
 	}
-	
+
 	for( int i = 0; i < leaderboard->numColumns; ++i )
 	{
 		uint64 value = 0;
-		
+
 		for( int j = 0; j < leaderboard->columnDefs[i].bits; j++ )
 		{
 			value |= ( uint64 )( msg.ReadBits( 1 ) & 1 ) << j;
 		}
-		
+
 		stats[i].value = value;
-		
+
 		//idLib::Printf( "value = %i\n", (int32)value );
 		//msg.ReadData( &stats[i].value, sizeof( stats[i].value ) );
 	}
-	
+
 	return leaderboard;
 }
 
@@ -1273,8 +1273,8 @@ idSessionLocal::EndMatchInternal
 void idSessionLocal::EndMatchInternal( bool premature/*=false*/ )
 {
 	ClearVoiceGroups();
-	
-	
+
+
 	for( int p = 0; p < GetGameLobby().peers.Num(); p++ )
 	{
 		// If we are the host, increment the session ID.  The client will use a rolling check to catch it
@@ -1291,20 +1291,20 @@ void idSessionLocal::EndMatchInternal( bool premature/*=false*/ )
 		}
 		GetGameLobby().peers[p].ResetMatchData();
 	}
-	
-	
+
+
 	GetGameLobby().loaded = false;
 	//gameLobbyWasCoalesced	= false;		// Reset this back to false.  We use this so the lobby code doesn't randomly choose a map when we coalesce
-	
+
 	ClearMigrationState();
-	
+
 	if( common->IsMultiplayer() )
 	{
 		if( GetGameLobby().IsSessionActive() )
 		{
 			// All peers need to remove disconnected users to stay in sync
 			GetGameLobby().CompactDisconnectedUsers();
-			
+
 			// Go back to the game lobby
 			if( GetGameLobby().IsHost() )
 			{
@@ -1326,7 +1326,7 @@ void idSessionLocal::EndMatchInternal( bool premature/*=false*/ )
 	{
 		SetState( STATE_IDLE );
 	}
-	
+
 	if( GetGameLobby().IsHost() )
 	{
 		// Send a reliable msg to all peers to also "EndMatch"
@@ -1352,14 +1352,14 @@ void idSessionLocal::HandleOobVoiceAudio( const lobbyAddress_t& from, const idBi
 {
 
 	idLobby* activeLobby = GetActiveLobby();
-	
+
 	if( activeLobby == NULL )
 	{
 		return;
 	}
-	
+
 	voiceChat->SetActiveLobby( activeLobby->lobbyType );
-	
+
 	voiceChat->SubmitIncomingChatData( msg.GetReadData() + msg.GetReadCount(), msg.GetSize() - msg.GetReadCount() );
 }
 
@@ -1389,15 +1389,15 @@ void idSessionLocal::SendLeaderboardStatsToPlayer( int sessionUserIndex, const l
 		idLib::Warning( "Tried to tell disconnected user to report stats" );
 		return;
 	}
-	
+
 	const int peerIndex = GetGameLobby().PeerIndexFromLobbyUserIndex( sessionUserIndex );
-	
+
 	if( peerIndex == -1 )
 	{
 		idLib::Warning( "Tried to tell invalid peer index to report stats" );
 		return;
 	}
-	
+
 	if( !verify( GetGameLobby().IsHost() ) ||
 			!verify( peerIndex < GetGameLobby().peers.Num() ) ||
 			!verify( GetGameLobby().peers[ peerIndex ].IsConnected() ) )
@@ -1405,25 +1405,25 @@ void idSessionLocal::SendLeaderboardStatsToPlayer( int sessionUserIndex, const l
 		idLib::Warning( "Tried to tell invalid peer to report stats" );
 		return;
 	}
-	
+
 	NET_VERBOSE_PRINT( "Telling sessionUserIndex %i (peer %i) to report stats\n", sessionUserIndex, peerIndex );
-	
+
 	lobbyUser_t* gameUser = GetGameLobby().GetLobbyUser( sessionUserIndex );
-	
+
 	if( !verify( gameUser != NULL ) )
 	{
 		return;
 	}
-	
+
 	byte buffer[ idPacketProcessor::MAX_PACKET_SIZE ];
 	idBitMsg msg;
 	msg.InitWrite( buffer, sizeof( buffer ) );
-	
+
 	// Use the user ID
 	msg.WriteLong( gameUser->userID );
-	
+
 	WriteLeaderboardToMsg( msg, leaderboard, stats );
-	
+
 	GetGameLobby().QueueReliableMessage( peerIndex, idLobby::RELIABLE_POST_STATS, msg.GetWriteData(), msg.GetSize() );
 }
 
@@ -1435,18 +1435,18 @@ idSessionLocal::RecvLeaderboardStatsForPlayer
 void idSessionLocal::RecvLeaderboardStatsForPlayer( idBitMsg& msg )
 {
 	column_t stats[ MAX_LEADERBOARD_COLUMNS ];
-	
+
 	int userID = msg.ReadLong();
-	
+
 	int sessionUserIndex = GetGameLobby().FindSessionUserByUserId( userID );
-	
+
 	const leaderboardDefinition_t* leaderboard = ReadLeaderboardFromMsg( msg, stats );
-	
+
 	if( leaderboard == NULL )
 	{
 		idLib::Printf( "RecvLeaderboardStatsForPlayer: Invalid lb.\n" );
 		return;
 	}
-	
+
 	LeaderboardUpload( sessionUserIndex, leaderboard, stats );
 }

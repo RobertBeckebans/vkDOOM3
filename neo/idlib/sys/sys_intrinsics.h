@@ -193,7 +193,7 @@ ID_INLINE int CACHE_LINE_CLEAR_OVERFLOW_COUNT( int size )
 */
 
 #if !defined( R_SHUFFLE_D )
-#define R_SHUFFLE_D( x, y, z, w )	(( (w) & 3 ) << 6 | ( (z) & 3 ) << 4 | ( (y) & 3 ) << 2 | ( (x) & 3 ))
+	#define R_SHUFFLE_D( x, y, z, w )	(( (w) & 3 ) << 6 | ( (z) & 3 ) << 4 | ( (y) & 3 ) << 2 | ( (x) & 3 ))
 #endif
 
 // make the intrinsics "type unsafe"

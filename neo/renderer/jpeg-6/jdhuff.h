@@ -13,9 +13,9 @@
 /* Short forms of external names for systems with brain-damaged linkers. */
 
 #ifdef NEED_SHORT_EXTERNAL_NAMES
-#define jpeg_make_d_derived_tbl	jMkDDerived
-#define jpeg_fill_bit_buffer	jFilBitBuf
-#define jpeg_huff_decode	jHufDecode
+	#define jpeg_make_d_derived_tbl	jMkDDerived
+	#define jpeg_fill_bit_buffer	jFilBitBuf
+	#define jpeg_huff_decode	jHufDecode
 #endif /* NEED_SHORT_EXTERNAL_NAMES */
 
 
@@ -30,10 +30,10 @@ typedef struct
 	INT32 maxcode[18];		/* largest code of length k (-1 if none) */
 	/* (maxcode[17] is a sentinel to ensure jpeg_huff_decode terminates) */
 	int valptr[17];		/* huffval[] index of 1st symbol of length k */
-	
+
 	/* Link to public Huffman table (needed only in jpeg_huff_decode) */
 	JHUFF_TBL* pub;
-	
+
 	/* Lookahead tables: indexed by the next HUFF_LOOKAHEAD bits of
 	 * the input data stream.  If the next Huffman code is no more
 	 * than HUFF_LOOKAHEAD bits long, we can obtain its length and

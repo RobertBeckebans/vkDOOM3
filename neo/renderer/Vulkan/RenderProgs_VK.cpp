@@ -66,103 +66,103 @@ static void CreateVertexDescriptions()
 	createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	createInfo.pNext = NULL;
 	createInfo.flags = 0;
-	
+
 	VkVertexInputBindingDescription binding = {};
 	VkVertexInputAttributeDescription attribute = {};
-	
+
 	{
 		vertexLayout_t& layout = vertexLayouts[ LAYOUT_DRAW_VERT ];
 		layout.inputState = createInfo;
-		
+
 		uint32 locationNo = 0;
 		uint32 offset = 0;
-		
+
 		binding.stride = sizeof( idDrawVert );
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		layout.bindingDesc.Append( binding );
-		
+
 		// Position
 		attribute.format = VK_FORMAT_R32G32B32_SFLOAT;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idDrawVert::xyz );
-		
+
 		// TexCoord
 		attribute.format = VK_FORMAT_R16G16_SFLOAT;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idDrawVert::st );
-		
+
 		// Normal
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idDrawVert::normal );
-		
+
 		// Tangent
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idDrawVert::tangent );
-		
+
 		// Color1
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idDrawVert::color );
-		
+
 		// Color2
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 	}
-	
+
 	{
 		vertexLayout_t& layout = vertexLayouts[ LAYOUT_DRAW_SHADOW_VERT_SKINNED ];
 		layout.inputState = createInfo;
-		
+
 		uint32 locationNo = 0;
 		uint32 offset = 0;
-		
+
 		binding.stride = sizeof( idShadowVertSkinned );
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		layout.bindingDesc.Append( binding );
-		
+
 		// Position
 		attribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idShadowVertSkinned::xyzw );
-		
+
 		// Color1
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 		offset += sizeof( idShadowVertSkinned::color );
-		
+
 		// Color2
 		attribute.format = VK_FORMAT_R8G8B8A8_UNORM;
 		attribute.location = locationNo++;
 		attribute.offset = offset;
 		layout.attributeDesc.Append( attribute );
 	}
-	
+
 	{
 		vertexLayout_t& layout = vertexLayouts[ LAYOUT_DRAW_SHADOW_VERT ];
 		layout.inputState = createInfo;
-		
+
 		binding.stride = sizeof( idShadowVert );
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		layout.bindingDesc.Append( binding );
-		
+
 		// Position
 		attribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		attribute.location = 0;
@@ -184,14 +184,14 @@ static void CreateDescriptorPools( VkDescriptorPool( &pools )[ NUM_FRAME_DATA ] 
 	poolSizes[ 0 ].descriptorCount = MAX_DESC_UNIFORM_BUFFERS;
 	poolSizes[ 1 ].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[ 1 ].descriptorCount = MAX_DESC_IMAGE_SAMPLERS;
-	
+
 	VkDescriptorPoolCreateInfo poolCreateInfo = {};
 	poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolCreateInfo.pNext = NULL;
 	poolCreateInfo.maxSets = MAX_DESC_SETS;
 	poolCreateInfo.poolSizeCount = numPools;
 	poolCreateInfo.pPoolSizes = poolSizes;
-	
+
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
 		ID_VK_CHECK( vkCreateDescriptorPool( vkcontext.device, &poolCreateInfo, NULL, &pools[ i ] ) );
@@ -233,44 +233,44 @@ static void CreateDescriptorSetLayout(
 		idList< VkDescriptorSetLayoutBinding > layoutBindings;
 		VkDescriptorSetLayoutBinding binding = {};
 		binding.descriptorCount = 1;
-		
+
 		uint32 bindingId = 0;
-		
+
 		binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		for( int i = 0; i < vertexShader.bindings.Num(); ++i )
 		{
 			binding.binding = bindingId++;
 			binding.descriptorType = GetDescriptorType( vertexShader.bindings[ i ] );
 			renderProg.bindings.Append( vertexShader.bindings[ i ] );
-			
+
 			layoutBindings.Append( binding );
 		}
-		
+
 		binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		for( int i = 0; i < fragmentShader.bindings.Num(); ++i )
 		{
 			binding.binding = bindingId++;
 			binding.descriptorType = GetDescriptorType( fragmentShader.bindings[ i ] );
 			renderProg.bindings.Append( fragmentShader.bindings[ i ] );
-			
+
 			layoutBindings.Append( binding );
 		}
-		
+
 		VkDescriptorSetLayoutCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		createInfo.bindingCount = layoutBindings.Num();
 		createInfo.pBindings = layoutBindings.Ptr();
-		
+
 		vkCreateDescriptorSetLayout( vkcontext.device, &createInfo, NULL, &renderProg.descriptorSetLayout );
 	}
-	
+
 	// Pipeline Layout
 	{
 		VkPipelineLayoutCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		createInfo.setLayoutCount = 1;
 		createInfo.pSetLayouts = &renderProg.descriptorSetLayout;
-		
+
 		vkCreatePipelineLayout( vkcontext.device, &createInfo, NULL, &renderProg.pipelineLayout );
 	}
 }
@@ -283,7 +283,7 @@ GetStencilOpState
 static VkStencilOpState GetStencilOpState( uint64 stencilBits )
 {
 	VkStencilOpState state = {};
-	
+
 	switch( stencilBits & GLS_STENCIL_OP_FAIL_BITS )
 	{
 		case GLS_STENCIL_OP_FAIL_KEEP:
@@ -365,7 +365,7 @@ static VkStencilOpState GetStencilOpState( uint64 stencilBits )
 			state.passOp = VK_STENCIL_OP_DECREMENT_AND_WRAP;
 			break;
 	}
-	
+
 	return state;
 }
 
@@ -384,19 +384,19 @@ static VkPipeline CreateGraphicsPipeline(
 
 	// Pipeline
 	vertexLayout_t& vertexLayout = vertexLayouts[ vertexLayoutType ];
-	
+
 	// Vertex Input
 	VkPipelineVertexInputStateCreateInfo vertexInputState = vertexLayout.inputState;
 	vertexInputState.vertexBindingDescriptionCount = vertexLayout.bindingDesc.Num();
 	vertexInputState.pVertexBindingDescriptions = vertexLayout.bindingDesc.Ptr();
 	vertexInputState.vertexAttributeDescriptionCount = vertexLayout.attributeDesc.Num();
 	vertexInputState.pVertexAttributeDescriptions = vertexLayout.attributeDesc.Ptr();
-	
+
 	// Input Assembly
 	VkPipelineInputAssemblyStateCreateInfo assemblyInputState = {};
 	assemblyInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	assemblyInputState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	
+
 	// Rasterization
 	VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 	rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -406,7 +406,7 @@ static VkPipeline CreateGraphicsPipeline(
 	rasterizationState.frontFace = ( stateBits & GLS_CLOCKWISE ) ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizationState.lineWidth = 1.0f;
 	rasterizationState.polygonMode = ( stateBits & GLS_POLYMODE_LINE ) ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-	
+
 	switch( stateBits & GLS_CULL_BITS )
 	{
 		case GLS_CULL_TWOSIDED:
@@ -434,7 +434,7 @@ static VkPipeline CreateGraphicsPipeline(
 			}
 			break;
 	}
-	
+
 	// Color Blend Attachment
 	VkPipelineColorBlendAttachmentState attachmentState = {};
 	{
@@ -466,7 +466,7 @@ static VkPipeline CreateGraphicsPipeline(
 				srcFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
 				break;
 		}
-		
+
 		VkBlendFactor dstFactor = VK_BLEND_FACTOR_ZERO;
 		switch( stateBits & GLS_DSTBLEND_BITS )
 		{
@@ -495,7 +495,7 @@ static VkPipeline CreateGraphicsPipeline(
 				dstFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
 				break;
 		}
-		
+
 		VkBlendOp blendOp = VK_BLEND_OP_ADD;
 		switch( stateBits & GLS_BLENDOP_BITS )
 		{
@@ -512,7 +512,7 @@ static VkPipeline CreateGraphicsPipeline(
 				blendOp = VK_BLEND_OP_SUBTRACT;
 				break;
 		}
-		
+
 		attachmentState.blendEnable = ( srcFactor != VK_BLEND_FACTOR_ONE || dstFactor != VK_BLEND_FACTOR_ZERO );
 		attachmentState.colorBlendOp = blendOp;
 		attachmentState.srcColorBlendFactor = srcFactor;
@@ -520,7 +520,7 @@ static VkPipeline CreateGraphicsPipeline(
 		attachmentState.alphaBlendOp = blendOp;
 		attachmentState.srcAlphaBlendFactor = srcFactor;
 		attachmentState.dstAlphaBlendFactor = dstFactor;
-		
+
 		// Color Mask
 		attachmentState.colorWriteMask = 0;
 		attachmentState.colorWriteMask |= ( stateBits & GLS_REDMASK ) ?	0 : VK_COLOR_COMPONENT_R_BIT;
@@ -528,13 +528,13 @@ static VkPipeline CreateGraphicsPipeline(
 		attachmentState.colorWriteMask |= ( stateBits & GLS_BLUEMASK ) ? 0 : VK_COLOR_COMPONENT_B_BIT;
 		attachmentState.colorWriteMask |= ( stateBits & GLS_ALPHAMASK ) ? 0 : VK_COLOR_COMPONENT_A_BIT;
 	}
-	
+
 	// Color Blend
 	VkPipelineColorBlendStateCreateInfo colorBlendState = {};
 	colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlendState.attachmentCount = 1;
 	colorBlendState.pAttachments = &attachmentState;
-	
+
 	// Depth / Stencil
 	VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 	{
@@ -554,7 +554,7 @@ static VkPipeline CreateGraphicsPipeline(
 				depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
 				break;
 		}
-		
+
 		VkCompareOp stencilCompareOp = VK_COMPARE_OP_ALWAYS;
 		switch( stateBits & GLS_STENCIL_FUNC_BITS )
 		{
@@ -583,7 +583,7 @@ static VkPipeline CreateGraphicsPipeline(
 				stencilCompareOp = VK_COMPARE_OP_ALWAYS;
 				break;
 		}
-		
+
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		depthStencilState.depthTestEnable = VK_TRUE;
 		depthStencilState.depthWriteEnable = ( stateBits & GLS_DEPTHMASK ) == 0;
@@ -592,10 +592,10 @@ static VkPipeline CreateGraphicsPipeline(
 		depthStencilState.minDepthBounds = 0.0f;
 		depthStencilState.maxDepthBounds = 1.0f;
 		depthStencilState.stencilTestEnable = ( stateBits & ( GLS_STENCIL_FUNC_BITS | GLS_STENCIL_OP_BITS ) ) != 0;
-		
+
 		uint32 ref = uint32( ( stateBits & GLS_STENCIL_FUNC_REF_BITS ) >> GLS_STENCIL_FUNC_REF_SHIFT );
 		uint32 mask = uint32( ( stateBits & GLS_STENCIL_FUNC_MASK_BITS ) >> GLS_STENCIL_FUNC_MASK_SHIFT );
-		
+
 		if( stateBits & GLS_SEPARATE_STENCIL )
 		{
 			depthStencilState.front = GetStencilOpState( stateBits & GLS_STENCIL_FRONT_OPS );
@@ -603,7 +603,7 @@ static VkPipeline CreateGraphicsPipeline(
 			depthStencilState.front.compareOp = stencilCompareOp;
 			depthStencilState.front.compareMask = mask;
 			depthStencilState.front.reference = ref;
-			
+
 			depthStencilState.back = GetStencilOpState( ( stateBits & GLS_STENCIL_BACK_OPS ) >> 12 );
 			depthStencilState.back.writeMask = 0xFFFFFFFF;
 			depthStencilState.back.compareOp = stencilCompareOp;
@@ -620,7 +620,7 @@ static VkPipeline CreateGraphicsPipeline(
 			depthStencilState.back = depthStencilState.front;
 		}
 	}
-	
+
 	// Multisample
 	VkPipelineMultisampleStateCreateInfo multisampleState = {};
 	multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -630,52 +630,52 @@ static VkPipeline CreateGraphicsPipeline(
 		multisampleState.sampleShadingEnable = VK_TRUE;
 		multisampleState.minSampleShading = 1.0f;
 	}
-	
+
 	// Shader Stages
 	idList< VkPipelineShaderStageCreateInfo > stages;
 	VkPipelineShaderStageCreateInfo stage = {};
 	stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	stage.pName = "main";
-	
+
 	{
 		stage.module = vertexShader;
 		stage.stage = VK_SHADER_STAGE_VERTEX_BIT;
 		stages.Append( stage );
 	}
-	
+
 	if( fragmentShader != VK_NULL_HANDLE )
 	{
 		stage.module = fragmentShader;
 		stage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		stages.Append( stage );
 	}
-	
+
 	// Dynamic
 	idList< VkDynamicState > dynamic;
 	dynamic.Append( VK_DYNAMIC_STATE_SCISSOR );
 	dynamic.Append( VK_DYNAMIC_STATE_VIEWPORT );
-	
+
 	//if( stateBits & GLS_POLYGON_OFFSET )
 	{
 		dynamic.Append( VK_DYNAMIC_STATE_DEPTH_BIAS );
 	}
-	
+
 	if( stateBits & GLS_DEPTH_TEST_MASK )
 	{
 		dynamic.Append( VK_DYNAMIC_STATE_DEPTH_BOUNDS );
 	}
-	
+
 	VkPipelineDynamicStateCreateInfo dynamicState = {};
 	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	dynamicState.dynamicStateCount = dynamic.Num();
 	dynamicState.pDynamicStates = dynamic.Ptr();
-	
+
 	// Viewport / Scissor
 	VkPipelineViewportStateCreateInfo viewportState = {};
 	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewportState.viewportCount = 1;
 	viewportState.scissorCount = 1;
-	
+
 	// Pipeline Create
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -691,11 +691,11 @@ static VkPipeline CreateGraphicsPipeline(
 	createInfo.pViewportState = &viewportState;
 	createInfo.stageCount = stages.Num();
 	createInfo.pStages = stages.Ptr();
-	
+
 	VkPipeline pipeline = VK_NULL_HANDLE;
-	
+
 	ID_VK_CHECK( vkCreateGraphicsPipelines( vkcontext.device, vkcontext.pipelineCache, 1, &createInfo, NULL, &pipeline ) );
-	
+
 	return pipeline;
 }
 
@@ -713,14 +713,14 @@ VkPipeline renderProg_t::GetPipeline( uint64 stateBits, VkShaderModule vertexSha
 			return pipelines[ i ].pipeline;
 		}
 	}
-	
+
 	VkPipeline pipeline = CreateGraphicsPipeline( vertexLayoutType, vertexShader, fragmentShader, pipelineLayout, stateBits );
-	
+
 	pipelineState_t pipelineState;
 	pipelineState.pipeline = pipeline;
 	pipelineState.stateBits = stateBits;
 	pipelines.Append( pipelineState );
-	
+
 	return pipeline;
 }
 
@@ -748,7 +748,7 @@ idRenderProgManager::Init
 void idRenderProgManager::Init()
 {
 	idLib::Printf( "----- Initializing Render Shaders -----\n" );
-	
+
 	struct builtinShaders_t
 	{
 		int index;
@@ -772,14 +772,14 @@ void idRenderProgManager::Init()
 		{ BUILTIN_ENVIRONMENT_SKINNED, "environment_skinned", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_BUMPY_ENVIRONMENT, "bumpyEnvironment", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_BUMPY_ENVIRONMENT_SKINNED, "bumpyEnvironment_skinned", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
-		
+
 		{ BUILTIN_DEPTH, "depth", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_DEPTH_SKINNED, "depth_skinned", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_SHADOW, "shadow", SHADER_STAGE_VERTEX, LAYOUT_DRAW_SHADOW_VERT },
 		{ BUILTIN_SHADOW_SKINNED, "shadow_skinned", SHADER_STAGE_VERTEX, LAYOUT_DRAW_SHADOW_VERT_SKINNED },
 		{ BUILTIN_SHADOW_DEBUG, "shadowDebug", SHADER_STAGE_ALL, LAYOUT_DRAW_SHADOW_VERT },
 		{ BUILTIN_SHADOW_DEBUG_SKINNED, "shadowDebug_skinned", SHADER_STAGE_ALL, LAYOUT_DRAW_SHADOW_VERT_SKINNED },
-		
+
 		{ BUILTIN_BLENDLIGHT, "blendlight", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_FOG, "fog", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 		{ BUILTIN_FOG_SKINNED, "fog_skinned", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
@@ -789,36 +789,36 @@ void idRenderProgManager::Init()
 		{ BUILTIN_BINK_GUI, "bink_gui", SHADER_STAGE_ALL, LAYOUT_DRAW_VERT },
 	};
 	renderProgs.SetNum( MAX_BUILTINS );
-	
+
 	for( int i = 0; i < MAX_BUILTINS; i++ )
 	{
-	
+
 		int vIndex = -1;
 		if( builtins[ i ].stages & SHADER_STAGE_VERTEX )
 		{
 			vIndex = FindShader( builtins[ i ].name, SHADER_STAGE_VERTEX );
 		}
-		
+
 		int fIndex = -1;
 		if( builtins[ i ].stages & SHADER_STAGE_FRAGMENT )
 		{
 			fIndex = FindShader( builtins[ i ].name, SHADER_STAGE_FRAGMENT );
 		}
-		
+
 		renderProg_t& prog = renderProgs[ i ];
 		prog.name = builtins[ i ].name;
 		prog.vertexShaderIndex = vIndex;
 		prog.fragmentShaderIndex = fIndex;
 		prog.vertexLayoutType = builtins[ i ].layout;
-		
+
 		CreateDescriptorSetLayout(
 			shaders[ vIndex ],
 			( fIndex > -1 ) ? shaders[ fIndex ] : defaultShader,
 			prog );
 	}
-	
+
 	uniforms.SetNum( RENDERPARM_TOTAL, vec4_zero );
-	
+
 	renderProgs[ BUILTIN_TEXTURE_VERTEXCOLOR_SKINNED ].usesJoints = true;
 	renderProgs[ BUILTIN_INTERACTION_SKINNED ].usesJoints = true;
 	renderProgs[ BUILTIN_INTERACTION_AMBIENT_SKINNED ].usesJoints = true;
@@ -828,19 +828,19 @@ void idRenderProgManager::Init()
 	renderProgs[ BUILTIN_SHADOW_SKINNED ].usesJoints = true;
 	renderProgs[ BUILTIN_SHADOW_DEBUG_SKINNED ].usesJoints = true;
 	renderProgs[ BUILTIN_FOG_SKINNED ].usesJoints = true;
-	
+
 	// Create Vertex Descriptions
 	CreateVertexDescriptions();
-	
+
 	// Create Descriptor Pools
 	CreateDescriptorPools( descriptorPools );
-	
+
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
 		parmBuffers[ i ] = new idUniformBuffer();
 		parmBuffers[ i ]->AllocBufferObject( NULL, MAX_DESC_SETS * MAX_DESC_SET_UNIFORMS * sizeof( idVec4 ), BU_DYNAMIC );
 	}
-	
+
 	// Placeholder: mainly for optionalSkinning
 	emptyUBO.AllocBufferObject( NULL, sizeof( idVec4 ), BU_DYNAMIC );
 }
@@ -859,42 +859,42 @@ void idRenderProgManager::Shutdown()
 		vkDestroyShaderModule( vkcontext.device, shader.module, NULL );
 		shader.module = VK_NULL_HANDLE;
 	}
-	
+
 	// destroy pipelines
 	for( int i = 0; i < renderProgs.Num(); ++i )
 	{
 		renderProg_t& prog = renderProgs[ i ];
-		
+
 		for( int j = 0; j < prog.pipelines.Num(); ++j )
 		{
 			vkDestroyPipeline( vkcontext.device, prog.pipelines[ j ].pipeline, NULL );
 		}
 		prog.pipelines.Clear();
-		
+
 		vkDestroyDescriptorSetLayout( vkcontext.device, prog.descriptorSetLayout, NULL );
 		vkDestroyPipelineLayout( vkcontext.device, prog.pipelineLayout, NULL );
 	}
 	renderProgs.Clear();
-	
+
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
 		parmBuffers[ i ]->FreeBufferObject();
 		delete parmBuffers[ i ];
 		parmBuffers[ i ] = NULL;
 	}
-	
+
 	emptyUBO.FreeBufferObject();
-	
+
 	for( int i = 0; i < NUM_FRAME_DATA; ++i )
 	{
 		//vkFreeDescriptorSets( vkcontext.device, descriptorPools[ i ], MAX_DESC_SETS, descriptorSets[ i ] );
 		vkResetDescriptorPool( vkcontext.device, descriptorPools[ i ], 0 );
 		vkDestroyDescriptorPool( vkcontext.device, descriptorPools[ i ], NULL );
 	}
-	
+
 	memset( descriptorSets, 0, sizeof( descriptorSets ) );
 	memset( descriptorPools, 0, sizeof( descriptorPools ) );
-	
+
 	counter = 0;
 	currentData = 0;
 	currentDescSet = 0;
@@ -911,7 +911,7 @@ void idRenderProgManager::StartFrame()
 	currentData = counter % NUM_FRAME_DATA;
 	currentDescSet = 0;
 	currentParmBufferOffset = 0;
-	
+
 	vkResetDescriptorPool( vkcontext.device, descriptorPools[ currentData ], 0 );
 }
 
@@ -926,7 +926,7 @@ void idRenderProgManager::BindProgram( int index )
 	{
 		return;
 	}
-	
+
 	current = index;
 	RENDERLOG_PRINTF( "Binding SPIRV Program %s\n", renderProgs[ index ].name.c_str() );
 }
@@ -950,18 +950,18 @@ void idRenderProgManager::AllocParmBlockBuffer( const idList< int >& parmIndices
 {
 	const int numParms = parmIndices.Num();
 	const int bytes = ALIGN( numParms * sizeof( idVec4 ), vkcontext.gpu->props.limits.minUniformBufferOffsetAlignment );
-	
+
 	ubo.Reference( *parmBuffers[ currentData ], currentParmBufferOffset, bytes );
-	
+
 	idVec4* uniforms = ( idVec4* )ubo.MapBuffer( BM_WRITE );
-	
+
 	for( int i = 0; i < numParms; ++i )
 	{
 		uniforms[ i ] = renderProgManager.GetRenderParm( static_cast< renderParm_t >( parmIndices[ i ] ) );
 	}
-	
+
 	ubo.UnmapBuffer();
-	
+
 	currentParmBufferOffset += bytes;
 }
 
@@ -973,44 +973,44 @@ idRenderProgManager::CommitCurrent
 void idRenderProgManager::CommitCurrent( uint64 stateBits )
 {
 	renderProg_t& prog = renderProgs[ current ];
-	
+
 	VkPipeline pipeline = prog.GetPipeline(
 							  stateBits,
 							  shaders[ prog.vertexShaderIndex ].module,
 							  prog.fragmentShaderIndex != -1 ? shaders[ prog.fragmentShaderIndex ].module : VK_NULL_HANDLE );
-							  
+
 	VkDescriptorSetAllocateInfo setAllocInfo = {};
 	setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	setAllocInfo.pNext = NULL;
 	setAllocInfo.descriptorPool = descriptorPools[ currentData ];
 	setAllocInfo.descriptorSetCount = 1;
 	setAllocInfo.pSetLayouts = &prog.descriptorSetLayout;
-	
+
 	ID_VK_CHECK( vkAllocateDescriptorSets( vkcontext.device, &setAllocInfo, &descriptorSets[ currentData ][ currentDescSet ] ) );
-	
+
 	VkDescriptorSet descSet = descriptorSets[ currentData ][ currentDescSet ];
 	currentDescSet++;
-	
+
 	int writeIndex = 0;
 	int bufferIndex = 0;
 	int	imageIndex = 0;
 	int bindingIndex = 0;
-	
+
 	VkWriteDescriptorSet writes[ MAX_DESC_SET_WRITES ];
 	VkDescriptorBufferInfo bufferInfos[ MAX_DESC_SET_WRITES ];
 	VkDescriptorImageInfo imageInfos[ MAX_DESC_SET_WRITES ];
-	
+
 	int uboIndex = 0;
 	idUniformBuffer* ubos[ 3 ] = { NULL, NULL, NULL };
-	
+
 	idUniformBuffer vertParms;
 	if( prog.vertexShaderIndex > -1 && shaders[ prog.vertexShaderIndex ].parmIndices.Num() > 0 )
 	{
 		AllocParmBlockBuffer( shaders[ prog.vertexShaderIndex ].parmIndices, vertParms );
-		
+
 		ubos[ uboIndex++ ] = &vertParms;
 	}
-	
+
 	idUniformBuffer jointBuffer;
 	if( prog.usesJoints && vkcontext.jointCacheHandle > 0 )
 	{
@@ -1020,38 +1020,38 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 			return;
 		}
 		assert( ( jointBuffer.GetOffset() & ( vkcontext.gpu->props.limits.minUniformBufferOffsetAlignment - 1 ) ) == 0 );
-		
+
 		ubos[ uboIndex++ ] = &jointBuffer;
 	}
 	else if( prog.optionalSkinning )
 	{
 		ubos[ uboIndex++ ] = &emptyUBO;
 	}
-	
+
 	idUniformBuffer fragParms;
 	if( prog.fragmentShaderIndex > -1 && shaders[ prog.fragmentShaderIndex ].parmIndices.Num() > 0 )
 	{
 		AllocParmBlockBuffer( shaders[ prog.fragmentShaderIndex ].parmIndices, fragParms );
-		
+
 		ubos[ uboIndex++ ] = &fragParms;
 	}
-	
+
 	for( int i = 0; i < prog.bindings.Num(); ++i )
 	{
 		rpBinding_t binding = prog.bindings[ i ];
-		
+
 		switch( binding )
 		{
 			case BINDING_TYPE_UNIFORM_BUFFER:
 			{
 				idUniformBuffer* ubo = ubos[ bufferIndex ];
-				
+
 				VkDescriptorBufferInfo& bufferInfo = bufferInfos[ bufferIndex++ ];
 				memset( &bufferInfo, 0, sizeof( VkDescriptorBufferInfo ) );
 				bufferInfo.buffer = ubo->GetAPIObject();
 				bufferInfo.offset = ubo->GetOffset();
 				bufferInfo.range = ubo->GetSize();
-				
+
 				VkWriteDescriptorSet& write = writes[ writeIndex++ ];
 				memset( &write, 0, sizeof( VkWriteDescriptorSet ) );
 				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1060,21 +1060,21 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 				write.descriptorCount = 1;
 				write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				write.pBufferInfo = &bufferInfo;
-				
+
 				break;
 			}
 			case BINDING_TYPE_SAMPLER:
 			{
 				idImage* image = vkcontext.imageParms[ imageIndex ];
-				
+
 				VkDescriptorImageInfo& imageInfo = imageInfos[ imageIndex++ ];
 				memset( &imageInfo, 0, sizeof( VkDescriptorImageInfo ) );
 				imageInfo.imageLayout = image->GetLayout();
 				imageInfo.imageView = image->GetView();
 				imageInfo.sampler = image->GetSampler();
-				
+
 				assert( image->GetView() != VK_NULL_HANDLE );
-				
+
 				VkWriteDescriptorSet& write = writes[ writeIndex++ ];
 				memset( &write, 0, sizeof( VkWriteDescriptorSet ) );
 				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1083,14 +1083,14 @@ void idRenderProgManager::CommitCurrent( uint64 stateBits )
 				write.descriptorCount = 1;
 				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				write.pImageInfo = &imageInfo;
-				
+
 				break;
 			}
 		}
 	}
-	
+
 	vkUpdateDescriptorSets( vkcontext.device, writeIndex, writes, 0, NULL );
-	
+
 	vkCmdBindDescriptorSets(
 		vkcontext.commandBuffer[ vkcontext.currentFrameData ],
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1118,14 +1118,14 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 			return i;
 		}
 	}
-	
+
 	renderProg_t program;
 	program.name = name;
 	program.vertexShaderIndex = vIndex;
 	program.fragmentShaderIndex = fIndex;
-	
+
 	CreateDescriptorSetLayout( shaders[ vIndex ], shaders[ fIndex ], program );
-	
+
 	// HACK: HeatHaze ( optional skinning )
 	{
 		static const int heatHazeNameNum = 3;
@@ -1146,7 +1146,7 @@ int idRenderProgManager::FindProgram( const char* name, int vIndex, int fIndex )
 			}
 		}
 	}
-	
+
 	int index = renderProgs.Append( program );
 	return index;
 }
@@ -1162,7 +1162,7 @@ void idRenderProgManager::LoadShader( int index )
 	{
 		return; // Already loaded
 	}
-	
+
 	LoadShader( shaders[ index ] );
 }
 
@@ -1187,34 +1187,34 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 		spirvPath += ".vspv";
 		layoutPath += ".vert.layout";
 	}
-	
+
 	void* spirvBuffer = NULL;
 	int sprivLen = fileSystem->ReadFile( spirvPath.c_str(), &spirvBuffer );
 	if( sprivLen <= 0 )
 	{
 		idLib::Error( "idRenderProgManager::LoadShader: Unable to load SPIRV shader file %s.", spirvPath.c_str() );
 	}
-	
+
 	void* layoutBuffer = NULL;
 	int layoutLen = fileSystem->ReadFile( layoutPath.c_str(), &layoutBuffer );
 	if( layoutLen <= 0 )
 	{
 		idLib::Error( "idRenderProgManager::LoadShader: Unable to load layout file %s.", layoutPath.c_str() );
 	}
-	
+
 	idStr layout = ( const char* )layoutBuffer;
-	
+
 	idLexer src( layout.c_str(), layout.Length(), "layout" );
 	idToken token;
-	
+
 	if( src.ExpectTokenString( "uniforms" ) )
 	{
 		src.ExpectTokenString( "[" );
-		
+
 		while( !src.CheckTokenString( "]" ) )
 		{
 			src.ReadToken( &token );
-			
+
 			int index = -1;
 			for( int i = 0; i < RENDERPARM_TOTAL && index == -1; ++i )
 			{
@@ -1223,24 +1223,24 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 					index = i;
 				}
 			}
-			
+
 			if( index == -1 )
 			{
 				idLib::Error( "Invalid uniform %s", token.c_str() );
 			}
-			
+
 			shader.parmIndices.Append( static_cast< renderParm_t >( index ) );
 		}
 	}
-	
+
 	if( src.ExpectTokenString( "bindings" ) )
 	{
 		src.ExpectTokenString( "[" );
-		
+
 		while( !src.CheckTokenString( "]" ) )
 		{
 			src.ReadToken( &token );
-			
+
 			int index = -1;
 			for( int i = 0; i < BINDING_TYPE_MAX; ++i )
 			{
@@ -1249,23 +1249,23 @@ void idRenderProgManager::LoadShader( shader_t& shader )
 					index = i;
 				}
 			}
-			
+
 			if( index == -1 )
 			{
 				idLib::Error( "Invalid binding %s", token.c_str() );
 			}
-			
+
 			shader.bindings.Append( static_cast< rpBinding_t >( index ) );
 		}
 	}
-	
+
 	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
 	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	shaderModuleCreateInfo.codeSize = sprivLen;
 	shaderModuleCreateInfo.pCode = ( uint32* )spirvBuffer;
-	
+
 	ID_VK_CHECK( vkCreateShaderModule( vkcontext.device, &shaderModuleCreateInfo, NULL, &shader.module ) );
-	
+
 	Mem_Free( layoutBuffer );
 	Mem_Free( spirvBuffer );
 }

@@ -25,7 +25,7 @@
  * context rows should be compiled only if needed.
  */
 #ifdef INPUT_SMOOTHING_SUPPORTED
-#define CONTEXT_ROWS_SUPPORTED
+	#define CONTEXT_ROWS_SUPPORTED
 #endif
 
 
@@ -53,15 +53,15 @@
 typedef struct
 {
 	struct jpeg_c_prep_controller pub;/* public fields */
-	
+
 	/* Downsampling input buffer.  This buffer holds color-converted data
 	 * until we have enough to do a downsample step.
 	 */
 	JSAMPARRAY color_buf[MAX_COMPONENTS];
-	
+
 	JDIMENSION rows_to_go;  /* counts rows remaining in source image */
 	int        next_buf_row; /* index of next row to store in color_buf */
-	
+
 #ifdef CONTEXT_ROWS_SUPPORTED   /* only needed for context case */
 	int this_row_group;     /* starting row index of group to process */
 	int next_buf_stop;      /* downsample when we reach this index */
@@ -79,12 +79,12 @@ METHODDEF void
 start_pass_prep( j_compress_ptr cinfo, J_BUF_MODE pass_mode )
 {
 	my_prep_ptr prep = ( my_prep_ptr ) cinfo->prep;
-	
+
 	if( pass_mode != JBUF_PASS_THRU )
 	{
 		ERREXIT( cinfo, JERR_BAD_BUFFER_MODE );
 	}
-	
+
 	/* Initialize total-height counter for detecting bottom of image */
 	prep->rows_to_go = cinfo->image_height;
 	/* Mark the conversion buffer empty */
@@ -110,7 +110,7 @@ expand_bottom_edge( JSAMPARRAY image_data, JDIMENSION num_cols,
 					int input_rows, int output_rows )
 {
 	register int row;
-	
+
 	for( row = input_rows; row < output_rows; row++ )
 	{
 		jcopy_sample_rows( image_data, input_rows - 1, image_data, row,
@@ -139,7 +139,7 @@ pre_process_data( j_compress_ptr cinfo,
 	int numrows, ci;
 	JDIMENSION inrows;
 	jpeg_component_info* compptr;
-	
+
 	while( *in_row_ctr < in_rows_avail &&
 			*out_row_group_ctr < out_row_groups_avail )
 	{
@@ -213,7 +213,7 @@ pre_process_context( j_compress_ptr cinfo,
 	int buf_height = cinfo->max_v_samp_factor * 3;
 	JDIMENSION inrows;
 	jpeg_component_info* compptr;
-	
+
 	while( *out_row_group_ctr < out_row_groups_avail )
 	{
 		if( *in_row_ctr < in_rows_avail )
@@ -316,7 +316,7 @@ create_context_buffer( j_compress_ptr cinfo )
 	int ci, i;
 	jpeg_component_info* compptr;
 	JSAMPARRAY true_buffer, fake_buffer;
-	
+
 	/* Grab enough space for fake row pointers for all the components;
 	 * we need five row groups' worth of pointers for each component.
 	 */
@@ -324,7 +324,7 @@ create_context_buffer( j_compress_ptr cinfo )
 				  ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 						  ( cinfo->num_components * 5 * rgroup_height ) *
 						  SIZEOF( JSAMPROW ) );
-						  
+
 	for( ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
 			ci++, compptr++ )
 	{
@@ -364,18 +364,18 @@ jinit_c_prep_controller( j_compress_ptr cinfo, boolean need_full_buffer )
 	my_prep_ptr prep;
 	int ci;
 	jpeg_component_info* compptr;
-	
+
 	if( need_full_buffer )   /* safety check */
 	{
 		ERREXIT( cinfo, JERR_BAD_BUFFER_MODE );
 	}
-	
+
 	prep = ( my_prep_ptr )
 		   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 										 SIZEOF( my_prep_controller ) );
 	cinfo->prep = ( struct jpeg_c_prep_controller* ) prep;
 	prep->pub.start_pass = start_pass_prep;
-	
+
 	/* Allocate the color conversion buffer.
 	 * We make the buffer wide enough to allow the downsampler to edge-expand
 	 * horizontally within the buffer, if it so chooses.

@@ -46,7 +46,7 @@ void LoadMapLocalizeData( ListHash& listHash )
 	idStr fileName = "map_localize.cfg";
 	const char* buffer = NULL;
 	idLexer src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
-	
+
 	if( fileSystem->ReadFile( fileName, ( void** )&buffer ) > 0 )
 	{
 		src.LoadMemory( buffer, strlen( buffer ), fileName );
@@ -54,14 +54,14 @@ void LoadMapLocalizeData( ListHash& listHash )
 		{
 			idStr classname;
 			idToken token;
-			
-			
-			
+
+
+
 			while( src.ReadToken( &token ) )
 			{
 				classname = token;
 				src.ExpectTokenString( "{" );
-				
+
 				idStrList list;
 				while( src.ReadToken( &token ) )
 				{
@@ -71,13 +71,13 @@ void LoadMapLocalizeData( ListHash& listHash )
 					}
 					list.Append( token );
 				}
-				
+
 				listHash.Set( classname, list );
 			}
 		}
 		fileSystem->FreeFile( ( void* )buffer );
 	}
-	
+
 }
 
 void LoadGuiParmExcludeList( idStrList& list )
@@ -86,7 +86,7 @@ void LoadGuiParmExcludeList( idStrList& list )
 	idStr fileName = "guiparm_exclude.cfg";
 	const char* buffer = NULL;
 	idLexer src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
-	
+
 	if( fileSystem->ReadFile( fileName, ( void** )&buffer ) > 0 )
 	{
 		src.LoadMemory( buffer, strlen( buffer ), fileName );
@@ -94,9 +94,9 @@ void LoadGuiParmExcludeList( idStrList& list )
 		{
 			idStr classname;
 			idToken token;
-			
-			
-			
+
+
+
 			while( src.ReadToken( &token ) )
 			{
 				list.Append( token );
@@ -113,7 +113,7 @@ bool TestMapVal( idStr& str )
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -121,36 +121,36 @@ bool TestGuiParm( const char* parm, const char* value, idStrList& excludeList )
 {
 
 	idStr testVal = value;
-	
+
 	//Already Localized?
 	if( testVal.Find( "#str_" ) != -1 )
 	{
 		return false;
 	}
-	
+
 	//Numeric
 	if( testVal.IsNumeric() )
 	{
 		return false;
 	}
-	
+
 	//Contains ::
 	if( testVal.Find( "::" ) != -1 )
 	{
 		return false;
 	}
-	
+
 	//Contains /
 	if( testVal.Find( "/" ) != -1 )
 	{
 		return false;
 	}
-	
+
 	if( excludeList.Find( testVal ) )
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -169,7 +169,7 @@ void GetFileList( const char* dir, const char* ext, idStrList& list )
 		idStr fullName = va( "%s/%s", dir, dirList[i].c_str() );
 		GetFileList( fullName, ext, list );
 	}
-	
+
 	idStrList fileList;
 	Sys_ListFiles( dir, ext, fileList );
 	for( int i = 0; i < fileList.Num(); i++ )
@@ -183,9 +183,9 @@ int LocalizeMap( const char* mapName, idLangDict& langDict, ListHash& listHash, 
 {
 
 	idLib::Printf( "Localizing Map '%s'\n", mapName );
-	
+
 	int strCount = 0;
-	
+
 	idMapFile map;
 	if( map.Parse( mapName, false, false ) )
 	{
@@ -195,30 +195,30 @@ int LocalizeMap( const char* mapName, idLangDict& langDict, ListHash& listHash, 
 			idMapEntity* ent = map.GetEntity( j );
 			if( ent )
 			{
-			
+
 				idStr classname = ent->epairs.GetString( "classname" );
-				
+
 				//Hack: for info_location
 				bool hasLocation = false;
-				
+
 				idStrList* list;
 				listHash.Get( classname, &list );
 				if( list )
 				{
-				
+
 					for( int k = 0; k < list->Num(); k++ )
 					{
-					
+
 						idStr val = ent->epairs.GetString( ( *list )[k], "" );
-						
+
 						if( val.Length() && classname == "info_location" && ( *list )[k] == "location" )
 						{
 							hasLocation = true;
 						}
-						
+
 						if( val.Length() && TestMapVal( val ) )
 						{
-						
+
 							if( !hasLocation || ( *list )[k] == "location" )
 							{
 								//Localize it!!!
@@ -228,7 +228,7 @@ int LocalizeMap( const char* mapName, idLangDict& langDict, ListHash& listHash, 
 						}
 					}
 				}
-				
+
 				listHash.Get( "all", &list );
 				if( list )
 				{
@@ -243,7 +243,7 @@ int LocalizeMap( const char* mapName, idLangDict& langDict, ListHash& listHash, 
 						}
 					}
 				}
-				
+
 				//Localize the gui_parms
 				const idKeyValue* kv = ent->epairs.MatchPrefix( "gui_parm" );
 				while( kv )
@@ -265,11 +265,11 @@ int LocalizeMap( const char* mapName, idLangDict& langDict, ListHash& listHash, 
 			idStr bak = file.Left( file.Length() - 4 );
 			bak.Append( ".bak_loc" );
 			fileSystem->CopyFile( file, bak );
-			
+
 			map.Write( mapName, ".map" );
 		}
 	}
-	
+
 	idLib::Printf( "Count: %d\n", strCount );
 	return strCount;
 }
@@ -286,13 +286,13 @@ CONSOLE_COMMAND( localizeMaps, "localize maps", NULL )
 		idLib::Printf( "Usage: localizeMaps <count | dictupdate | all> <map>\n" );
 		return;
 	}
-	
+
 	int strCount = 0;
-	
+
 	bool count = false;
 	bool dictUpdate = false;
 	bool write = false;
-	
+
 	if( idStr::Icmp( args.Argv( 1 ), "count" ) == 0 )
 	{
 		count = true;
@@ -313,12 +313,12 @@ CONSOLE_COMMAND( localizeMaps, "localize maps", NULL )
 		idLib::Printf( "Invalid Command\n" );
 		idLib::Printf( "Usage: localizeMaps <count | dictupdate | all>\n" );
 		return;
-		
+
 	}
-	
+
 	idLangDict strTable;
 	idStr filename = va( "strings/english%.3i.lang", com_product_lang_ext.GetInteger() );
-	
+
 	{
 		// I think this is equivalent...
 		const byte* buffer = NULL;
@@ -328,22 +328,22 @@ CONSOLE_COMMAND( localizeMaps, "localize maps", NULL )
 			strTable.Load( buffer, len, filename );
 		}
 		fileSystem->FreeFile( ( void* )buffer );
-		
+
 		// ... to this
 		//if ( strTable.Load( filename ) == false) {
 		//	//This is a new file so set the base index
 		//	strTable.SetBaseID(com_product_lang_ext.GetInteger()*100000);
 		//}
 	}
-	
+
 	common->SetRefreshOnPrint( true );
-	
+
 	ListHash listHash;
 	LoadMapLocalizeData( listHash );
-	
+
 	idStrList excludeList;
 	LoadGuiParmExcludeList( excludeList );
-	
+
 	if( args.Argc() == 3 )
 	{
 		strCount += LocalizeMap( args.Argv( 2 ), strTable, listHash, excludeList, write );
@@ -358,14 +358,14 @@ CONSOLE_COMMAND( localizeMaps, "localize maps", NULL )
 			strCount += LocalizeMap( file, strTable, listHash, excludeList, write );
 		}
 	}
-	
+
 	if( count )
 	{
 		idLib::Printf( "Localize String Count: %d\n", strCount );
 	}
-	
+
 	common->SetRefreshOnPrint( false );
-	
+
 	if( dictUpdate )
 	{
 		strTable.Save( filename );
@@ -385,11 +385,11 @@ CONSOLE_COMMAND( localizeGuis, "localize guis", NULL )
 		idLib::Printf( "Usage: localizeGuis <all | gui>\n" );
 		return;
 	}
-	
+
 	idLangDict strTable;
-	
+
 	idStr filename = va( "strings/english%.3i.lang", com_product_lang_ext.GetInteger() );
-	
+
 	{
 		// I think this is equivalent...
 		const byte* buffer = NULL;
@@ -399,14 +399,14 @@ CONSOLE_COMMAND( localizeGuis, "localize guis", NULL )
 			strTable.Load( buffer, len, filename );
 		}
 		fileSystem->FreeFile( ( void* )buffer );
-		
+
 		// ... to this
 		//if(strTable.Load( filename ) == false) {
 		//	//This is a new file so set the base index
 		//	strTable.SetBaseID(com_product_lang_ext.GetInteger()*100000);
 		//}
 	}
-	
+
 	idFileList* files;
 	if( idStr::Icmp( args.Argv( 1 ), "all" ) == 0 )
 	{
@@ -424,7 +424,7 @@ CONSOLE_COMMAND( localizeGuis, "localize guis", NULL )
 			commonLocal.LocalizeGui( files->GetFile( i ), strTable );
 		}
 		fileSystem->FreeFileList( files );
-		
+
 		if( game.Length() )
 		{
 			files = fileSystem->ListFilesTree( "guis", "*.pd", true, game );
@@ -433,13 +433,13 @@ CONSOLE_COMMAND( localizeGuis, "localize guis", NULL )
 		{
 			files = fileSystem->ListFilesTree( "guis", "*.pd", true, "d3xp" );
 		}
-		
+
 		for( int i = 0; i < files->GetNumFiles(); i++ )
 		{
 			commonLocal.LocalizeGui( files->GetFile( i ), strTable );
 		}
 		fileSystem->FreeFileList( files );
-		
+
 	}
 	else
 	{
@@ -452,22 +452,22 @@ CONSOLE_COMMAND( localizeGuiParmsTest, "Create test files that show gui parms lo
 {
 
 	common->SetRefreshOnPrint( true );
-	
+
 	idFile* localizeFile = fileSystem->OpenFileWrite( "gui_parm_localize.csv" );
 	idFile* noLocalizeFile = fileSystem->OpenFileWrite( "gui_parm_nolocalize.csv" );
-	
+
 	idStrList excludeList;
 	LoadGuiParmExcludeList( excludeList );
-	
+
 	idStrList files;
 	GetFileList( "z:/d3xp/d3xp/maps/game", "*.map", files );
-	
+
 	for( int i = 0; i < files.Num(); i++ )
 	{
-	
+
 		idLib::Printf( "Testing Map '%s'\n", files[i].c_str() );
 		idMapFile map;
-		
+
 		idStr file =  fileSystem->OSPathToRelativePath( files[i] );
 		if( map.Parse( file, false, false ) )
 		{
@@ -496,10 +496,10 @@ CONSOLE_COMMAND( localizeGuiParmsTest, "Create test files that show gui parms lo
 			}
 		}
 	}
-	
+
 	fileSystem->CloseFile( localizeFile );
 	fileSystem->CloseFile( noLocalizeFile );
-	
+
 	common->SetRefreshOnPrint( false );
 }
 
@@ -509,21 +509,21 @@ CONSOLE_COMMAND( localizeMapsTest, "Create test files that shows which strings w
 
 	ListHash listHash;
 	LoadMapLocalizeData( listHash );
-	
-	
+
+
 	common->SetRefreshOnPrint( true );
-	
+
 	idFile* localizeFile = fileSystem->OpenFileWrite( "map_localize.csv" );
-	
+
 	idStrList files;
 	GetFileList( "z:/d3xp/d3xp/maps/game", "*.map", files );
-	
+
 	for( int i = 0; i < files.Num(); i++ )
 	{
-	
+
 		idLib::Printf( "Testing Map '%s'\n", files[i].c_str() );
 		idMapFile map;
-		
+
 		idStr file =  fileSystem->OSPathToRelativePath( files[i] );
 		if( map.Parse( file, false, false ) )
 		{
@@ -533,7 +533,7 @@ CONSOLE_COMMAND( localizeMapsTest, "Create test files that shows which strings w
 				idMapEntity* ent = map.GetEntity( j );
 				if( ent )
 				{
-				
+
 					//Temp code to get a list of all entity key value pairs
 					/*idStr classname = ent->epairs.GetString("classname");
 					if(classname == "worldspawn" || classname == "func_static" || classname == "light" || classname == "speaker" || classname.Left(8) == "trigger_") {
@@ -544,30 +544,30 @@ CONSOLE_COMMAND( localizeMapsTest, "Create test files that shows which strings w
 						idStr out = va("%s,%s,%s,%s\r\n", classname.c_str(), kv->GetKey().c_str(), kv->GetValue().c_str(), file.c_str());
 						localizeFile->Write( out.c_str(), out.Length() );
 					}*/
-					
+
 					idStr classname = ent->epairs.GetString( "classname" );
-					
+
 					//Hack: for info_location
 					bool hasLocation = false;
-					
+
 					idStrList* list;
 					listHash.Get( classname, &list );
 					if( list )
 					{
-					
+
 						for( int k = 0; k < list->Num(); k++ )
 						{
-						
+
 							idStr val = ent->epairs.GetString( ( *list )[k], "" );
-							
+
 							if( classname == "info_location" && ( *list )[k] == "location" )
 							{
 								hasLocation = true;
 							}
-							
+
 							if( val.Length() && TestMapVal( val ) )
 							{
-							
+
 								if( !hasLocation || ( *list )[k] == "location" )
 								{
 									idStr out = va( "%s,%s,%s\r\n", val.c_str(), ( *list )[k].c_str(), file.c_str() );
@@ -576,7 +576,7 @@ CONSOLE_COMMAND( localizeMapsTest, "Create test files that shows which strings w
 							}
 						}
 					}
-					
+
 					listHash.Get( "all", &list );
 					if( list )
 					{
@@ -594,9 +594,9 @@ CONSOLE_COMMAND( localizeMapsTest, "Create test files that shows which strings w
 			}
 		}
 	}
-	
+
 	fileSystem->CloseFile( localizeFile );
-	
+
 	common->SetRefreshOnPrint( false );
 }
 
@@ -608,7 +608,7 @@ idCommonLocal::LocalizeSpecificMapData
 void idCommonLocal::LocalizeSpecificMapData( const char* fileName, idLangDict& langDict, const idLangDict& replaceArgs )
 {
 	idStr out, ws, work;
-	
+
 	idMapFile map;
 	if( map.Parse( fileName, false, false ) )
 	{
@@ -646,9 +646,9 @@ void idCommonLocal::LocalizeMapData( const char* fileName, idLangDict& langDict 
 {
 	const char* buffer = NULL;
 	idLexer src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
-	
+
 	common->SetRefreshOnPrint( true );
-	
+
 	if( fileSystem->ReadFile( fileName, ( void** )&buffer ) > 0 )
 	{
 		src.LoadMemory( buffer, strlen( buffer ), fileName );
@@ -684,7 +684,7 @@ void idCommonLocal::LocalizeMapData( const char* fileName, idLangDict& langDict 
 		}
 		fileSystem->FreeFile( ( void* )buffer );
 	}
-	
+
 	common->SetRefreshOnPrint( false );
 }
 
@@ -711,7 +711,7 @@ void idCommonLocal::LocalizeGui( const char* fileName, idLangDict& langDict )
 		{
 			idFile* outFile = fileSystem->OpenFileWrite( fileName );
 			idLib::Printf( "Processing %s\n", fileName );
-			
+
 			UpdateScreen();
 			idToken token;
 			while( src.ReadToken( &token ) )

@@ -62,7 +62,7 @@ void CopyBuffer( byte* dst, const byte* src, int numBytes )
 {
 	assert_16_byte_aligned( dst );
 	assert_16_byte_aligned( src );
-	
+
 	int i = 0;
 	for( ; i + 128 <= numBytes; i += 128 )
 	{
@@ -133,7 +133,7 @@ idBufferObject::idBufferObject()
 	size = 0;
 	offsetInOtherBuffer = OWNS_BUFFER_FLAG;
 	usage = BU_STATIC;
-	
+
 #if defined( ID_VULKAN )
 	apiObject = VK_NULL_HANDLE;
 #if defined( USE_AMD_ALLOCATOR )
@@ -173,7 +173,7 @@ void idVertexBuffer::Reference( const idVertexBuffer& other )
 	assert( IsMapped() == false );
 	//assert( other.IsMapped() == false );	// this happens when building idTriangles while at the same time setting up idDrawVerts
 	assert( other.GetSize() > 0 );
-	
+
 	FreeBufferObject();
 	size = other.GetSize();					// this strips the MAPPED_FLAG
 	offsetInOtherBuffer = other.GetOffset();	// this strips the OWNS_BUFFER_FLAG
@@ -197,7 +197,7 @@ void idVertexBuffer::Reference( const idVertexBuffer& other, int refOffset, int 
 	assert( refOffset >= 0 );
 	assert( refSize >= 0 );
 	assert( refOffset + refSize <= other.GetSize() );
-	
+
 	FreeBufferObject();
 	size = refSize;
 	offsetInOtherBuffer = other.GetOffset() + refOffset;
@@ -237,7 +237,7 @@ void idIndexBuffer::Reference( const idIndexBuffer& other )
 	assert( IsMapped() == false );
 	//assert( other.IsMapped() == false );	// this happens when building idTriangles while at the same time setting up triIndex_t
 	assert( other.GetSize() > 0 );
-	
+
 	FreeBufferObject();
 	size = other.GetSize();					// this strips the MAPPED_FLAG
 	offsetInOtherBuffer = other.GetOffset();	// this strips the OWNS_BUFFER_FLAG
@@ -261,7 +261,7 @@ void idIndexBuffer::Reference( const idIndexBuffer& other, int refOffset, int re
 	assert( refOffset >= 0 );
 	assert( refSize >= 0 );
 	assert( refOffset + refSize <= other.GetSize() );
-	
+
 	FreeBufferObject();
 	size = refSize;
 	offsetInOtherBuffer = other.GetOffset() + refOffset;
@@ -301,7 +301,7 @@ void idUniformBuffer::Reference( const idUniformBuffer& other )
 	assert( IsMapped() == false );
 	assert( other.IsMapped() == false );
 	assert( other.GetSize() > 0 );
-	
+
 	FreeBufferObject();
 	size = other.GetSize();					// this strips the MAPPED_FLAG
 	offsetInOtherBuffer = other.GetOffset();	// this strips the OWNS_BUFFER_FLAG
@@ -325,7 +325,7 @@ void idUniformBuffer::Reference( const idUniformBuffer& other, int refOffset, in
 	assert( refOffset >= 0 );
 	assert( refSize >= 0 );
 	assert( refOffset + refSize <= other.GetSize() );
-	
+
 	FreeBufferObject();
 	size = refSize;
 	offsetInOtherBuffer = other.GetOffset() + refOffset;

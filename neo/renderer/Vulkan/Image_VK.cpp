@@ -36,9 +36,9 @@ If you have questions concerning this license or the applicable additional terms
 
 int						idImage::garbageIndex = 0;
 #if defined( USE_AMD_ALLOCATOR )
-idList< VmaAllocation > idImage::allocationGarbage[ NUM_FRAME_DATA ];
+	idList< VmaAllocation > idImage::allocationGarbage[ NUM_FRAME_DATA ];
 #else
-idList< vulkanAllocation_t > idImage::allocationGarbage[ NUM_FRAME_DATA ];
+	idList< vulkanAllocation_t > idImage::allocationGarbage[ NUM_FRAME_DATA ];
 #endif
 idList< VkImage >		idImage::imageGarbage[ NUM_FRAME_DATA ];
 idList< VkImageView >	idImage::viewGarbage[ NUM_FRAME_DATA ];
@@ -96,7 +96,7 @@ static VkComponentMapping VK_GetComponentMappingFromTextureFormat( const texture
 		VK_COMPONENT_SWIZZLE_ZERO,
 		VK_COMPONENT_SWIZZLE_ZERO
 	};
-	
+
 	if( color == CFM_GREEN_ALPHA )
 	{
 		componentMapping.r = VK_COMPONENT_SWIZZLE_ONE;
@@ -105,7 +105,7 @@ static VkComponentMapping VK_GetComponentMappingFromTextureFormat( const texture
 		componentMapping.a = VK_COMPONENT_SWIZZLE_G;
 		return componentMapping;
 	}
-	
+
 	switch( format )
 	{
 		case FMT_LUM8:
@@ -139,7 +139,7 @@ static VkComponentMapping VK_GetComponentMappingFromTextureFormat( const texture
 			componentMapping.a = VK_COMPONENT_SWIZZLE_A;
 			break;
 	}
-	
+
 	return componentMapping;
 }
 
@@ -161,7 +161,7 @@ idImage::idImage( const char* name ) : imgName( name )
 	repeat = TR_REPEAT;
 	usage = TD_DEFAULT;
 	cubeFiles = CF_2D;
-	
+
 	referencedOutsideLevelLoad = false;
 	levelLoadReferenced = false;
 	sourceFileTime = FILE_NOT_FOUND_TIMESTAMP;
@@ -208,7 +208,7 @@ void idImage::CreateFromSwapImage( VkImage image, VkImageView imageView, VkForma
 	opts.width = extent.width;
 	opts.height = extent.height;
 	bIsSwapChainImage = true;
-	
+
 	// TODO_VK may need to setup more state here.
 }
 
@@ -225,7 +225,7 @@ void idImage::CreateSampler()
 	createInfo.anisotropyEnable = VK_FALSE;
 	createInfo.compareEnable = ( opts.format == FMT_DEPTH );
 	createInfo.compareOp = ( opts.format == FMT_DEPTH ) ? VK_COMPARE_OP_LESS_OR_EQUAL : VK_COMPARE_OP_NEVER;
-	
+
 	switch( filter )
 	{
 		case TF_DEFAULT:
@@ -242,7 +242,7 @@ void idImage::CreateSampler()
 		default:
 			idLib::FatalError( "idImage::CreateSampler: unrecognized texture filter %d", filter );
 	}
-	
+
 	switch( repeat )
 	{
 		case TR_REPEAT:
@@ -270,7 +270,7 @@ void idImage::CreateSampler()
 		default:
 			idLib::FatalError( "idImage::CreateSampler: unrecognized texture repeat mode %d", repeat );
 	}
-	
+
 	ID_VK_CHECK( vkCreateSampler( vkcontext.device, &createInfo, NULL, &sampler ) );
 }
 
@@ -282,7 +282,7 @@ idImage::EmptyGarbage
 void idImage::EmptyGarbage()
 {
 	garbageIndex = ( garbageIndex + 1 ) % NUM_FRAME_DATA;
-	
+
 #if defined( USE_AMD_ALLOCATOR )
 	idList< VmaAllocation >& allocationsToFree = allocationGarbage[ garbageIndex ];
 #else
@@ -291,7 +291,7 @@ void idImage::EmptyGarbage()
 	idList< VkImage >& imagesToFree = imageGarbage[ garbageIndex ];
 	idList< VkImageView >& viewsToFree = viewGarbage[ garbageIndex ];
 	idList< VkSampler >& samplersToFree = samplerGarbage[ garbageIndex ];
-	
+
 #if defined( USE_AMD_ALLOCATOR )
 	const int numAllocations = allocationsToFree.Num();
 	for( int i = 0; i < numAllocations; ++i )
@@ -304,26 +304,26 @@ void idImage::EmptyGarbage()
 	{
 		vulkanAllocator.Free( allocationsToFree[ i ] );
 	}
-	
+
 	const int numImages = imagesToFree.Num();
 	for( int i = 0; i < numImages; ++i )
 	{
 		vkDestroyImage( vkcontext.device, imagesToFree[ i ], NULL );
 	}
 #endif
-	
+
 	const int numViews = viewsToFree.Num();
 	for( int i = 0; i < numViews; ++i )
 	{
 		vkDestroyImageView( vkcontext.device, viewsToFree[ i ], NULL );
 	}
-	
+
 	const int numSamplers = samplersToFree.Num();
 	for( int i = 0; i < numSamplers; ++i )
 	{
 		vkDestroySampler( vkcontext.device, samplersToFree[ i ], NULL );
 	}
-	
+
 	allocationsToFree.Clear();
 	imagesToFree.Clear();
 	viewsToFree.Clear();
@@ -338,12 +338,12 @@ idImage::AllocImage
 void idImage::AllocImage()
 {
 	PurgeImage();
-	
+
 	internalFormat = VK_GetFormatFromTextureFormat( opts.format );
-	
+
 	// Create Sampler
 	CreateSampler();
-	
+
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
 	if( opts.format == FMT_DEPTH )
 	{
@@ -353,7 +353,7 @@ void idImage::AllocImage()
 	{
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	}
-	
+
 	// Create Image
 	VkImageCreateInfo imageCreateInfo = {};
 	imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -370,28 +370,28 @@ void idImage::AllocImage()
 	imageCreateInfo.usage = usageFlags;
 	imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	
+
 #if defined( USE_AMD_ALLOCATOR )
 	VmaMemoryRequirements vmaReq = {};
 	vmaReq.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	
+
 	ID_VK_CHECK( vmaCreateImage( vmaAllocator, &imageCreateInfo, &vmaReq, &image, &allocation, NULL ) );
 #else
 	ID_VK_CHECK( vkCreateImage( vkcontext.device, &imageCreateInfo, NULL, &image ) );
-	
+
 	VkMemoryRequirements memoryRequirements;
 	vkGetImageMemoryRequirements( vkcontext.device, image, &memoryRequirements );
-	
+
 	allocation = vulkanAllocator.Allocate(
 					 memoryRequirements.size,
 					 memoryRequirements.alignment,
 					 memoryRequirements.memoryTypeBits,
 					 VULKAN_MEMORY_USAGE_GPU_ONLY,
 					 VULKAN_ALLOCATION_TYPE_IMAGE_OPTIMAL );
-	
+
 	ID_VK_CHECK( vkBindImageMemory( vkcontext.device, image, allocation.deviceMemory, allocation.offset ) );
 #endif
-	
+
 	// Create Image View
 	VkImageViewCreateInfo viewCreateInfo = {};
 	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -403,7 +403,7 @@ void idImage::AllocImage()
 	viewCreateInfo.subresourceRange.levelCount = opts.numLevels;
 	viewCreateInfo.subresourceRange.layerCount = ( opts.textureType == TT_CUBIC ) ? 6 : 1;
 	viewCreateInfo.subresourceRange.baseMipLevel = 0;
-	
+
 	ID_VK_CHECK( vkCreateImageView( vkcontext.device, &viewCreateInfo, NULL, &view ) );
 }
 
@@ -419,19 +419,19 @@ void idImage::PurgeImage()
 		samplerGarbage[ garbageIndex ].Append( sampler );
 		sampler = VK_NULL_HANDLE;
 	}
-	
+
 	if( image != VK_NULL_HANDLE )
 	{
 		allocationGarbage[ garbageIndex ].Append( allocation );
 		viewGarbage[ garbageIndex ].Append( view );
 		imageGarbage[ garbageIndex ].Append( image );
-		
+
 #if defined( USE_AMD_ALLOCATOR )
 		allocation = NULL;
 #else
 		allocation = vulkanAllocation_t();
 #endif
-		
+
 		view = VK_NULL_HANDLE;
 		image = VK_NULL_HANDLE;
 	}
@@ -465,15 +465,15 @@ idImage::SubImageUpload
 void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int height, const void* pic, int pixelPitch )
 {
 	assert( x >= 0 && y >= 0 && mipLevel >= 0 && width >= 0 && height >= 0 && mipLevel < opts.numLevels );
-	
+
 	if( IsCompressed() )
 	{
 		width = ( width + 3 ) & ~3;
 		height = ( height + 3 ) & ~3;
 	}
-	
+
 	int size = width * height * BitsForFormat( opts.format ) / 8;
-	
+
 	VkBuffer buffer;
 	VkCommandBuffer commandBuffer;
 	int offset = 0;
@@ -491,7 +491,7 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 	{
 		memcpy( data, pic, size );
 	}
-	
+
 	VkBufferImageCopy imgCopy = {};
 	imgCopy.bufferOffset = offset;
 	imgCopy.bufferRowLength = pixelPitch;
@@ -506,7 +506,7 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 	imgCopy.imageExtent.width = width;
 	imgCopy.imageExtent.height = height;
 	imgCopy.imageExtent.depth = 1;
-	
+
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -517,20 +517,20 @@ void idImage::SubImageUpload( int mipLevel, int x, int y, int z, int width, int 
 	barrier.subresourceRange.levelCount = opts.numLevels;
 	barrier.subresourceRange.baseArrayLayer = z;
 	barrier.subresourceRange.layerCount = 1;
-	
+
 	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.srcAccessMask = 0;
 	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	vkCmdPipelineBarrier( commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier );
-	
+
 	vkCmdCopyBufferToImage( commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imgCopy );
-	
+
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 	vkCmdPipelineBarrier( commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, NULL, 0, NULL, 1, &barrier );
-	
+
 	layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }

@@ -26,7 +26,7 @@
 typedef struct
 {
 	struct jpeg_source_mgr pub; /* public fields */
-	
+
 	unsigned char* infile;      /* source stream */
 	JOCTET*         buffer; /* start of buffer */
 	boolean         start_of_file; /* have we gotten any data yet? */
@@ -46,7 +46,7 @@ METHODDEF void
 init_source( j_decompress_ptr cinfo )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
-	
+
 	/* We reset the empty-input-file flag for each image,
 	 * but we don't clear the input buffer.
 	 * This is correct behavior for reading a series of images from one source.
@@ -92,15 +92,15 @@ METHODDEF boolean
 fill_input_buffer( j_decompress_ptr cinfo )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
-	
+
 	memcpy( src->buffer, src->infile, INPUT_BUF_SIZE );
-	
+
 	src->infile += INPUT_BUF_SIZE;
-	
+
 	src->pub.next_input_byte = src->buffer;
 	src->pub.bytes_in_buffer = INPUT_BUF_SIZE;
 	src->start_of_file = FALSE;
-	
+
 	return TRUE;
 }
 
@@ -121,7 +121,7 @@ METHODDEF void
 skip_input_data( j_decompress_ptr cinfo, long num_bytes )
 {
 	my_src_ptr src = ( my_src_ptr ) cinfo->src;
-	
+
 	/* Just a dumb implementation for now.  Could use fseek() except
 	 * it doesn't work on pipes.  Not clear that being smart is worth
 	 * any trouble anyway --- large skips are infrequent.
@@ -177,7 +177,7 @@ GLOBAL void
 jpeg_stdio_src( j_decompress_ptr cinfo, unsigned char* infile )
 {
 	my_src_ptr src;
-	
+
 	/* The source object and input buffer are made permanent so that a series
 	 * of JPEG images can be read from the same file by calling jpeg_stdio_src
 	 * only before the first one.  (If we discarded the buffer at the end of
@@ -195,7 +195,7 @@ jpeg_stdio_src( j_decompress_ptr cinfo, unsigned char* infile )
 					  ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_PERMANENT,
 							  INPUT_BUF_SIZE * SIZEOF( JOCTET ) );
 	}
-	
+
 	src = ( my_src_ptr ) cinfo->src;
 	src->pub.init_source = init_source;
 	src->pub.fill_input_buffer = fill_input_buffer;

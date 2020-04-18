@@ -33,10 +33,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "win_signin.h"
 
 #ifdef _DEBUG
-idCVar win_userPersistent( "win_userPersistent", "1", CVAR_BOOL, "debugging cvar for profile persistence status" );
-idCVar win_userOnline( "win_userOnline", "1", CVAR_BOOL, "debugging cvar for profile online status" );
-idCVar win_isInParty( "win_isInParty", "0", CVAR_BOOL, "debugging cvar for platform party status" );
-idCVar win_partyCount( "win_partyCount", "0", CVAR_INTEGER, "debugginc var for platform party count" );
+	idCVar win_userPersistent( "win_userPersistent", "1", CVAR_BOOL, "debugging cvar for profile persistence status" );
+	idCVar win_userOnline( "win_userOnline", "1", CVAR_BOOL, "debugging cvar for profile online status" );
+	idCVar win_isInParty( "win_isInParty", "0", CVAR_BOOL, "debugging cvar for platform party status" );
+	idCVar win_partyCount( "win_partyCount", "0", CVAR_INTEGER, "debugginc var for platform party count" );
 #endif
 
 /*
@@ -62,7 +62,7 @@ void idSignInManagerWin::Pump()
 	{
 		localUsers.SetNum( maxDesiredLocalUsers );
 	}
-	
+
 #ifndef ID_RETAIL
 	// If we don't have enough, then make sure we do
 	// NOTE - We always want at least one user on windows for now,
@@ -72,7 +72,7 @@ void idSignInManagerWin::Pump()
 		RegisterLocalUser( localUsers.Num() );
 	}
 #endif
-	
+
 	// See if we need to save settings on any of the profiles
 	for( int i = 0; i < localUsers.Num(); i++ )
 	{
@@ -102,13 +102,13 @@ void idSignInManagerWin::RegisterLocalUser( int inputDevice )
 	{
 		return;
 	}
-	
+
 	static char machineName[128];
 	DWORD len = 128;
 	::GetComputerName( machineName, &len );
-	
+
 	const char* nameSource = machineName;
-	
+
 	idStr name( nameSource );
 	int nameLength = name.Length();
 	if( idStr::IsValidUTF8( nameSource, nameLength ) )
@@ -122,12 +122,12 @@ void idSignInManagerWin::RegisterLocalUser( int inputDevice )
 			name.AppendUTF8Char( c );
 		}
 	}
-	
+
 	idLocalUserWin& localUser = *localUsers.Alloc();
-	
+
 	localUser.Init( inputDevice, name.c_str(), localUsers.Num() );
 	localUser.SetLocalUserHandle( GetUniqueLocalUserHandle( localUser.GetGamerTag() ) );
-	
+
 	session->OnLocalUserSignin( &localUser );
 }
 
@@ -139,10 +139,10 @@ idSignInManagerWin::CreateNewUser
 bool idSignInManagerWin::CreateNewUser( winUserState_t& state )
 {
 	//idScopedGlobalHeap	everythingHereGoesInTheGlobalHeap;	// users obviously persist across maps
-	
+
 	RemoveAllLocalUsers();
 	RegisterLocalUser( state.inputDevice );
-	
+
 	if( localUsers.Num() > 0 )
 	{
 		if( !localUsers[0].VerifyUserState( state ) )
@@ -150,7 +150,7 @@ bool idSignInManagerWin::CreateNewUser( winUserState_t& state )
 			RemoveAllLocalUsers();
 		}
 	}
-	
+
 	return true;
 }
 

@@ -30,7 +30,7 @@ GLOBAL void
 jpeg_create_decompress( j_decompress_ptr cinfo )
 {
 	int i;
-	
+
 	/* For debugging purposes, zero the whole master structure.
 	 * But error manager pointer is already there, so save and restore it.
 	 */
@@ -40,33 +40,33 @@ jpeg_create_decompress( j_decompress_ptr cinfo )
 		cinfo->err = err;
 	}
 	cinfo->is_decompressor = TRUE;
-	
+
 	/* Initialize a memory manager instance for this object */
 	jinit_memory_mgr( ( j_common_ptr ) cinfo );
-	
+
 	/* Zero out pointers to permanent structures. */
 	cinfo->progress = NULL;
 	cinfo->src = NULL;
-	
+
 	for( i = 0; i < NUM_QUANT_TBLS; i++ )
 	{
 		cinfo->quant_tbl_ptrs[i] = NULL;
 	}
-	
+
 	for( i = 0; i < NUM_HUFF_TBLS; i++ )
 	{
 		cinfo->dc_huff_tbl_ptrs[i] = NULL;
 		cinfo->ac_huff_tbl_ptrs[i] = NULL;
 	}
-	
+
 	/* Initialize marker processor so application can override methods
 	 * for COM, APPn markers before calling jpeg_read_header.
 	 */
 	jinit_marker_reader( cinfo );
-	
+
 	/* And initialize the overall input controller. */
 	jinit_input_controller( cinfo );
-	
+
 	/* OK, I'm ready */
 	cinfo->global_state = DSTATE_START;
 }
@@ -134,7 +134,7 @@ default_decompress_parms( j_decompress_ptr cinfo )
 			cinfo->jpeg_color_space = JCS_GRAYSCALE;
 			cinfo->out_color_space = JCS_GRAYSCALE;
 			break;
-			
+
 		case 3:
 			if( cinfo->saw_JFIF_marker )
 			{
@@ -162,7 +162,7 @@ default_decompress_parms( j_decompress_ptr cinfo )
 				int cid0 = cinfo->comp_info[0].component_id;
 				int cid1 = cinfo->comp_info[1].component_id;
 				int cid2 = cinfo->comp_info[2].component_id;
-				
+
 				if( ( cid0 == 1 ) && ( cid1 == 2 ) && ( cid2 == 3 ) )
 				{
 					cinfo->jpeg_color_space = JCS_YCbCr;
@@ -180,7 +180,7 @@ default_decompress_parms( j_decompress_ptr cinfo )
 			/* Always guess RGB is proper output colorspace. */
 			cinfo->out_color_space = JCS_RGB;
 			break;
-			
+
 		case 4:
 			if( cinfo->saw_Adobe_marker )
 			{
@@ -205,13 +205,13 @@ default_decompress_parms( j_decompress_ptr cinfo )
 			}
 			cinfo->out_color_space = JCS_CMYK;
 			break;
-			
+
 		default:
 			cinfo->jpeg_color_space = JCS_UNKNOWN;
 			cinfo->out_color_space = JCS_UNKNOWN;
 			break;
 	}
-	
+
 	/* Set defaults for other decompression parameters. */
 	cinfo->scale_num = 1;   /* 1:1 scaling */
 	cinfo->scale_denom = 1;
@@ -269,15 +269,15 @@ GLOBAL int
 jpeg_read_header( j_decompress_ptr cinfo, boolean require_image )
 {
 	int retcode;
-	
+
 	if( ( cinfo->global_state != DSTATE_START ) &&
 			( cinfo->global_state != DSTATE_INHEADER ) )
 	{
 		ERREXIT1( cinfo, JERR_BAD_STATE, cinfo->global_state );
 	}
-	
+
 	retcode = jpeg_consume_input( cinfo );
-	
+
 	switch( retcode )
 	{
 		case JPEG_REACHED_SOS:
@@ -299,7 +299,7 @@ jpeg_read_header( j_decompress_ptr cinfo, boolean require_image )
 			/* no work */
 			break;
 	}
-	
+
 	return retcode;
 }
 
@@ -320,7 +320,7 @@ GLOBAL int
 jpeg_consume_input( j_decompress_ptr cinfo )
 {
 	int retcode = JPEG_SUSPENDED;
-	
+
 	/* NB: every possible DSTATE value should be listed in this switch */
 	switch( cinfo->global_state )
 	{

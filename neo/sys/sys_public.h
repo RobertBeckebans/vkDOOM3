@@ -160,7 +160,7 @@ enum sys_jEvents
 	J_ACTION31,
 	J_ACTION32,
 	J_ACTION_MAX = J_ACTION32,
-	
+
 	J_AXIS_MIN,
 	J_AXIS_LEFT_X = J_AXIS_MIN + AXIS_LEFT_X,
 	J_AXIS_LEFT_Y = J_AXIS_MIN + AXIS_LEFT_Y,
@@ -168,14 +168,14 @@ enum sys_jEvents
 	J_AXIS_RIGHT_Y = J_AXIS_MIN + AXIS_RIGHT_Y,
 	J_AXIS_LEFT_TRIG = J_AXIS_MIN + AXIS_LEFT_TRIG,
 	J_AXIS_RIGHT_TRIG = J_AXIS_MIN + AXIS_RIGHT_TRIG,
-	
+
 	J_AXIS_MAX = J_AXIS_MIN + MAX_JOYSTICK_AXIS - 1,
-	
+
 	J_DPAD_UP,
 	J_DPAD_DOWN,
 	J_DPAD_LEFT,
 	J_DPAD_RIGHT,
-	
+
 	MAX_JOY_EVENT
 };
 
@@ -188,7 +188,7 @@ But they are duplicated here for console portability
 enum keyNum_t
 {
 	K_NONE,
-	
+
 	K_ESCAPE,
 	K_1,
 	K_2,
@@ -312,11 +312,11 @@ enum keyNum_t
 	K_APPS			= 0xDD,
 	K_POWER			= 0xDE,
 	K_SLEEP			= 0xDF,
-	
+
 	//------------------------
 	// K_JOY codes must be contiguous, too
 	//------------------------
-	
+
 	K_JOY1 = 256,
 	K_JOY2,
 	K_JOY3,
@@ -333,29 +333,29 @@ enum keyNum_t
 	K_JOY14,
 	K_JOY15,
 	K_JOY16,
-	
+
 	K_JOY_STICK1_UP,
 	K_JOY_STICK1_DOWN,
 	K_JOY_STICK1_LEFT,
 	K_JOY_STICK1_RIGHT,
-	
+
 	K_JOY_STICK2_UP,
 	K_JOY_STICK2_DOWN,
 	K_JOY_STICK2_LEFT,
 	K_JOY_STICK2_RIGHT,
-	
+
 	K_JOY_TRIGGER1,
 	K_JOY_TRIGGER2,
-	
+
 	K_JOY_DPAD_UP,
 	K_JOY_DPAD_DOWN,
 	K_JOY_DPAD_LEFT,
 	K_JOY_DPAD_RIGHT,
-	
+
 	//------------------------
 	// K_MOUSE enums must be contiguous (no char codes in the middle)
 	//------------------------
-	
+
 	K_MOUSE1,
 	K_MOUSE2,
 	K_MOUSE3,
@@ -364,10 +364,10 @@ enum keyNum_t
 	K_MOUSE6,
 	K_MOUSE7,
 	K_MOUSE8,
-	
+
 	K_MWHEELDOWN,
 	K_MWHEELUP,
-	
+
 	K_LAST_KEY
 };
 
@@ -378,7 +378,7 @@ struct sysEvent_t
 	int				evValue2;
 	int				evPtrLength;		// bytes of data pointed to by evPtr, for journaling
 	void* 			evPtr;				// this must be manually freed if not NULL
-	
+
 	int				inputDevice;
 	bool			IsKeyEvent() const
 	{
@@ -636,10 +636,10 @@ public:
 	// this just zeros netSocket and port
 	idUDP();
 	virtual		~idUDP();
-	
+
 	// if the InitForPort fails, the idUDP.port field will remain 0
 	bool		InitForPort( int portNumber );
-	
+
 	int			GetPort() const
 	{
 		return bound_to.port;
@@ -653,14 +653,14 @@ public:
 		return ( bound_to.ip[0] | bound_to.ip[1] << 8 | bound_to.ip[2] << 16 | bound_to.ip[3] << 24 );
 	}
 	void		Close();
-	
+
 	bool		GetPacket( netadr_t& from, void* data, int& size, int maxSize );
-	
+
 	bool		GetPacketBlocking( netadr_t& from, void* data, int& size, int maxSize,
 								   int timeout );
-								   
+
 	void		SendPacket( const netadr_t to, const void* data, int size );
-	
+
 	void		SetSilent( bool silent )
 	{
 		this->silent = silent;
@@ -669,18 +669,18 @@ public:
 	{
 		return silent;
 	}
-	
+
 	int			packetsRead;
 	int			bytesRead;
-	
+
 	int			packetsWritten;
 	int			bytesWritten;
-	
+
 	bool		IsOpen() const
 	{
 		return netSocket > 0;
 	}
-	
+
 private:
 	netadr_t	bound_to;		// interface and port
 	int			netSocket;		// OS specific socket
@@ -716,7 +716,7 @@ class idJoystick
 {
 public:
 	virtual			~idJoystick() { }
-	
+
 	virtual bool	Init()
 	{
 		return false;
@@ -750,7 +750,7 @@ class idSys
 public:
 	virtual void			DebugPrintf( const char* fmt, ... ) = 0;
 	virtual void			DebugVPrintf( const char* fmt, va_list arg ) = 0;
-	
+
 	virtual double			GetClockTicks() = 0;
 	virtual double			ClockTicksPerSecond() = 0;
 	virtual cpuid_t			GetProcessorId() = 0;
@@ -759,25 +759,25 @@ public:
 	virtual bool			FPU_StackIsEmpty() = 0;
 	virtual void			FPU_SetFTZ( bool enable ) = 0;
 	virtual void			FPU_SetDAZ( bool enable ) = 0;
-	
+
 	virtual void			FPU_EnableExceptions( int exceptions ) = 0;
-	
+
 	virtual bool			LockMemory( void* ptr, int bytes ) = 0;
 	virtual bool			UnlockMemory( void* ptr, int bytes ) = 0;
-	
+
 	virtual void			GetCallStack( address_t* callStack, const int callStackSize ) = 0;
 	virtual const char* 	GetCallStackStr( const address_t* callStack, const int callStackSize ) = 0;
 	virtual const char* 	GetCallStackCurStr( int depth ) = 0;
 	virtual void			ShutdownSymbols() = 0;
-	
+
 	virtual int				DLL_Load( const char* dllName ) = 0;
 	virtual void* 			DLL_GetProcAddress( int dllHandle, const char* procName ) = 0;
 	virtual void			DLL_Unload( int dllHandle ) = 0;
 	virtual void			DLL_GetFileName( const char* baseName, char* dllName, int maxLength ) = 0;
-	
+
 	virtual sysEvent_t		GenerateMouseButtonEvent( int button, bool down ) = 0;
 	virtual sysEvent_t		GenerateMouseMoveEvent( int deltax, int deltay ) = 0;
-	
+
 	virtual void			OpenURL( const char* url, bool quit ) = 0;
 	virtual void			StartProcess( const char* exePath, bool quit ) = 0;
 };

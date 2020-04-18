@@ -32,10 +32,10 @@
  */
 
 #ifndef XMS_SUPPORTED
-#define XMS_SUPPORTED  1
+	#define XMS_SUPPORTED  1
 #endif
 #ifndef EMS_SUPPORTED
-#define EMS_SUPPORTED  1
+	#define EMS_SUPPORTED  1
 #endif
 
 
@@ -45,40 +45,40 @@
 #include "jmemsys.h"     /* import the system-dependent declarations */
 
 #ifndef HAVE_STDLIB_H       /* <stdlib.h> should declare these */
-extern void* malloc JPP( ( size_t size ) );
-extern void free JPP( ( void* ptr ) );
-extern char* getenv JPP( ( const char* name ) );
+	extern void* malloc JPP( ( size_t size ) );
+	extern void free JPP( ( void* ptr ) );
+	extern char* getenv JPP( ( const char* name ) );
 #endif
 
 #ifdef NEED_FAR_POINTERS
 
-#ifdef __TURBOC__
-/* These definitions work for Borland C (Turbo C) */
-#include <alloc.h>       /* need farmalloc(), farfree() */
-#define far_malloc( x )   farmalloc( x )
-#define far_free( x ) farfree( x )
-#else
-/* These definitions work for Microsoft C and compatible compilers */
-#include <malloc.h>      /* need _fmalloc(), _ffree() */
-#define far_malloc( x )   _fmalloc( x )
-#define far_free( x ) _ffree( x )
-#endif
+	#ifdef __TURBOC__
+		/* These definitions work for Borland C (Turbo C) */
+		#include <alloc.h>       /* need farmalloc(), farfree() */
+		#define far_malloc( x )   farmalloc( x )
+		#define far_free( x ) farfree( x )
+	#else
+		/* These definitions work for Microsoft C and compatible compilers */
+		#include <malloc.h>      /* need _fmalloc(), _ffree() */
+		#define far_malloc( x )   _fmalloc( x )
+		#define far_free( x ) _ffree( x )
+	#endif
 
 #else /* not NEED_FAR_POINTERS */
 
-#define far_malloc( x )   malloc( x )
-#define far_free( x ) free( x )
+	#define far_malloc( x )   malloc( x )
+	#define far_free( x ) free( x )
 
 #endif /* NEED_FAR_POINTERS */
 
 #ifdef DONT_USE_B_MODE      /* define mode parameters for fopen() */
-#define READ_BINARY "r"
+	#define READ_BINARY "r"
 #else
-#define READ_BINARY "rb"
+	#define READ_BINARY "rb"
 #endif
 
 #if MAX_ALLOC_CHUNK >= 65535L   /* make sure jconfig.h got this right */
-MAX_ALLOC_CHUNK should be less than 64 K.  /* deliberate syntax error */
+	MAX_ALLOC_CHUNK should be less than 64 K.  /* deliberate syntax error */
 #endif
 
 
@@ -128,7 +128,7 @@ select_file_name( char* fname )
 	const char* env;
 	char* ptr;
 	FILE* tfile;
-	
+
 	/* Keep generating file names till we find one that's not in use */
 	for( ;; )
 	{
@@ -212,7 +212,7 @@ jpeg_free_large( j_common_ptr cinfo, void FAR* object, size_t sizeofobject )
  */
 
 #ifndef DEFAULT_MAX_MEM     /* so can override from makefile */
-#define DEFAULT_MAX_MEM     300000L /* for total usage about 450K */
+	#define DEFAULT_MAX_MEM     300000L /* for total usage about 450K */
 #endif
 
 GLOBAL long
@@ -312,7 +312,7 @@ open_file_store( j_common_ptr cinfo, backing_store_ptr info,
 				 long total_bytes_needed )
 {
 	short handle;
-	
+
 	select_file_name( info->temp_name );
 	if( jdos_open( ( short far* ) &handle, ( char far* ) info->temp_name ) )
 	{
@@ -363,17 +363,17 @@ read_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	XMScontext ctx;
 	XMSspec spec;
 	char endbuffer[2];
-	
+
 	/* The XMS driver can't cope with an odd length, so handle the last byte
 	 * specially if byte_count is odd.  We don't expect this to be common.
 	 */
-	
+
 	spec.length = byte_count & ( ~1L );
 	spec.src_handle = info->handle.xms_handle;
 	spec.src.offset = file_offset;
 	spec.dst_handle = 0;
 	spec.dst.ptr = buffer_address;
-	
+
 	ctx.ds_si = ( void far* ) &spec;
 	ctx.ax = 0x0b00;    /* EMB move */
 	jxms_calldriver( xms_driver, ( XMScontext far* ) &ctx );
@@ -381,7 +381,7 @@ read_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		ERREXIT( cinfo, JERR_XMS_READ );
 	}
-	
+
 	if( ODD( byte_count ) )
 	{
 		read_xms_store( cinfo, info, ( void FAR* ) endbuffer,
@@ -399,17 +399,17 @@ write_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	XMScontext ctx;
 	XMSspec spec;
 	char endbuffer[2];
-	
+
 	/* The XMS driver can't cope with an odd length, so handle the last byte
 	 * specially if byte_count is odd.  We don't expect this to be common.
 	 */
-	
+
 	spec.length = byte_count & ( ~1L );
 	spec.src_handle = 0;
 	spec.src.ptr = buffer_address;
 	spec.dst_handle = info->handle.xms_handle;
 	spec.dst.offset = file_offset;
-	
+
 	ctx.ds_si = ( void far* ) &spec;
 	ctx.ax = 0x0b00;    /* EMB move */
 	jxms_calldriver( xms_driver, ( XMScontext far* ) &ctx );
@@ -417,7 +417,7 @@ write_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		ERREXIT( cinfo, JERR_XMS_WRITE );
 	}
-	
+
 	if( ODD( byte_count ) )
 	{
 		read_xms_store( cinfo, info, ( void FAR* ) endbuffer,
@@ -433,7 +433,7 @@ METHODDEF void
 close_xms_store( j_common_ptr cinfo, backing_store_ptr info )
 {
 	XMScontext ctx;
-	
+
 	ctx.dx = info->handle.xms_handle;
 	ctx.ax = 0x0a00;
 	jxms_calldriver( xms_driver, ( XMScontext far* ) &ctx );
@@ -447,14 +447,14 @@ open_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 				long total_bytes_needed )
 {
 	XMScontext ctx;
-	
+
 	/* Get address of XMS driver */
 	jxms_getdriver( ( XMSDRIVER far* ) &xms_driver );
 	if( xms_driver == NULL )
 	{
 		return FALSE;
 	}                   /* no driver to be had */
-	
+
 	/* Get version number, must be >= 2.00 */
 	ctx.ax = 0x0000;
 	jxms_calldriver( xms_driver, ( XMScontext far* ) &ctx );
@@ -462,7 +462,7 @@ open_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		return FALSE;
 	}
-	
+
 	/* Try to get space (expressed in kilobytes) */
 	ctx.dx = ( unsigned short )( ( total_bytes_needed + 1023L ) >> 10 );
 	ctx.ax = 0x0900;
@@ -471,7 +471,7 @@ open_xms_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		return FALSE;
 	}
-	
+
 	/* Succeeded, save the handle and away we go */
 	info->handle.xms_handle = ctx.dx;
 	info->read_backing_store = read_xms_store;
@@ -533,7 +533,7 @@ read_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 {
 	EMScontext ctx;
 	EMSspec spec;
-	
+
 	spec.length = byte_count;
 	SRC_TYPE( spec ) = 1;
 	SRC_HANDLE( spec ) = info->handle.ems_handle;
@@ -542,7 +542,7 @@ read_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 	DST_TYPE( spec ) = 0;
 	DST_HANDLE( spec ) = 0;
 	DST_PTR( spec )    = buffer_address;
-	
+
 	ctx.ds_si = ( void far* ) &spec;
 	ctx.ax = 0x5700;    /* move memory region */
 	jems_calldriver( ( EMScontext far* ) &ctx );
@@ -560,7 +560,7 @@ write_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 {
 	EMScontext ctx;
 	EMSspec spec;
-	
+
 	spec.length = byte_count;
 	SRC_TYPE( spec ) = 0;
 	SRC_HANDLE( spec ) = 0;
@@ -569,7 +569,7 @@ write_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 	DST_HANDLE( spec ) = info->handle.ems_handle;
 	DST_PAGE( spec )   = ( unsigned short )( file_offset / EMSPAGESIZE );
 	DST_OFFSET( spec ) = ( unsigned short )( file_offset % EMSPAGESIZE );
-	
+
 	ctx.ds_si = ( void far* ) &spec;
 	ctx.ax = 0x5700;    /* move memory region */
 	jems_calldriver( ( EMScontext far* ) &ctx );
@@ -584,7 +584,7 @@ METHODDEF void
 close_ems_store( j_common_ptr cinfo, backing_store_ptr info )
 {
 	EMScontext ctx;
-	
+
 	ctx.ax = 0x4500;
 	ctx.dx = info->handle.ems_handle;
 	jems_calldriver( ( EMScontext far* ) &ctx );
@@ -598,13 +598,13 @@ open_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 				long total_bytes_needed )
 {
 	EMScontext ctx;
-	
+
 	/* Is EMS driver there? */
 	if( !jems_available() )
 	{
 		return FALSE;
 	}
-	
+
 	/* Get status, make sure EMS is OK */
 	ctx.ax = 0x4000;
 	jems_calldriver( ( EMScontext far* ) &ctx );
@@ -612,7 +612,7 @@ open_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		return FALSE;
 	}
-	
+
 	/* Get version, must be >= 4.0 */
 	ctx.ax = 0x4600;
 	jems_calldriver( ( EMScontext far* ) &ctx );
@@ -620,7 +620,7 @@ open_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		return FALSE;
 	}
-	
+
 	/* Try to allocate requested space */
 	ctx.ax = 0x4300;
 	ctx.bx = ( unsigned short )( ( total_bytes_needed + EMSPAGESIZE - 1L ) / EMSPAGESIZE );
@@ -629,7 +629,7 @@ open_ems_store( j_common_ptr cinfo, backing_store_ptr info,
 	{
 		return FALSE;
 	}
-	
+
 	/* Succeeded, save the handle and away we go */
 	info->handle.ems_handle = ctx.dx;
 	info->read_backing_store = read_ems_store;

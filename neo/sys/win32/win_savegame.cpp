@@ -46,14 +46,14 @@ void Sys_ExecuteSavegameCommandAsync
 void Sys_ExecuteSavegameCommandAsyncImpl( idSaveLoadParms* savegameParms )
 {
 	assert( savegameParms != NULL );
-	
+
 	session->GetSaveGameManager().GetSaveGameThread().data.saveLoadParms = savegameParms;
-	
+
 	if( session->GetSaveGameManager().GetSaveGameThread().GetThreadHandle() == 0 )
 	{
 		session->GetSaveGameManager().GetSaveGameThread().StartWorkerThread( "Savegame", CORE_ANY );
 	}
-	
+
 	session->GetSaveGameManager().GetSaveGameThread().SignalWork();
 }
 
@@ -76,7 +76,7 @@ idLocalUserWin* GetLocalUserFromSaveParms( const saveGameThreadArgs_t& data )
 			}
 		}
 	}
-	
+
 	return NULL;
 }
 
@@ -93,12 +93,12 @@ int idSaveGameThread::Save()
 		data.saveLoadParms->errorCode = SAVEGAME_E_INVALID_USER;
 		return -1;
 	}
-	
+
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr saveFolder = "savegame";
-	
+
 	saveFolder.AppendPath( callback->directory );
-	
+
 	// Check for the required storage space.
 	int64 requiredSizeBytes = 0;
 	{
@@ -112,9 +112,9 @@ int idSaveGameThread::Save()
 			}
 		}
 	}
-	
+
 	int ret = ERROR_SUCCESS;
-	
+
 	// Check size of previous files if needed
 	// ALL THE FILES RIGHT NOW----  could use pattern later...
 	idStrList filesToDelete;
@@ -131,7 +131,7 @@ int idSaveGameThread::Save()
 			fileSystem->FreeFileList( files );
 		}
 	}
-	
+
 	// Inform user about size required if necessary
 	if( requiredSizeBytes > 0 && !callback->cancelled )
 	{
@@ -143,7 +143,7 @@ int idSaveGameThread::Save()
 			directory += "\\";	// so it doesn't think the last part is a file and ignores in the directory creation
 			fileSystem->CreateOSPath( directory );  // we can't actually check FileExists in production builds, so just try to create it
 			user->StorageSizeAvailable( requiredSizeBytes, callback->requiredSpaceInBytes );
-			
+
 			if( callback->requiredSpaceInBytes > 0 )
 			{
 				callback->errorCode = SAVEGAME_E_INSUFFICIENT_ROOM;
@@ -152,23 +152,23 @@ int idSaveGameThread::Save()
 			}
 		}
 	}
-	
+
 	// Delete all previous files if needed
 	// ALL THE FILES RIGHT NOW----  could use pattern later...
 	for( int i = 0; i < filesToDelete.Num() && !callback->cancelled; i++ )
 	{
 		fileSystem->RemoveFile( filesToDelete[i].c_str() );
 	}
-	
+
 	// Save the raw files.
 	for( int i = 0; i < callback->files.Num() && ret == ERROR_SUCCESS && !callback->cancelled; i++ )
 	{
 		idFile_SaveGame* file = callback->files[i];
-		
+
 		idStr fileName = saveFolder;
 		fileName.AppendPath( file->GetName() );
 		idStr tempFileName = va( "%s.temp", fileName.c_str() );
-		
+
 		idFile* outputFile = fileSystem->OpenFileWrite( tempFileName, "fs_savePath" );
 		if( outputFile == NULL )
 		{
@@ -178,13 +178,13 @@ int idSaveGameThread::Save()
 			ret = -1;
 			continue;
 		}
-		
+
 		if( ( file->type & SAVEGAMEFILE_PIPELINED ) != 0 )
 		{
-		
+
 			idFile_SaveGamePipelined* inputFile = dynamic_cast< idFile_SaveGamePipelined* >( file );
 			assert( inputFile != NULL );
-			
+
 			blockForIO_t block;
 			while( inputFile->NextWriteBlock( & block ) )
 			{
@@ -197,11 +197,11 @@ int idSaveGameThread::Save()
 					break;
 				}
 			}
-			
+
 		}
 		else
 		{
-		
+
 			if( ( file->type & SAVEGAMEFILE_BINARY ) || ( file->type & SAVEGAMEFILE_COMPRESSED ) )
 			{
 				if( saveGame_checksum.GetBool() )
@@ -217,7 +217,7 @@ int idSaveGameThread::Save()
 					}
 				}
 			}
-			
+
 			size_t size = outputFile->Write( file->GetDataPtr(), file->Length() );
 			if( size != ( size_t )file->Length() )
 			{
@@ -231,9 +231,9 @@ int idSaveGameThread::Save()
 				idLib::PrintfIf( saveGame_verbose.GetBool(), "Saved %s (%s)\n", fileName.c_str(), outputFile->GetFullPath() );
 			}
 		}
-		
+
 		delete outputFile;
-		
+
 		if( ret == ERROR_SUCCESS )
 		{
 			// Remove the old file
@@ -248,12 +248,12 @@ int idSaveGameThread::Save()
 			idLib::Warning( "Invalid write to temporary file %s.", tempFileName.c_str() );
 		}
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	// Removed because it seemed a bit drastic
 #if 0
 	// If there is an error, delete the partially saved folder
@@ -271,7 +271,7 @@ int idSaveGameThread::Save()
 		}
 	}
 #endif
-	
+
 	return ret;
 }
 
@@ -284,23 +284,23 @@ int idSaveGameThread::Load()
 {
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr saveFolder = "savegame";
-	
+
 	saveFolder.AppendPath( callback->directory );
-	
+
 	if( fileSystem->IsFolder( saveFolder, "fs_savePath" ) != FOLDER_YES )
 	{
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		return -1;
 	}
-	
+
 	int ret = ERROR_SUCCESS;
 	for( int i = 0; i < callback->files.Num() && ret == ERROR_SUCCESS && !callback->cancelled; i++ )
 	{
 		idFile_SaveGame* file = callback->files[i];
-		
+
 		idStr filename = saveFolder;
 		filename.AppendPath( file->GetName() );
-		
+
 		idFile* inputFile = fileSystem->OpenFileRead( filename.c_str() );
 		if( inputFile == NULL )
 		{
@@ -312,13 +312,13 @@ int idSaveGameThread::Load()
 			}
 			continue;
 		}
-		
+
 		if( ( file->type & SAVEGAMEFILE_PIPELINED ) != 0 )
 		{
-		
+
 			idFile_SaveGamePipelined* outputFile = dynamic_cast< idFile_SaveGamePipelined* >( file );
 			assert( outputFile != NULL );
-			
+
 			size_t lastReadBytes = 0;
 			blockForIO_t block;
 			while( outputFile->NextReadBlock( &block, lastReadBytes ) && !callback->cancelled )
@@ -332,13 +332,13 @@ int idSaveGameThread::Load()
 					break;
 				}
 			}
-			
+
 		}
 		else
 		{
-		
+
 			size_t size = inputFile->Length();
-			
+
 			unsigned int originalChecksum = 0;
 			if( ( file->type & SAVEGAMEFILE_BINARY ) != 0 || ( file->type & SAVEGAMEFILE_COMPRESSED ) != 0 )
 			{
@@ -351,9 +351,9 @@ int idSaveGameThread::Load()
 					}
 				}
 			}
-			
+
 			file->SetLength( size );
-			
+
 			size_t sizeRead = inputFile->Read( ( void* )file->GetDataPtr(), size );
 			if( sizeRead != size )
 			{
@@ -361,7 +361,7 @@ int idSaveGameThread::Load()
 				callback->errorCode = SAVEGAME_E_CORRUPTED;
 				ret = -1;
 			}
-			
+
 			if( ( file->type & SAVEGAMEFILE_BINARY ) != 0 || ( file->type & SAVEGAMEFILE_COMPRESSED ) != 0 )
 			{
 				if( saveGame_checksum.GetBool() )
@@ -376,15 +376,15 @@ int idSaveGameThread::Load()
 				}
 			}
 		}
-		
+
 		delete inputFile;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -399,9 +399,9 @@ int idSaveGameThread::Delete()
 {
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr saveFolder = "savegame";
-	
+
 	saveFolder.AppendPath( callback->directory );
-	
+
 	int ret = ERROR_SUCCESS;
 	if( fileSystem->IsFolder( saveFolder, "fs_savePath" ) == FOLDER_YES )
 	{
@@ -411,7 +411,7 @@ int idSaveGameThread::Delete()
 			fileSystem->RemoveFile( files->GetFile( i ) );
 		}
 		fileSystem->FreeFileList( files );
-		
+
 		fileSystem->RemoveDir( saveFolder );
 	}
 	else
@@ -419,12 +419,12 @@ int idSaveGameThread::Delete()
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		ret = -1;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -437,15 +437,15 @@ int idSaveGameThread::Enumerate()
 {
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr saveFolder = "savegame";
-	
+
 	callback->detailList.Clear();
-	
+
 	int ret = ERROR_SUCCESS;
 	if( fileSystem->IsFolder( saveFolder, "fs_savePath" ) == FOLDER_YES )
 	{
 		idFileList* files = fileSystem->ListFilesTree( saveFolder, SAVEGAME_DETAILS_FILENAME );
 		const idStrList& fileList = files->GetList();
-		
+
 		for( int i = 0; i < fileList.Num() && !callback->cancelled; i++ )
 		{
 			idSaveGameDetails* details = callback->detailList.Alloc();
@@ -455,9 +455,9 @@ int idSaveGameThread::Enumerate()
 				break;
 			}
 			idStr directory = fileList[i];
-			
+
 			idFile* file = fileSystem->OpenFileRead( directory.c_str() );
-			
+
 			if( file != NULL )
 			{
 				// Read the DETAIL file for the enumerated data
@@ -469,7 +469,7 @@ int idSaveGameThread::Enumerate()
 						ret = -1;
 					}
 				}
-				
+
 				// Use the date from the directory
 				WIN32_FILE_ATTRIBUTE_DATA attrData;
 				BOOL attrRet = GetFileAttributesEx( file->GetFullPath(), GetFileExInfoStandard, &attrData );
@@ -482,7 +482,7 @@ int idSaveGameThread::Enumerate()
 					ULARGE_INTEGER	itime;
 					FILETIME		base_ft;
 					BOOL			success = SystemTimeToFileTime( &base_st, &base_ft );
-					
+
 					itime.QuadPart = ( ( ULARGE_INTEGER* )&lastWriteTime )->QuadPart;
 					if( success )
 					{
@@ -501,7 +501,7 @@ int idSaveGameThread::Enumerate()
 			{
 				details->damaged = true;
 			}
-			
+
 			// populate the game details struct
 			directory = directory.StripFilename();
 			details->slotName = directory.c_str() + saveFolder.Length() + 1; // Strip off the prefix too
@@ -514,12 +514,12 @@ int idSaveGameThread::Enumerate()
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		ret = -3;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -532,24 +532,24 @@ int idSaveGameThread::EnumerateFiles()
 {
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr folder = "savegame";
-	
+
 	folder.AppendPath( callback->directory );
-	
+
 	callback->files.Clear();
-	
+
 	int ret = ERROR_SUCCESS;
 	if( fileSystem->IsFolder( folder, "fs_savePath" ) == FOLDER_YES )
 	{
 		// get listing of all the files, but filter out below
 		idFileList* files = fileSystem->ListFilesTree( folder, "*.*" );
-		
+
 		// look for the instance pattern
 		for( int i = 0; i < files->GetNumFiles() && ret == 0 && !callback->cancelled; i++ )
 		{
 			idStr fullFilename = files->GetFile( i );
 			idStr filename = fullFilename;
 			filename.StripPath();
-			
+
 			if( filename.IcmpPrefix( callback->pattern ) != 0 )
 			{
 				continue;
@@ -558,13 +558,13 @@ int idSaveGameThread::EnumerateFiles()
 			{
 				continue;
 			}
-			
+
 			// Read the DETAIL file for the enumerated data
 			if( callback->mode & SAVEGAME_MBF_READ_DETAILS )
 			{
 				idSaveGameDetails& details = callback->description;
 				idFile* uncompressed = fileSystem->OpenFileRead( fullFilename.c_str() );
-				
+
 				if( uncompressed == NULL )
 				{
 					details.damaged = true;
@@ -575,15 +575,15 @@ int idSaveGameThread::EnumerateFiles()
 					{
 						ret = -1;
 					}
-					
+
 					delete uncompressed;
 				}
-				
+
 				// populate the game details struct
 				details.slotName = callback->directory;
 				assert( fileSystem->IsFolder( details.slotName, "fs_savePath" ) == FOLDER_YES );
 			}
-			
+
 			idFile_SaveGame* file = new( TAG_SAVEGAMES ) idFile_SaveGame( filename, SAVEGAMEFILE_AUTO_DELETE );
 			callback->files.Append( file );
 		}
@@ -594,12 +594,12 @@ int idSaveGameThread::EnumerateFiles()
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		ret = -3;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -612,9 +612,9 @@ int idSaveGameThread::DeleteFiles()
 {
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr folder = "savegame";
-	
+
 	folder.AppendPath( callback->directory );
-	
+
 	// delete the explicitly requested files first
 	for( int j = 0; j < callback->files.Num() && !callback->cancelled; ++j )
 	{
@@ -623,19 +623,19 @@ int idSaveGameThread::DeleteFiles()
 		fullpath.AppendPath( file->GetName() );
 		fileSystem->RemoveFile( fullpath );
 	}
-	
+
 	int ret = ERROR_SUCCESS;
 	if( fileSystem->IsFolder( folder, "fs_savePath" ) == FOLDER_YES )
 	{
 		// get listing of all the files, but filter out below
 		idFileList* files = fileSystem->ListFilesTree( folder, "*.*" );
-		
+
 		// look for the instance pattern
 		for( int i = 0; i < files->GetNumFiles() && !callback->cancelled; i++ )
 		{
 			idStr filename = files->GetFile( i );
 			filename.StripPath();
-			
+
 			// If there are post/pre patterns to match, make sure we adhere to the patterns
 			if( callback->pattern.IsEmpty() || ( filename.IcmpPrefix( callback->pattern ) != 0 ) )
 			{
@@ -645,7 +645,7 @@ int idSaveGameThread::DeleteFiles()
 			{
 				continue;
 			}
-			
+
 			fileSystem->RemoveFile( files->GetFile( i ) );
 		}
 		fileSystem->FreeFileList( files );
@@ -655,12 +655,12 @@ int idSaveGameThread::DeleteFiles()
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		ret = -3;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -676,7 +676,7 @@ int idSaveGameThread::DeleteAll()
 	idSaveLoadParms* callback = data.saveLoadParms;
 	idStr saveFolder = "savegame";
 	int ret = ERROR_SUCCESS;
-	
+
 	if( fileSystem->IsFolder( saveFolder, "fs_savePath" ) == FOLDER_YES )
 	{
 		idFileList* files = fileSystem->ListFilesTree( saveFolder, "/|*" );
@@ -700,12 +700,12 @@ int idSaveGameThread::DeleteAll()
 		callback->errorCode = SAVEGAME_E_FOLDER_NOT_FOUND;
 		ret = -3;
 	}
-	
+
 	if( data.saveLoadParms->cancelled )
 	{
 		data.saveLoadParms->errorCode = SAVEGAME_E_CANCELLED;
 	}
-	
+
 	return ret;
 }
 
@@ -717,7 +717,7 @@ idSaveGameThread::Run
 int idSaveGameThread::Run()
 {
 	int ret = ERROR_SUCCESS;
-	
+
 	try
 	{
 		idLocalUserWin* user = GetLocalUserFromSaveParms( data );
@@ -725,12 +725,12 @@ int idSaveGameThread::Run()
 		{
 			data.saveLoadParms->errorCode = SAVEGAME_E_UNABLE_TO_SELECT_STORAGE_DEVICE;
 		}
-		
+
 		if( savegame_winInduceDelay.GetInteger() > 0 )
 		{
 			Sys_Sleep( savegame_winInduceDelay.GetInteger() );
 		}
-		
+
 		if( data.saveLoadParms->mode & SAVEGAME_MBF_SAVE )
 		{
 			ret = Save();
@@ -759,7 +759,7 @@ int idSaveGameThread::Run()
 		{
 			ret = EnumerateFiles();
 		}
-		
+
 		// if something failed and no one set an error code, do it now.
 		if( ret != 0 && data.saveLoadParms->errorCode == SAVEGAME_E_NONE )
 		{
@@ -771,22 +771,22 @@ int idSaveGameThread::Run()
 		// if anything horrible happens, leave it up to the savegame processors to handle in PostProcess().
 		data.saveLoadParms->errorCode = SAVEGAME_E_UNKNOWN;
 	}
-	
+
 	// Make sure to cancel any save game file pipelines.
 	if( data.saveLoadParms->errorCode != SAVEGAME_E_NONE )
 	{
 		data.saveLoadParms->CancelSaveGameFilePipelines();
 	}
-	
+
 	// Override error if cvar set
 	if( savegame_error.GetInteger() != 0 )
 	{
 		data.saveLoadParms->errorCode = ( saveGameError_t )savegame_error.GetInteger();
 	}
-	
+
 	// Tell the waiting caller that we are done
 	data.saveLoadParms->callbackSignal.Raise();
-	
+
 	return ret;
 }
 
@@ -799,28 +799,28 @@ void Sys_SaveGameCheck( bool& exists, bool& autosaveExists )
 {
 	exists = false;
 	autosaveExists = false;
-	
+
 	const idStr autosaveFolderStr = AddSaveFolderPrefix( SAVEGAME_AUTOSAVE_FOLDER, idSaveGameManager::PACKAGE_GAME );
 	const char* autosaveFolder = autosaveFolderStr.c_str();
 	const char* saveFolder = "savegame";
-	
+
 	if( fileSystem->IsFolder( saveFolder, "fs_savePath" ) == FOLDER_YES )
 	{
 		idFileList* files = fileSystem->ListFiles( saveFolder, "/" );
 		const idStrList& fileList = files->GetList();
-		
+
 		idLib::PrintfIf( saveGame_verbose.GetBool(), "found %d savegames\n", fileList.Num() );
-		
+
 		for( int i = 0; i < fileList.Num(); i++ )
 		{
 			const char* directory = va( "%s/%s", saveFolder, fileList[i].c_str() );
-			
+
 			if( fileSystem->IsFolder( directory, "fs_savePath" ) == FOLDER_YES )
 			{
 				exists = true;
-				
+
 				idLib::PrintfIf( saveGame_verbose.GetBool(), "found savegame: %s\n", fileList[i].c_str() );
-				
+
 				if( idStr::Icmp( fileList[i].c_str(), autosaveFolder ) == 0 )
 				{
 					autosaveExists = true;
@@ -828,7 +828,7 @@ void Sys_SaveGameCheck( bool& exists, bool& autosaveExists )
 				}
 			}
 		}
-		
+
 		fileSystem->FreeFileList( files );
 	}
 }

@@ -57,19 +57,19 @@ typedef struct
 typedef struct
 {
 	struct jpeg_entropy_decoder pub;/* public fields */
-	
+
 	/* These fields are loaded into local variables at start of each MCU.
 	 * In case of suspension, we exit WITHOUT updating them.
 	 */
 	bitread_perm_state bitstate;/* Bit buffer at start of MCU */
 	savable_state      saved; /* Other state at start of MCU */
-	
+
 	/* These fields are NOT loaded into local working state. */
 	unsigned int restarts_to_go;/* MCUs left in this restart interval */
-	
+
 	/* Pointers to derived tables (these workspaces have image lifespan) */
 	d_derived_tbl* derived_tbls[NUM_HUFF_TBLS];
-	
+
 	d_derived_tbl* ac_derived_tbl; /* active table during an AC scan */
 } phuff_entropy_decoder;
 
@@ -98,9 +98,9 @@ start_pass_phuff_decoder( j_decompress_ptr cinfo )
 	int ci, coefi, tbl;
 	int* coef_bit_ptr;
 	jpeg_component_info* compptr;
-	
+
 	is_DC_band = ( cinfo->Ss == 0 );
-	
+
 	/* Validate scan parameters */
 	bad = FALSE;
 	if( is_DC_band )
@@ -162,7 +162,7 @@ start_pass_phuff_decoder( j_decompress_ptr cinfo )
 			coef_bit_ptr[coefi] = cinfo->Al;
 		}
 	}
-	
+
 	/* Select MCU decoding routine */
 	if( cinfo->Ah == 0 )
 	{
@@ -186,7 +186,7 @@ start_pass_phuff_decoder( j_decompress_ptr cinfo )
 			entropy->pub.decode_mcu = decode_mcu_AC_refine;
 		}
 	}
-	
+
 	for( ci = 0; ci < cinfo->comps_in_scan; ci++ )
 	{
 		compptr = cinfo->cur_comp_info[ci];
@@ -223,15 +223,15 @@ start_pass_phuff_decoder( j_decompress_ptr cinfo )
 		/* Initialize DC predictions to 0 */
 		entropy->saved.last_dc_val[ci] = 0;
 	}
-	
+
 	/* Initialize bitread state variables */
 	entropy->bitstate.bits_left = 0;
 	entropy->bitstate.get_buffer = 0;/* unnecessary, but keeps Purify quiet */
 	entropy->bitstate.printed_eod = FALSE;
-	
+
 	/* Initialize private state variables */
 	entropy->saved.EOBRUN = 0;
-	
+
 	/* Initialize restart counter */
 	entropy->restarts_to_go = cinfo->restart_interval;
 }
@@ -277,18 +277,18 @@ process_restart( j_decompress_ptr cinfo )
 {
 	phuff_entropy_ptr entropy = ( phuff_entropy_ptr ) cinfo->entropy;
 	int ci;
-	
+
 	/* Throw away any unused bits remaining in bit buffer; */
 	/* include any full bytes in next_marker's count of discarded bytes */
 	cinfo->marker->discarded_bytes += entropy->bitstate.bits_left / 8;
 	entropy->bitstate.bits_left = 0;
-	
+
 	/* Advance past the RSTn marker */
 	if( !( *cinfo->marker->read_restart_marker )( cinfo ) )
 	{
 		return FALSE;
 	}
-	
+
 	/* Re-initialize DC predictions to 0 */
 	for( ci = 0; ci < cinfo->comps_in_scan; ci++ )
 	{
@@ -296,13 +296,13 @@ process_restart( j_decompress_ptr cinfo )
 	}
 	/* Re-init EOB run count, too */
 	entropy->saved.EOBRUN = 0;
-	
+
 	/* Reset restart counter */
 	entropy->restarts_to_go = cinfo->restart_interval;
-	
+
 	/* Next segment can get another out-of-data warning */
 	entropy->bitstate.printed_eod = FALSE;
-	
+
 	return TRUE;
 }
 
@@ -341,7 +341,7 @@ decode_mcu_DC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 	savable_state state;
 	d_derived_tbl* tbl;
 	jpeg_component_info* compptr;
-	
+
 	/* Process restart marker if needed; may have to suspend */
 	if( cinfo->restart_interval )
 	{
@@ -353,46 +353,46 @@ decode_mcu_DC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			}
 		}
 	}
-	
+
 	/* Load up working state */
 	BITREAD_LOAD_STATE( cinfo, entropy->bitstate );
 	ASSIGN_STATE( state, entropy->saved );
-	
+
 	/* Outer loop handles each block in the MCU */
-	
+
 	for( blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++ )
 	{
 		block = MCU_data[blkn];
 		ci = cinfo->MCU_membership[blkn];
 		compptr = cinfo->cur_comp_info[ci];
 		tbl = entropy->derived_tbls[compptr->dc_tbl_no];
-		
+
 		/* Decode a single block's worth of coefficients */
-		
+
 		/* Section F.2.2.1: decode the DC coefficient difference */
 		HUFF_DECODE( s, br_state, tbl, return FALSE, label1 );
 		if( s )
 		{
 			CHECK_BIT_BUFFER( br_state, s, return FALSE );
-			
+
 			r = GET_BITS( s );
 			s = HUFF_EXTEND( r, s );
 		}
-		
+
 		/* Convert DC difference to actual value, update last_dc_val */
 		s += state.last_dc_val[ci];
 		state.last_dc_val[ci] = s;
 		/* Scale and output the DC coefficient (assumes jpeg_natural_order[0]=0) */
 		( *block )[0] = ( JCOEF )( s << Al );
 	}
-	
+
 	/* Completed MCU, so update state */
 	BITREAD_SAVE_STATE( cinfo, entropy->bitstate );
 	ASSIGN_STATE( entropy->saved, state );
-	
+
 	/* Account for restart interval (no-op if not using restarts) */
 	entropy->restarts_to_go--;
-	
+
 	return TRUE;
 }
 
@@ -413,7 +413,7 @@ decode_mcu_AC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 	JBLOCKROW block;
 	BITREAD_STATE_VARS;
 	d_derived_tbl* tbl;
-	
+
 	/* Process restart marker if needed; may have to suspend */
 	if( cinfo->restart_interval )
 	{
@@ -425,14 +425,14 @@ decode_mcu_AC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			}
 		}
 	}
-	
+
 	/* Load up working state.
 	 * We can avoid loading/saving bitread state if in an EOB run.
 	 */
 	EOBRUN = entropy->saved.EOBRUN;/* only part of saved state we care about */
-	
+
 	/* There is always only one block per MCU */
-	
+
 	if( EOBRUN > 0 )    /* if it's a band of zeroes... */
 	{
 		EOBRUN--;
@@ -442,7 +442,7 @@ decode_mcu_AC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 		BITREAD_LOAD_STATE( cinfo, entropy->bitstate );
 		block = MCU_data[0];
 		tbl = entropy->ac_derived_tbl;
-		
+
 		for( k = cinfo->Ss; k <= Se; k++ )
 		{
 			HUFF_DECODE( s, br_state, tbl, return FALSE, label2 );
@@ -451,7 +451,7 @@ decode_mcu_AC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			if( s )
 			{
 				k += r;
-				
+
 				CHECK_BIT_BUFFER( br_state, s, return FALSE );
 				r = GET_BITS( s );
 				s = HUFF_EXTEND( r, s );
@@ -478,16 +478,16 @@ decode_mcu_AC_first( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 				}
 			}
 		}
-		
+
 		BITREAD_SAVE_STATE( cinfo, entropy->bitstate );
 	}
-	
+
 	/* Completed MCU, so update state */
 	entropy->saved.EOBRUN = EOBRUN;/* only part of saved state we care about */
-	
+
 	/* Account for restart interval (no-op if not using restarts) */
 	entropy->restarts_to_go--;
-	
+
 	return TRUE;
 }
 
@@ -506,7 +506,7 @@ decode_mcu_DC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 	int blkn;
 	JBLOCKROW block;
 	BITREAD_STATE_VARS;
-	
+
 	/* Process restart marker if needed; may have to suspend */
 	if( cinfo->restart_interval )
 	{
@@ -518,16 +518,16 @@ decode_mcu_DC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			}
 		}
 	}
-	
+
 	/* Load up working state */
 	BITREAD_LOAD_STATE( cinfo, entropy->bitstate );
-	
+
 	/* Outer loop handles each block in the MCU */
-	
+
 	for( blkn = 0; blkn < cinfo->blocks_in_MCU; blkn++ )
 	{
 		block = MCU_data[blkn];
-		
+
 		/* Encoded data is simply the next bit of the two's-complement DC value */
 		CHECK_BIT_BUFFER( br_state, 1, return FALSE );
 		if( GET_BITS( 1 ) )
@@ -536,13 +536,13 @@ decode_mcu_DC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 		}
 		/* Note: since we use |=, repeating the assignment later is safe */
 	}
-	
+
 	/* Completed MCU, so update state */
 	BITREAD_SAVE_STATE( cinfo, entropy->bitstate );
-	
+
 	/* Account for restart interval (no-op if not using restarts) */
 	entropy->restarts_to_go--;
-	
+
 	return TRUE;
 }
 
@@ -566,7 +566,7 @@ decode_mcu_AC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 	d_derived_tbl* tbl;
 	int num_newnz;
 	int newnz_pos[DCTSIZE2];
-	
+
 	/* Process restart marker if needed; may have to suspend */
 	if( cinfo->restart_interval )
 	{
@@ -578,15 +578,15 @@ decode_mcu_AC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			}
 		}
 	}
-	
+
 	/* Load up working state */
 	BITREAD_LOAD_STATE( cinfo, entropy->bitstate );
 	EOBRUN = entropy->saved.EOBRUN;/* only part of saved state we care about */
-	
+
 	/* There is always only one block per MCU */
 	block = MCU_data[0];
 	tbl = entropy->ac_derived_tbl;
-	
+
 	/* If we are forced to suspend, we must undo the assignments to any newly
 	 * nonzero coefficients in the block, because otherwise we'd get confused
 	 * next time about which coefficients were already nonzero.
@@ -594,10 +594,10 @@ decode_mcu_AC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 	 * instead, we can test the current bit position to see if we already did it.
 	 */
 	num_newnz = 0;
-	
+
 	/* initialize coefficient loop counter to start of band */
 	k = cinfo->Ss;
-	
+
 	if( EOBRUN == 0 )
 	{
 		for( ; k <= Se; k++ )
@@ -681,7 +681,7 @@ decode_mcu_AC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 			}
 		}
 	}
-	
+
 	if( EOBRUN > 0 )
 	{
 		/* Scan any remaining coefficient positions after the end-of-band
@@ -714,23 +714,23 @@ decode_mcu_AC_refine( j_decompress_ptr cinfo, JBLOCKROW* MCU_data )
 		/* Count one block completed in EOB run */
 		EOBRUN--;
 	}
-	
+
 	/* Completed MCU, so update state */
 	BITREAD_SAVE_STATE( cinfo, entropy->bitstate );
 	entropy->saved.EOBRUN = EOBRUN;/* only part of saved state we care about */
-	
+
 	/* Account for restart interval (no-op if not using restarts) */
 	entropy->restarts_to_go--;
-	
+
 	return TRUE;
-	
+
 undoit:
 	/* Re-zero any output coefficients that we made newly nonzero */
 	while( num_newnz > 0 )
 	{
 		( *block )[newnz_pos[--num_newnz]] = 0;
 	}
-	
+
 	return FALSE;
 }
 
@@ -745,19 +745,19 @@ jinit_phuff_decoder( j_decompress_ptr cinfo )
 	phuff_entropy_ptr entropy;
 	int* coef_bit_ptr;
 	int ci, i;
-	
+
 	entropy = ( phuff_entropy_ptr )
 			  ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
 											SIZEOF( phuff_entropy_decoder ) );
 	cinfo->entropy = ( struct jpeg_entropy_decoder* ) entropy;
 	entropy->pub.start_pass = start_pass_phuff_decoder;
-	
+
 	/* Mark derived tables unallocated */
 	for( i = 0; i < NUM_HUFF_TBLS; i++ )
 	{
 		entropy->derived_tbls[i] = NULL;
 	}
-	
+
 	/* Create progression status table */
 	cinfo->coef_bits = ( int ( * )[DCTSIZE2] )
 					   ( *cinfo->mem->alloc_small )( ( j_common_ptr ) cinfo, JPOOL_IMAGE,
